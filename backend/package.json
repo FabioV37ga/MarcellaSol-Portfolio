@@ -1,0 +1,31 @@
+{
+  "name": "impostor-api",
+  "version": "1.0.0",
+  "description": "Backend do jogo 'impostor'",
+  "main": "index.js",
+  "scripts": {
+    "test": "\"\"",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "start": "node dist/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "\"https://github.com/FabioV37ga/impostor\""
+  },
+  "keywords": [
+    "\"\""
+  ],
+  "author": "Fabio Veiga",
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "express": "^5.2.1",
+    "mongoose": "^9.3.3",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "ts-node-dev": "^2.0.0"
+  }
+}

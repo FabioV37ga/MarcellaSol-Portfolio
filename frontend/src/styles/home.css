@@ -1,0 +1,181 @@
+/* ---------------------------------- */
+/* Logo */
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+}
+
+.logo-container img {
+    margin-top: 40px;
+    width: 90%;
+    max-width: 500px;
+    display: none;
+}
+
+.logo-container img.loaded {
+    animation: showLogo .35s linear forwards
+}
+
+.logo {
+    position: absolute;
+    top: 0;
+    margin: 0 auto;
+    z-index: 3;
+}
+
+@keyframes showLogo {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0%
+    }
+
+    100% {
+        transform: translateY(0px);
+        opacity: 100%
+    }
+}
+
+
+/* ---------------------------------- */
+/* texto "multiplayer" */
+
+.button-area-text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.button-area-text p {
+    color: white;
+    text-transform: uppercase;
+    font-family: monospace;
+    letter-spacing: 5px;
+    font-size: 12px;
+}
+
+.horizontal-bar {
+    display: block;
+    height: 2px;
+    width: 50px;
+    background: linear-gradient(9052deg, rgba(125, 19, 0, 0) 0%, rgb(255 123 0 / 86%) 100%);
+
+    margin: 0 10px
+}
+
+.horizontal-bar:nth-child(3) {
+    transform: scaleX(-1);
+}
+
+
+
+
+/* ---------------------------------- */
+/* Botões */
+
+.button-area,
+.buttons {
+    margin: 0 auto;
+    align-items: center;
+    justify-content: space-around;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.button-area {
+    height: 200px;
+    margin-top: 44%;
+    position: absolute;
+    max-width: 268px;
+}
+
+.buttons {
+    height: 140px
+}
+
+#join-lobby-btn,
+#create-lobby-btn {
+    text-shadow: 0px 0px 9px rgba(255, 255, 255, 1);
+    color: white;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    width: 240px;
+    height: 60px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    /* Gradiente */
+    background: linear-gradient(180deg, #ffd54a 0%, #ff7a00 60%, #ff2a00 100%);
+
+    /* Glow */
+    box-shadow:
+        0 0 8px rgba(255, 80, 0, 0.8),
+        0 0 16px rgba(255, 50, 0, 0.6),
+        0 4px 0 #8a1c00;
+
+    /* brilho interno */
+    outline: 2px solid rgba(255, 200, 100, 0.6);
+    outline-offset: -3px;
+
+    transition: all 0.1s ease-in-out;
+}
+
+/* Hover */
+#join-lobby-btn:hover,
+#create-lobby-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Clique */
+#join-lobby-btn:active,
+#create-lobby-btn:active {
+    transform: translateY(3px);
+    box-shadow:
+        0 0 6px rgba(255, 80, 0, 0.6),
+        0 0 10px rgba(255, 50, 0, 0.4),
+        0 2px 0 #8a1c00;
+}
+
+.profile {
+    position: absolute;
+    width: 100px;
+    height: 80px;
+    margin: 0 auto;
+    top: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.profile-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #ffd54a 0%, #ff7a00 60%, #ff2a00 100%);
+    margin-bottom: 4px;
+    overflow: hidden;
+}
+
+.profile-image img{
+    width: 100%;
+}
+
+.profile-name {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    font-family: sans-serif;
+    color: white;
+    text-transform: capitalize;
+    text-shadow: 0px 0px 9px rgba(255, 255, 255, 1);
+}

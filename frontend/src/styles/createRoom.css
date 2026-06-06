@@ -1,0 +1,119 @@
+.create-room {
+    margin-top: 50%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.create-room-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    color: white;
+    text-transform: uppercase;
+    font-family: monospace;
+    letter-spacing: 5px;
+    font-size: 12px;
+
+}
+
+.create-room-inputs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.create-room-words {
+    width: calc(95% - 20px);
+    max-width: 293px;
+    max-height: 145px;
+
+    padding: 10px;
+
+    border-radius: 12px;
+    border: 2px solid #ff6a00;
+
+    background: linear-gradient(180deg, rgb(255 136 0 / 35%), rgb(160 86 0 / 60%));
+    color: #fff;
+
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-align: center;
+
+    outline: none;
+
+    box-shadow: 0px 0px 9px rgb(255 136 0);
+
+    overflow-y: scroll
+}
+
+.randomizeWords {
+    margin: 16px 0;
+    color: white;
+    background: none;
+    border: none;
+    font-size: 25px;
+}
+
+.comma-note {
+    margin: 20px 0;
+    font-size: 14px;
+    font-family: sans-serif;
+    color: rgba(255, 255, 255, 0.521)
+}
+
+.confirmRoomCreation {
+    text-shadow: 0px 0px 9px rgba(255, 255, 255, 1);
+    color: white;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    width: 240px;
+    height: 60px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+
+    /* Gradiente */
+    background: linear-gradient(180deg, #ffd54a 0%, #ff7a00 60%, #ff2a00 100%);
+
+    /* Glow */
+    box-shadow:
+        0 0 8px rgba(255, 80, 0, 0.8),
+        0 0 16px rgba(255, 50, 0, 0.6),
+        0 4px 0 #8a1c00;
+
+    /* brilho interno */
+    outline: 2px solid rgba(255, 200, 100, 0.6);
+    outline-offset: -3px;
+}
+
+.confirmedWord {
+    background: linear-gradient(180deg, #ffd54a 0%, #ff7b00 100%);
+    border-radius: 5px;
+    display: inline-block;
+    height: 20px;
+    /* margin: 0 5px 5px 5px; */
+    margin: 5px 2px;
+    color: #750000;
+    font-family: sans-serif;
+    padding: 3px 8px;
+}
+
+#createRoom-close {
+    text-transform: capitalize;
+    margin-top: 20px;
+    color: white;
+    font-family: sans-serif;
+    background: none;
+    border: none;
+    font-size: 20px;
+}

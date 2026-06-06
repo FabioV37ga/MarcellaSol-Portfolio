@@ -1,0 +1,29 @@
+{
+  "name": "impostor",
+  "version": "1.0.0",
+  "description": "Jogo do impostor",
+  "main": "app.js",
+  "scripts": {
+    "dev:build": "npm --prefix frontend run build",
+    "dev:front": "npm --prefix frontend run dev -- --host",
+    "dev:back": "npm --prefix backend run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FabioV37ga/impostor.git"
+  },
+  "keywords": [
+    "web-game",
+    "impostor",
+    "typescript"
+  ],
+  "author": "Fabio Veiga",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FabioV37ga/impostor/issues"
+  },
+  "homepage": "https://github.com/FabioV37ga/impostor#readme",
+  "dependencies": {
+    "vite": "^8.0.3"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "impostor",
+  "version": "1.0.0",
+  "description": "jogo do impostor",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FabioV37ga/impostor"
+  },
+  "author": "FabioV37ga",
+  "license": "ISC",
+  "dependencies": {
+    "animejs": "^4.2.2",
+    "nanohtml": "^1.10.0",
+    "socket.io-client": "^4.8.3",
+    "umbrellajs": "^3.3.3"
+  },
+  "devDependencies": {
+    "vite": "^7.2.4"
+  }
+}

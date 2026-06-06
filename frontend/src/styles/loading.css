@@ -1,0 +1,46 @@
+.loading-screen {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(180deg, #a00a0a 0%, #3e0000 60%, #0a0200 100%);
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 60%;
+    font-family: sans-serif;
+}
+
+.loading-content i{
+    color: #ffa528;
+    font-size: 45px;
+    animation: spin .5s steps(9) infinite
+}
+
+@keyframes spin{
+    0%{
+        transform: rotate(0deg);
+    }
+    100%{
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    /* color: rgb(167, 97, 57); */
+    color: #ffa528;
+    font-size: 18px;
+}
+
+.loading-content small {
+    /* color: rgb(167, 97, 57); */
+    color: #e1e1e1;
+    font-size: 11px;
+}
