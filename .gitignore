@@ -1,3 +1,7 @@
 node_modules/
 frontend/dist/
-backend/dist/
+frontend/node_modules/
+backend/dist
+backend/node_modules/
+.env
+*.code-workspace

@@ -1,29 +1,26 @@
 {
-  "name": "impostor",
+  "name": "marcellasol-portfolio",
+  "type": "module",
   "version": "1.0.0",
-  "description": "Jogo do impostor",
-  "main": "app.js",
+  "description": "Porfolio profisisonal de Marcella Sol, Designer de interiores.",
+  "main": "index.js",
   "scripts": {
-    "dev:build": "npm --prefix frontend run build",
-    "dev:front": "npm --prefix frontend run dev -- --host",
-    "dev:back": "npm --prefix backend run dev"
+    "dev:front": "cd frontend && npm run dev",
+    "build:front": "cd frontend && npm run build",
+    "dev:back": "cd backend && npm run dev",
+    "build:back": "cd backend && npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FabioV37ga/impostor.git"
+    "url": "git+https://github.com/FabioV37ga/MarcellaSol-Portfolio.git"
   },
   "keywords": [
-    "web-game",
-    "impostor",
-    "typescript"
+    "Portfolio"
   ],
-  "author": "Fabio Veiga",
+  "author": "Fabio Veiga, Marcella Sol",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/FabioV37ga/impostor/issues"
+    "url": "https://github.com/FabioV37ga/MarcellaSol-Portfolio/issues"
   },
-  "homepage": "https://github.com/FabioV37ga/impostor#readme",
-  "dependencies": {
-    "vite": "^8.0.3"
-  }
+  "homepage": "https://github.com/FabioV37ga/MarcellaSol-Portfolio#readme"
 }

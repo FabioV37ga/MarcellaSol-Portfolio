@@ -1,28 +1,46 @@
-// TODO: organizar código, separar em arquivos, etc
-
 import express from "express";
-import http from "http";
-import { Server } from "socket.io";
-import { addSocketListeners } from "./listeners/index.listener";
+import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import connect from "./config/dbConnect.js";
+import routes from "./routes/index.js";
+
+dotenv.config();
 
 const app = express();
-const server = http.createServer(app);
+const PORT = process.env.PORT || 3000;
 
-const PORT = process.env.PORT || 3001;
+// Configuração de CORS
+const corsOptions = {
+  origin: [
+    'http://localhost:8080',
+    'https://marcellasol.com.br',
+    'https://www.marcellasol.com.br',
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-const io = new Server(server, {
-    cors: {
-        origin: [
-            "http://localhost:3210",
-            "http://192.168.15.1:3210",
-            "http://192.168.15.2:3210",
-            "https://impostor-3r7r.onrender.com"
-        ]
-    }
+app.use(cors(corsOptions));
+
+// Conectar ao MongoDB
+connect();
+
+// Rota de health check
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-addSocketListeners(io)
+// Configurar rotas
+routes(app);
 
-server.listen(PORT, () => {
-    console.log("Servidor rodando na porta", PORT);
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`✓ Servidor rodando na porta ${PORT}`);
+  console.log(`✓ Conectado ao MongoDB`);
 });

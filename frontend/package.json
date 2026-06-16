@@ -1,28 +1,23 @@
 {
-  "name": "impostor",
-  "version": "1.0.0",
-  "description": "jogo do impostor",
-  "main": "index.js",
+  "name": "marcellasol-portfolio-frontend",
   "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "vite",
-    "dev": "vite --host",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vite",
+    "build": "tsc && vite build"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/FabioV37ga/impostor"
-  },
-  "author": "FabioV37ga",
+  "author": "Fabio Veiga",
   "license": "ISC",
   "dependencies": {
-    "animejs": "^4.2.2",
+    "animejs": "^4.4.1",
     "nanohtml": "^1.10.0",
-    "socket.io-client": "^4.8.3",
-    "umbrellajs": "^3.3.3"
+    "typescript": "^6.0.3",
+    "umbrellajs": "^3.3.3",
+    "vite": "^8.0.16"
   },
   "devDependencies": {
-    "vite": "^7.2.4"
+    "@types/node": "^25.9.3"
   }
 }

@@ -8,11 +8,11 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 3210,
+    port: 8080,
     open: true,
   },
   preview: {
     // Allow Render's host so `vite preview` accepts requests to that hostname, also, localhost for local testing
-    allowedHosts: ['fabioveiga.onrender.com', 'localhost'],
+    allowedHosts: ['localhost'],
   },
 });
