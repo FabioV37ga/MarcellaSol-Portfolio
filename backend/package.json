@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "dev:back": "tsx src/server.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "prod": "npm run build && npm start"
   },
   "author": "Fabio Veiga",
   "license": "ISC",
