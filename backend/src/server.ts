@@ -15,9 +15,9 @@ const corsOptions = {
   origin: [
     'http://localhost:8080',
     // 'https://marcellasol.com.br',
-    'http://marcellasol.com.br',
+    'https://marcellasol.com.br',
     // 'https://www.marcellasol.com.br',
-    'http://www.marcellasol.com.br',
+    'https://www.marcellasol.com.br',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
