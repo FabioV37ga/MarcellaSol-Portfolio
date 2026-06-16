@@ -30,7 +30,7 @@ app.use(cors(corsOptions));
 connect();
 
 // Rota de health check
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
     mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
