@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 async function connect() {
   try {
-    console.log(process.env.DB_CONNECTION_STRING);
+    // console.log(process.env.DB_CONNECTION_STRING);
     const uri = process.env.DB_CONNECTION_STRING;
     
     if (!uri) {

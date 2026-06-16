@@ -11,7 +11,7 @@ import routes from "./routes/index.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({
-  path: path.resolve(process.cwd(), "backend/.env")
+  path: path.resolve(process.cwd(), ".env")
 });
 
 console.log("CWD:", process.cwd());
