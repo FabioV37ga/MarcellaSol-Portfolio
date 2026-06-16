@@ -2,10 +2,20 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
 import connect from "./config/dbConnect.js";
 import routes from "./routes/index.js";
 
-dotenv.config();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+dotenv.config({
+  path: path.resolve(process.cwd(), "backend/.env")
+});
+
+console.log("CWD:", process.cwd());
+console.log("MONGO_URI RAW:", JSON.stringify(process.env.DB_CONNECTION_STRING));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
