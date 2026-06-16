@@ -1,7 +1,8 @@
 var enviroment = window.location.hostname === 'localhost' ? 'development' : 'production';
 
 export const config = {
-  apiBaseUrl: enviroment === 'development' ? 'http://localhost:3000' : 'http://marcellasol.com.br:3000',
+  // apiBaseUrl: enviroment === 'development' ? 'http://localhost:3000' : 'http://marcellasol.com.br/api',
+  apiBaseUrl: enviroment = 'https://marcellasol.com.br/api',
 };
 
 // Verificar saúde do servidor
