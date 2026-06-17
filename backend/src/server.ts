@@ -1,22 +1,14 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import path from "path";
-import { fileURLToPath } from "url";
 import connect from "./config/dbConnect.js";
 import routes from "./routes/index.js";
-import Projeto from "./models/projeto.js";
 
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({
   path: path.resolve(process.cwd(), ".env")
 });
-
-console.log("CWD:", process.cwd());
-console.log("MONGO_URI RAW:", JSON.stringify(process.env.DB_CONNECTION_STRING));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,9 +17,7 @@ const PORT = process.env.PORT || 3000;
 const corsOptions = {
   origin: [
     'http://localhost:8080',
-    // 'https://marcellasol.com.br',
     'https://marcellasol.com.br:8080',
-    // 'https://www.marcellasol.com.br',
     'https://www.marcellasol.com.br:8080',
   ],
   credentials: true,
@@ -39,27 +29,6 @@ app.use(cors(corsOptions));
 
 // Conectar ao MongoDB
 connect();
-
-// Rota de health check
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.get("/api/test", async (req, res) => {
-  try {
-    const projeto = await Projeto.find();
-    if (!projeto) {
-      return res.status(404).json({ message: "Projeto não encontrado" });
-    }
-    res.json(projeto);
-  } catch (error: any) {
-    return res.status(500).json({ message: "Erro ao buscar projeto", error: error.message });
-  }
-});
 
 // Configurar rotas
 routes(app);
