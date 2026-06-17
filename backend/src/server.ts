@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connect from "./config/dbConnect.js";
 import routes from "./routes/index.js";
+import Projeto from "./models/projeto.js";
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -46,6 +47,18 @@ app.get("/api/health", (req, res) => {
     mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
     timestamp: new Date().toISOString(),
   });
+});
+
+app.get("/api/test", async (req, res) => {
+  try {
+    const projeto = await Projeto.find();
+    if (!projeto) {
+      return res.status(404).json({ message: "Projeto não encontrado" });
+    }
+    res.json(projeto);
+  } catch (error: any) {
+    return res.status(500).json({ message: "Erro ao buscar projeto", error: error.message });
+  }
 });
 
 // Configurar rotas
