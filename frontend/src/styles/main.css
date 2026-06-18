@@ -1,18 +1,15 @@
-html,
-body,
-main {
+html, body, main{
     width: 100%;
     height: 100%;
 }
 
-main {
-    background: rgb(120, 0, 0);
+main{
+    background: rgb(120, 0, 0);    
 }
 
 
 @font-face {
     font-family: 'against';
-    src: url(../against-Regular.ttf),
-        /* url(../against-Regular.woff2) format('woff2'),
-        url(../against-Regular.woff) format('woff'); */
+    src: url(../against-Regular.woff2) format('woff2'),
+         url(../against-Regular.woff) format('woff');
 }
