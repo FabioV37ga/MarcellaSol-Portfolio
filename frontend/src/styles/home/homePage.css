@@ -51,10 +51,31 @@
 
 
 #homePage-logo {
-    filter: grayscale(1) invert(1) brightness(1000000) drop-shadow(0px 8px 8px rgba(0, 0, 0, 1));
+    filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 1));
     width: 160px;
     margin-bottom: -10px;
 }
+
+#homePage-logo path {
+    animation: draw 3s cubic-bezier(.65,.35,.35,.65) forwards;
+}
+
+@keyframes draw {
+    0% {
+        stroke-dashoffset: -10000;
+        fill: rgba(0, 0, 0, 0);
+    }
+    70% {
+        stroke-dashoffset: 0;
+        fill: rgba(0, 0, 0, 0);
+    }
+
+    100%{
+        stroke-dashoffset: 0;
+        fill: white;
+    }
+}
+
 
 #homePage-title {
     font-family: 'against', sans-serif;
@@ -62,4 +83,16 @@
     font-size: 1.5rem;
     text-align: center;
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 1));
+    animation: fadein 1s ease-in-out forwards;
+    animation-delay: 3s;
+    opacity: 0;
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
