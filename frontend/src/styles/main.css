@@ -1,3 +1,7 @@
+:root{
+    --background-opacity: 1;
+}
+
 html, body, main{
     width: 100%;
     height: 100%;
@@ -12,6 +16,11 @@ main{
     font-family: 'against';
     src: url(../fonts/against-Regular.woff2) format('woff2'),
          url(../fonts/against-Regular.woff) format('woff');
+}
+
+@font-face{
+    font-family: "candara";
+    src: url(../fonts/Candara.ttf);
 }
 
 /* Parte de testes do backend */
