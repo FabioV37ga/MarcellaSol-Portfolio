@@ -10,6 +10,6 @@ main{
 
 @font-face {
     font-family: 'against';
-    src: url(../against-Regular.woff2) format('woff2'),
-         url(../against-Regular.woff) format('woff');
+    src: url(../fonts/against-Regular.woff2) format('woff2'),
+         url(../fonts/against-Regular.woff) format('woff');
 }
