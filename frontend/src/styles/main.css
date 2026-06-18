@@ -17,6 +17,7 @@ main{
 /* Parte de testes do backend */
 
 body>div{
+    zoom: 50%;
     animation: fadeout 1s ease-out forwards;
     animation-delay: 2s;
 }
