@@ -9,7 +9,7 @@
     "build:front": "cd frontend && npm run build",
     "dev:back": "cd backend && npm run dev",
     "build:back": "cd backend && npm run build",
-    "build": "npm run build:front && npm run buid:back"
+    "build": "npm run build:front && npm run build:back"
   },
   "repository": {
     "type": "git",
