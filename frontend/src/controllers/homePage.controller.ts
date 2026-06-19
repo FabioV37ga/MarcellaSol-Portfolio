@@ -24,6 +24,7 @@ class HomePageController {
             const touchEvent = event as TouchEvent;
 
             yValue = touchEvent.touches[0].clientY;
+
         })
 
         u("body").on("touchend", (event: Event) => {
@@ -41,15 +42,25 @@ class HomePageController {
             }
         })
 
+        u("body").on("touchmove", () => {
+            console.log(`
+                current scroll: ${this.elements.homePage.scrollTop}px    
+            `)
+        })
+
         u("body").on("wheel", (event: Event) => {
             const wheelEvent = event as WheelEvent;
             if (wheelEvent.deltaY > 0) {
                 this.view.scrollDownWelcome();
             }
 
-            if (wheelEvent.deltaY < 0 && window.scrollY == 0) {
+            if (wheelEvent.deltaY < 0 &&
+                this.elements.homePage.scrollTop == 0) {
                 this.view.scrollUpWelcome()
             }
+            console.log(`
+                current scroll: ${this.elements.homePage.scrollTop}px    
+            `)
         })
     }
 }

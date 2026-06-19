@@ -2,8 +2,9 @@
     overflow: hidden;
     height: 100%;
     width: 100%;
-    position: relative;
-    z-index: 3;
+    position: absolute;
+    z-index: 5;
+    background: #714D36
 }
 
 .homePage-welcome-content {

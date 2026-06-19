@@ -43,13 +43,19 @@ class HomePageView {
             HomePageAnimations.scrollUpWelcome.isPlaying == false &&
             this.welcomeStatus == "visible"
         ) {
+
             this.welcomeStatus = "animating";
+
             console.log("start scroll down")
+
             Animation.animateAndWait(
                 HomePageAnimations.scrollDownWelcome,
                 this.elements.homePageWelcome
             )
+
             this.welcomeStatus = "hidden"
+
+            this.elements.homePage.style.overflowY = 'scroll'
         }
     }
 
@@ -61,12 +67,25 @@ class HomePageView {
             HomePageAnimations.scrollDownWelcome.isPlaying == false &&
             this.welcomeStatus == "hidden"
         ) {
+
+            // this.elements.homePageMain.scrollIntoView()
+
+            this.elements.homePage.scrollTo({
+                top:0,
+                behavior: 'smooth'
+            })
+
+            this.elements.homePage.style.overflowY = 'hidden'
+
             this.welcomeStatus = "animating";
+
             console.log("start scroll up")
+
             Animation.animateAndWait(
                 HomePageAnimations.scrollUpWelcome,
                 this.elements.homePageWelcome
             )
+
             this.welcomeStatus = "visible"
         }
     }
