@@ -35,12 +35,20 @@ class HomePageController {
             if (distance > 50) {
                 this.view.scrollDownWelcome();
             }
+
+            if (distance < -50) {
+                this.view.scrollUpWelcome()
+            }
         })
 
         u("body").on("wheel", (event: Event) => {
             const wheelEvent = event as WheelEvent;
-            if (wheelEvent.deltaY > 0){
+            if (wheelEvent.deltaY > 0) {
                 this.view.scrollDownWelcome();
+            }
+
+            if (wheelEvent.deltaY < 0 && window.scrollY == 0) {
+                this.view.scrollUpWelcome()
             }
         })
     }

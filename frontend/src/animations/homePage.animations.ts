@@ -91,6 +91,27 @@ const scrollDownWelcome: AnimationObject = {
     }
 }
 
+const scrollUpWelcome: AnimationObject = {
+    isPlaying: false,
+    animation: (element: HTMLElement, delay: number) => {
+        scrollUpWelcome.isPlaying = true;
+        return animate(element, {
+            display: 'flex',
+            width: ["0%", "100%"],
+            height: ["0%", "100%"],
+            // zoom: ["100%", "75%"],
+            translateY: ["-270px", "0px"],
+            duration: 1300,
+            ease: "outExpo",
+            onComplete: () => {
+                // element.style.display = 'flex';
+                scrollUpWelcome.isPlaying = false;
+            }
+        })
+    }
+}
 
-export const HomePageAnimations = { drawLogo, appear, hideBackground, scrollDownWelcome }
+
+
+export const HomePageAnimations = { drawLogo, appear, hideBackground, scrollDownWelcome, scrollUpWelcome }
 

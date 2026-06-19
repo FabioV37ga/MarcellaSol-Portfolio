@@ -1,0 +1,43 @@
+.homePage-main{
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.homePage-main-header{
+    /* background: pink; */
+    height: 80px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.homePage-main-header-content{
+    /* background: red; */
+    height: 100%;
+    width: calc(100% - 26px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.homePage-main-header-logo{
+    /* background: blue; */
+    height: 50%;
+    width: 50%;
+    min-width: 200px;
+    display: flex;
+    justify-content: flex-start;
+    gap: 5px;
+    align-items: center;
+}
+
+#homePage-main-header-logo{
+    width: 30px
+}
+
+#homePage-main-title{
+    font-family: 'against';
+    color: white;
+    font-size: 15px;
+}
