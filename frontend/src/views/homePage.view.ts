@@ -71,7 +71,7 @@ class HomePageView {
             // this.elements.homePageMain.scrollIntoView()
 
             this.elements.homePage.scrollTo({
-                top:0,
+                top:0, 
                 behavior: 'smooth'
             })
 

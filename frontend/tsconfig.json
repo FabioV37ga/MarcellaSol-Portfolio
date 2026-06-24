@@ -1,18 +1,19 @@
 {
-    "compilerOptions": {
-        "rootDir": "src",
-        "outDir": "dist",
-        "target": "ES2017",
-        "noEmitOnError": true,
-        "noImplicitAny": true,
-        "removeComments": true,
-        "strictNullChecks": true,
-        "allowSyntheticDefaultImports": true,
-        "module":"NodeNext",
-        "moduleResolution": "nodenext",
-        
-    },
-    "include": [
-        "src/**/*"
-    ]
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "target": "ES2017",
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "removeComments": true,
+    "strictNullChecks": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*"
+  ]
 }
