@@ -6,26 +6,6 @@
     justify-content: center;
     align-items: center;
     overflow-y: hidden;
+    background: url(../../images/off-white.png);
+    background-size: contain;
 }
-
-
-/* Navegação, refatorar: */
-/* .homePage-navigation {
-    color: white;
-    position: absolute;
-    top: 45px;
-    right: 30px;
-    font-family: 'candara';
-
-    width: fit-content;
-    display: flex;
-    justify-content: space-between;
-    z-index: 3;
-    gap: 15px;
-    opacity: 0;
-}
-
-.homePage-navigationItem {
-    cursor: pointer;
-    font-size: 23px;
-} */

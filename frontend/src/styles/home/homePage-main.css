@@ -1,48 +1,78 @@
 .homePage-main {
     position: absolute;
-    height: 1000%;
+    height: 100%;
     width: 100%;
-    background: url(../../images/off-white.png);
-    background-size: contain;
-    top: 0;
 }
 
-.homePage-main-header {
-    /* background: pink; */
-    height: 80px;
-    width: 100%;
+.homePage-about {
+    background: url(../../homePage/homePage-about-image.png);
+    background-size: cover;
+    background-position: center center;
+    height: 370px;
     display: flex;
     justify-content: center;
-    z-index: 4
+    align-items: center;
+    position: relative;
 }
 
-.homePage-main-header-content {
-    /* background: red; */
+.homePage-about::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-    width: calc(100% - 26px);
+    /* background-color: rgba(255, 255, 255, 0.8); */
+    background: linear-gradient(90deg, #ffffff 0%, #ffffff 35%, transparent 70%)
+}
+
+.homePage-about-content {
+    width: calc(100% - 50px);
+    height: 60%;
+    margin-top: 50px;
+    z-index: 2;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 }
 
-.homePage-main-header-logo {
-    /* background: blue; */
-    height: 50%;
-    width: 50%;
-    min-width: 200px;
-    display: flex;
-    justify-content: flex-start;
-    gap: 5px;
-    align-items: center;
-    fill: black
+
+.homePage-about-content h1 {
+    /* width: 60%; */
+    font-size: 20px;
+    font-family: serif;
+    line-height: 22px;
+    position: relative;
 }
 
-#homePage-main-header-logo {
-    width: 26px
+.homePage-about-content h1::before {
+    content: "";
+    position: absolute;
+    width: 35px;
+    height: 2px;
+    bottom: -18px;
+    background-color: var(--highlight-color);
 }
 
-#homePage-main-title {
-    font-family: 'against';
-    color: black;
-    font-size: 18px;
+.homePage-about-content p {
+    font-size: 10px;
+    line-height: 15px;
+    font-family: sans-serif;
+}
+
+.hightlight {
+    color: var(--highlight-color);
+    filter: drop-shadow(1px 1px 0px rgb(0, 0, 0, 0.5));
+    font-family: 'griff';
+    font-size: 23px;
+}
+
+#meetButton {
+    background: var(--highlight-color);
+    color: white;
+    text-transform: uppercase;
+    padding: 10px;
+    font-family: sans-serif;
+    font-size: 11px;
 }

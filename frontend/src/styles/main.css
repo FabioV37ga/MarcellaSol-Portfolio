@@ -1,5 +1,6 @@
 :root{
     --background-opacity: 1;
+    --highlight-color: #A28263
 }
 
 html, body, main{
@@ -21,6 +22,11 @@ html, body, main{
 @font-face{
     font-family: "candara";
     src: url(../fonts/Candara.ttf);
+}
+
+@font-face{
+    font-family: "griff";
+    src: url(../fonts/Griffiths.otf);
 }
 
 /* Parte de testes do backend */

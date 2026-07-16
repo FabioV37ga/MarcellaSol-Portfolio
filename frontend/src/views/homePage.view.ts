@@ -6,6 +6,7 @@ class HomePageView {
 
     elements: elements;
     welcomeStatus: "visible" | "animating" | "hidden" = "visible";
+    scrollStatus: "top" | "scrolling" = "top";
 
     constructor(elements: elements) {
 
@@ -27,12 +28,6 @@ class HomePageView {
             this.elements.homePageTitle,
             3000
         )
-
-        // await Animation.animateAndWait(
-        //     HomePageAnimations.hideBackground,
-        //     document.documentElement,
-        //     250
-        // )
     }
 
     async scrollDownWelcome() {
@@ -40,7 +35,6 @@ class HomePageView {
             HomePageAnimations.appear.isPlaying == false &&
             HomePageAnimations.drawLogo.isPlaying == false &&
             HomePageAnimations.hideBackground.isPlaying == false &&
-            HomePageAnimations.scrollUpWelcome.isPlaying == false &&
             this.welcomeStatus == "visible"
         ) {
 
@@ -56,40 +50,9 @@ class HomePageView {
             this.welcomeStatus = "hidden"
 
             this.elements.homePage.style.overflowY = 'scroll'
+            this.scrollStatus = "scrolling"
         }
     }
-
-    async scrollUpWelcome() {
-        if (
-            HomePageAnimations.appear.isPlaying == false &&
-            HomePageAnimations.drawLogo.isPlaying == false &&
-            HomePageAnimations.hideBackground.isPlaying == false &&
-            HomePageAnimations.scrollDownWelcome.isPlaying == false &&
-            this.welcomeStatus == "hidden"
-        ) {
-
-            // this.elements.homePageMain.scrollIntoView()
-
-            this.elements.homePage.scrollTo({
-                top:0, 
-                behavior: 'smooth'
-            })
-
-            this.elements.homePage.style.overflowY = 'hidden'
-
-            this.welcomeStatus = "animating";
-
-            console.log("start scroll up")
-
-            Animation.animateAndWait(
-                HomePageAnimations.scrollUpWelcome,
-                this.elements.homePageWelcome
-            )
-
-            this.welcomeStatus = "visible"
-        }
-    }
-
 }
 
 export default HomePageView;

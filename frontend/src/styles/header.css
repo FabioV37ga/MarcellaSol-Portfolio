@@ -1,0 +1,44 @@
+.homePage-main-header {
+    /* background: pink; */
+    /* background: url(../../images/off-white.png);
+    background-size: contain; */
+    height: 80px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 4;
+    top: 0;
+    position: absolute;
+}
+
+.homePage-main-header-content {
+    /* background: red; */
+    height: 100%;
+    width: calc(100% - 26px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.homePage-main-header-logo {
+    /* background: blue; */
+    height: 50%;
+    width: 50%;
+    min-width: 200px;
+    display: flex;
+    justify-content: flex-start;
+    gap: 5px;
+    align-items: center;
+    fill: black
+}
+
+#homePage-main-header-logo {
+    width: 26px
+}
+
+#homePage-main-title {
+    font-family: 'against';
+    color: black;
+    font-size: 18px;
+}
+

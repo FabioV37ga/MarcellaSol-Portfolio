@@ -36,10 +36,6 @@ class HomePageController {
             if (distance > 50) {
                 this.view.scrollDownWelcome();
             }
-
-            if (distance < -50) {
-                this.view.scrollUpWelcome()
-            }
         })
 
         u("body").on("touchmove", () => {
@@ -52,11 +48,6 @@ class HomePageController {
             const wheelEvent = event as WheelEvent;
             if (wheelEvent.deltaY > 0) {
                 this.view.scrollDownWelcome();
-            }
-
-            if (wheelEvent.deltaY < 0 &&
-                this.elements.homePage.scrollTop == 0) {
-                this.view.scrollUpWelcome()
             }
             console.log(`
                 current scroll: ${this.elements.homePage.scrollTop}px    
