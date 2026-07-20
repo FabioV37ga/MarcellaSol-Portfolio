@@ -1,6 +1,6 @@
 :root{
     --background-opacity: 1;
-    --highlight-color: #A28263
+    --highlight-color: #cd7637;
 }
 
 html, body, main{
@@ -27,6 +27,16 @@ html, body, main{
 @font-face{
     font-family: "griff";
     src: url(../fonts/Griffiths.otf);
+}
+
+@font-face{
+    font-family: "confort";
+    src: url(../fonts/Comfortaa-Regular.ttf);
+}
+
+@font-face{
+    font-family: "vogue";
+    src: url(../fonts/Vogue.ttf);
 }
 
 /* Parte de testes do backend */

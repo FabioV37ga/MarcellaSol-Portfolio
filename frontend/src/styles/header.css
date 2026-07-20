@@ -29,7 +29,7 @@
     justify-content: flex-start;
     gap: 5px;
     align-items: center;
-    fill: black
+    fill: #141616
 }
 
 #homePage-main-header-logo {
@@ -38,7 +38,7 @@
 
 #homePage-main-title {
     font-family: 'against';
-    color: black;
+    color: #141616;
     font-size: 18px;
 }
 
