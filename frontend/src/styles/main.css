@@ -39,6 +39,16 @@ html, body, main{
     src: url(../fonts/Vogue.ttf);
 }
 
+@font-face{
+    font-family: "awelier";
+    src: url(../fonts/awelier.otf);
+}
+
+@font-face{
+    font-family: "awelierLight";
+    src: url(../fonts/awelier-light.otf);
+}
+
 /* Parte de testes do backend */
 
 body>div{
