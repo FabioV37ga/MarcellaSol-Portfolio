@@ -127,19 +127,19 @@
 .homePage-project-content h1 {
     font-family: 'awelier-light', serif;
     font-size: 25px;
-    width: 170px;
+    width: 175px;
     line-height: 32px;
     position: relative;
 }
-.homePage-project-content h1::before {
+
+/* .homePage-project-content h1::before {
     content: '';
     position: absolute;
     width: 30px;
     height: 1px;
     bottom: -7px;
-    /* background-color: var(--highlight-color); */
     background: rgba(255, 255, 255, 0.566);
-}
+} */
 
 .homePage-project-content p {
     font-size: 8px;
