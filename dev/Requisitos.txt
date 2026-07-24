@@ -1,0 +1,48 @@
+Marcella Sol - portfolio | Requisitos
+
+
+1. Interfaces e telas
+
+	1.1 Homepage
+		- Hero
+		- Projeto em destaque (com opção p/ visualizar )
+		- Lista dos últimos projetos (com opção p/ visualizar)
+	1.2 Profile (Sobre)
+		- Apresentação física
+		- Apresentação Acadêmica
+		- Contato profissional
+	1.3 Projetos
+		- Lista de projetos
+		- Display de projeto selecionado da lista
+		
+	1.4 Admin
+		- Controle de esquema de cores
+		- Adição de novos projetos
+		- Edição de projeto em destaque
+
+2. Funcionalidades
+
+	2.1 Homepage
+		- Redirecionamento para as outras paginas (profile, projetos)
+
+	2.2 profile
+		- Sistema de direcionamento para redes sociais, email e whatsapp
+
+	2.3 projetos
+		- Sistema de renderização de projetos do banco de dados na lista de projetos
+		- Sistema de display de projetos selecionados da lista
+
+	2.4 admin
+		- Sistema de login
+		- Sistema de adição de projetos
+		- Sistema de remoção de projetos
+		- Sistema de edição de projetos
+		- Sistema de controle de cores
+		- Sistema de seleção de projeto em destaque (ao criar, ou selecionar manualmente)
+
+	2.5 controle de visitas
+		- Sistema de salvamento de acessos no portfolio
+		- Benchmark de projetos?
+
+	
+
