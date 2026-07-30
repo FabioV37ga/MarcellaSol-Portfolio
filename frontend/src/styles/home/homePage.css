@@ -6,6 +6,10 @@
     justify-content: center;
     align-items: center;
     overflow-y: hidden;
-    background: url(../../images/off-white.png);
+    /* background: url(../../images/off-white.png); */
     background-size: contain;
+}
+
+.homePage-main-header-expand{
+    color: white;
 }

@@ -57,6 +57,10 @@ body>div{
     animation-delay: 2s;
 }
 
+body{
+    background: url(../../images/off-white.png);
+}
+
 @keyframes fadeout {
     from {
         opacity: .35;
