@@ -159,6 +159,7 @@
 #viewProjectText{
     font-family: 'confort';
     font-size: 7px;
+    height: 4px;
     text-transform: uppercase;
     color: #d6d6d6;
 }
