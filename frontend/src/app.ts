@@ -6,6 +6,11 @@ import { checkHealth, testApi } from "./utils/testRequisitions.js";
 
 // alert(window.innerWidth + " x " + window.innerHeight);
 
-document.addEventListener("DOMContentLoaded", () => {
-    new HomePageController();
-})
+var page = window.location.pathname.split("/").pop()?.replace(".html", "") || "home";
+
+
+if (page == "home"){
+    document.addEventListener("DOMContentLoaded", () => {
+        new HomePageController();
+    })
+}
