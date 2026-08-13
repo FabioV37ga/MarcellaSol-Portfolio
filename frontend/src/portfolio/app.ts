@@ -1,5 +1,5 @@
 import HomePageController from "./controllers/homePage.controller.js";
-import { checkHealth, testApi } from "./utils/testRequisitions.js";
+import { checkHealth, testApi } from "../utils/testRequisitions.js";
 
 // checkHealth();
 // testApi();

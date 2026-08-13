@@ -15,38 +15,38 @@ html, body, main{
 
 @font-face {
     font-family: 'against';
-    src: url(../fonts/against-Regular.woff2) format('woff2'),
-         url(../fonts/against-Regular.woff) format('woff');
+    src: url(/fonts/against-Regular.woff2) format('woff2'),
+         url(/fonts/against-Regular.woff) format('woff');
 }
 
 @font-face{
     font-family: "candara";
-    src: url(../fonts/Candara.ttf);
+    src: url(/fonts/Candara.ttf);
 }
 
 @font-face{
     font-family: "griff";
-    src: url(../fonts/Griffiths.otf);
+    src: url(/fonts/Griffiths.otf);
 }
 
 @font-face{
     font-family: "confort";
-    src: url(../fonts/Comfortaa-Regular.ttf);
+    src: url(/fonts/Comfortaa-Regular.ttf);
 }
 
 @font-face{
     font-family: "vogue";
-    src: url(../fonts/Vogue.ttf);
+    src: url(/fonts/Vogue.ttf);
 }
 
 @font-face{
     font-family: "awelier";
-    src: url(../fonts/awelier.otf);
+    src: url(/fonts/awelier.otf);
 }
 
 @font-face{
     font-family: "awelierLight";
-    src: url(../fonts/awelier-light.otf);
+    src: url(/fonts/awelier-light.otf);
 }
 
 /* Parte de testes do backend */
@@ -58,7 +58,7 @@ body>div{
 }
 
 body{
-    background: url(../../images/off-white.png);
+    background: url(/images/off-white.png);
 }
 
 @keyframes fadeout {
