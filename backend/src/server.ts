@@ -29,6 +29,11 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Rota simples para verificar se backend está rodando
+app.get('/', (req, res) => {
+  res.send('Backend rodando, check');
+});
+
 // Conectar ao MongoDB
 connect();
 
