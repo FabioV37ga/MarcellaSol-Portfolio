@@ -4,7 +4,7 @@ import { config } from "./connection.js";
 export async function checkHealth() {
   console.log(config.apiBaseUrl)
   try {
-    const response = await fetch(`${config.apiBaseUrl}/health`);
+    const response = await fetch(`${config.apiBaseUrl}/api/health`);
     const data = await response.json();
     console.log('✓ Health Check:', data);
 
@@ -28,7 +28,7 @@ export async function checkHealth() {
 export async function testApi() {
   console.log("oi caralho")
   try {
-    const response = await fetch(`${config.apiBaseUrl}/test`);
+    const response = await fetch(`${config.apiBaseUrl}/api/test`);
     const data = await response.json();
     
     const testDiv = document.createElement('div');

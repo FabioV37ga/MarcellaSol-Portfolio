@@ -9,6 +9,7 @@ const statusLog = document.getElementById("status-log") as HTMLDivElement;
 
 
 export function initializeAdminPanel() {
+    console.log(config.apiBaseUrl)
     loginButton.addEventListener("click", async () => {
         const loginValue = login.value;
         const passwordValue = password.value;

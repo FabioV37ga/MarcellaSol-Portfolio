@@ -6,6 +6,6 @@ var enviroment = window.location.hostname === 'localhost'
 
 export const config = {
   apiBaseUrl: enviroment === 'development'
-    ? 'http://localhost:3000/api'
-    : 'https://marcellasol.com.br/api',
+    ? 'http://localhost:3000'
+    : 'https://marcellasol.com.br',
 };
