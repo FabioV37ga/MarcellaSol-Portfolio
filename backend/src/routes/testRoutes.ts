@@ -4,6 +4,8 @@ import Projeto from "../models/projeto.js";
 
 const router = express.Router();
 
+
+
 // Rota de health check
 router.get("/api/health", (req, res) => {
   res.json({
