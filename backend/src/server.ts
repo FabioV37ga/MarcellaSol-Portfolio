@@ -34,6 +34,10 @@ app.get('/', (req, res) => {
   res.send('Backend rodando, check');
 });
 
+app.get('/api', (req, res) => {
+  res.send('Backend rodando, check');
+});
+
 // Conectar ao MongoDB
 connect();
 
