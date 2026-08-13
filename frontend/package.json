@@ -6,8 +6,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc && vite build",
-    "deploy": "git pull && npm install && npm run build && pm2 restart all"
+    "build": "tsc && vite build"
   },
   "author": "Fabio Veiga",
   "license": "ISC",
