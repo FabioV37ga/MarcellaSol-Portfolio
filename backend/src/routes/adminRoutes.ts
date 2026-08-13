@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 // Rota de health check
-router.post("/admin/login", async (req, res) => {
+router.post("api/admin/login", async (req, res) => {
 
     
     try {
