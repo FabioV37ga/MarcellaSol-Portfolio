@@ -6,6 +6,13 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'src/index.html'),
+        admin: resolve(__dirname, 'src/admin.html'),
+        projects: resolve(__dirname, 'src/projects.html'),
+      }
+    }
   },
   server: {
     port: 8080,
