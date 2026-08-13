@@ -1,3 +1,5 @@
+import { config } from "../utils/connection.js";
+
 const login = document.getElementById("admin-login") as HTMLInputElement;
 const password = document.getElementById("admin-password") as HTMLInputElement;
 
@@ -12,7 +14,7 @@ export function initializeAdminPanel() {
         const passwordValue = password.value;
 
         try {
-            const response = await fetch("http://localhost:3000/admin/login", {
+            const response = await fetch(`${config.apiBaseUrl}/admin/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
