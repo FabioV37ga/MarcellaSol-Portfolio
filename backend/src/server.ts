@@ -17,11 +17,16 @@ const PORT = process.env.PORT || 3000;
 // Configuração de CORS
 const corsOptions = {
   origin: [
+    'http://localhost:3000',
     'http://localhost:8080',
     'https://marcellasol.com.br:8080',
+    'https://marcellasol.com.br:3000',
     'https://marcellasol.com.br',
     'https://www.marcellasol.com.br:8080',
+    'https://www.marcellasol.com.br:3000',
     'https://www.marcellasol.com.br',
+    '177.153.194.22',
+    '177.153.194.22:3000',
     /^http:\/\/192\.168\.\d+\.\d+:\d+$/, // IPs privados 192.168.x.x
     /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,  // IPs privados 10.x.x.x
   ],

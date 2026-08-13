@@ -8,8 +8,6 @@ const router = express.Router();
 
 // Rota de login de administrador
 router.post("/api/admin/login", async (req, res) => {
-
-    
     try {
       const {login, password} = req.body;
 

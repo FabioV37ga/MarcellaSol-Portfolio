@@ -64,19 +64,35 @@ async function submitLogin() {
 
         if (response.ok) {
             const data = await response.json();
-                logLoginMessage("Login bem-sucedido!");
-                setTimeout(() => {
-                    u(loginContainer).remove()
-                }, 1000);
+            logLoginMessage("Login bem-sucedido!");
+            setTimeout(async () => {
+
+
+                const response = await fetch(`${config.apiBaseUrl}/view/admin/home`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data)
+                    logLoginMessage("Acesso à view home concedido");
+                }
+
+
+                // u(loginContainer).remove()
+            }, 1000);
         } else {
-                logLoginMessage("Login ou senha incorretos.");
+            logLoginMessage("Login ou senha incorretos.");
         }
     } catch (error) {
         console.error("Erro ao fazer login:", error);
     }
 }
 
-function logLoginMessage(message: string){
+function logLoginMessage(message: string) {
     statusLog.textContent = message;
     setTimeout(() => {
         statusLog.textContent = "";
