@@ -14,5 +14,6 @@ if (page == "home"){
         new HomePageController();
         await checkHealth()
         await testApi()
+        console.log("oi caralho")
     })
 }
