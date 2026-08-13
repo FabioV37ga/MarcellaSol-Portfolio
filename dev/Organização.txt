@@ -1,0 +1,85 @@
+Organização
+
+
+Todo: (por ordem de relevância)
+
+1. Formulário de cliente
+	1.1 Telas
+		- 00 Tela inicial
+		- 01 Sobre você (nome, contato, contato principal, endereço imóvel, situação imóvel, data importante e data, documentos construtora)
+		- 02 Perfil (texto de perfil, pets, eventos futuros importantes)
+		- 03 Rotina (Rotina semana, particularidade, visitas?, qtd visitas, gostos caseiros, hobby, alergia/necessidade)
+		- 04 Solução (Incomodo, lista de preservação, lista de diferença, lista de 3, lista de valores)
+		- 05 investimento (expectativa, valor expec; teto de gasto, inclusão no investimento, lista de flexibilidade)
+		- 06 Preferencias visuais - complexo
+				(seleção imagem, select de pref, select de palavra-conceito, select de 
+				não-opções, select de cores, flag de tonalidade select de formas, select de elementos e não-elementos,
+				select de materiais e não-materiais.)
+		- 07 Já existentes
+		(ambientes ↓)
+		- 08 sala de estar
+		- 09 sala de jantar
+		- 10 cozinha
+		- 11 varanda
+		- 12 lavanderia
+		- 13 suíte
+		- 14 segundo quarto
+		- 15 banheiro/lavabo
+		- 16 finalização 
+
+
+
+Data x tela
+	
+	
+	13/08
+	
+	00 tela inicial
+	01 sobre você
+	02 Perfil
+-------------------------------
+	14/08 (sexta)
+	
+	03 rotina
+	04 solução
+-------------------------------
+	15/08 (sábado)
+
+	05 investimento
+-------------------------------
+	17/08 (segunda)
+	
+	06 preferencias visuais (pt 1 e 2)
+
+-------------------------------
+	18/08 (terça)
+
+	07 já existentes
+	08 sala de estar
+	09 sala de jantar
+	10
+-------------------------------
+	19/08 (quarta)
+	
+	11
+	12
+	13
+-------------------------------
+	
+	20/08 (quinta)
+
+	14
+	15
+	16
+
+	iniciar caminho de ida?
+
+-------------------------------
+
+	21/08 (sexta)
+
+	
+	
+
+	
+

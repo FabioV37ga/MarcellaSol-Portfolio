@@ -10,7 +10,9 @@ var page = window.location.pathname.split("/").pop()?.replace(".html", "") || "h
 
 
 if (page == "home"){
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
         new HomePageController();
+        await checkHealth()
+        await testApi()
     })
 }
