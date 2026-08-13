@@ -6,7 +6,7 @@ const router = express.Router();
 
 
 
-// Rota de health check
+// Rota de login de administrador
 router.post("/api/admin/login", async (req, res) => {
 
     
@@ -20,7 +20,7 @@ router.post("/api/admin/login", async (req, res) => {
       const admin = await admins.findOne({login: login, password: password});
 
       if (!admin) {
-        return res.status(404).json({ message: "Admin não encontrado" });
+        return res.status(401).json({ message: "Login ou senha incorretos" });
       }
 
       res.status(200).json({ message: "Login bem-sucedido"});

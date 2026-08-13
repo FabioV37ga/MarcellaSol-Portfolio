@@ -5,8 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx src/server.ts",
-    "dev:back": "tsx src/server.ts",
+    "dev": "tsx --watch src/server.ts",
+    "dev:back": "tsx --watch src/server.ts",
     "build": "tsc",
     "start": "node dist/src/server.js",
     "prod": "npm run build && npm start"
