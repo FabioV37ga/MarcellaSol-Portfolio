@@ -1,3 +1,4 @@
+import html from "nanohtml";
 import { config } from "../../utils/connection.js";
 import u from "umbrellajs";
 
@@ -49,6 +50,8 @@ export function initializeAdminPanel() {
     })
 }
 
+// TODO: refatorar em POO
+
 async function submitLogin() {
     const loginValue = login.value;
     const passwordValue = password.value;
@@ -69,15 +72,24 @@ async function submitLogin() {
 
 
                 const response = await fetch(`${config.apiBaseUrl}/view/admin/home`, {
-                    method: "GET",
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json"
-                    }
+                    },
+                    body: JSON.stringify({ login: loginValue, password: passwordValue })
                 });
 
                 if (response.ok) {
                     const data = await response.json();
+                    function view() {
+                        return data.view
+                    }
                     console.log(data)
+                    const corpo = u("body").first() as HTMLElement
+                    u(loginContainer).remove()
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(view(), 'text/html');
+                    corpo.append(...doc.body.childNodes);
                     logLoginMessage("Acesso à view home concedido");
                 }
 

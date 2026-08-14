@@ -1,18 +1,30 @@
 import express, { Request, Response } from "express";
 import { authenticateAdmin } from "../utils/authenticate.js";
+import views from "../models/view.js";
 
 const router = express.Router();
 
-router.get("/api/view/admin/:view", async (req: Request, res: Response) => {
+router.post("/api/view/admin/:view", async (req: Request, res: Response) => {
     try {
+        // console.log(req.body)
         const authentication = await authenticateAdmin(req.body);
+
 
         if (authentication.ok) {
 
-            if (req.params.view === "home") {
-                res.status(200).json({ message: "Acesso à view home concedido" });
-            } else {
-                res.status(404).json({ message: "View não encontrada" });
+            if (req.params.view === "" || req.params.view === undefined) {
+                res.status(400).json({ message: "View não especificada" });
+            }else{
+                const view = await views.findOne({viewName: req.params.view})
+
+                if (view) {
+                    res.status(200).json({view: view.view});
+                    // console.log(view)
+                } else {
+                    console.log("View não encontrada.")
+                    console.log(view)
+                    res.status(404).json({ message: "View não encontrada" });
+                }
             }
 
         } else {
