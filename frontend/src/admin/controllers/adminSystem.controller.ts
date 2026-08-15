@@ -6,11 +6,12 @@ import { system } from "../templates/interface.js";
 export default class AdminSystem {
 
     view!: AdminSystemView
-    elements!: system
+    elements!: system;
+    name: string;
 
-    constructor(user: string, password: string) {
+    constructor(user: string, password: string, name: string) {
         this.initializeSystem(user, password);
-
+        this.name = name;
     }
 
     async initializeSystem(user: string, password: string) {
@@ -35,7 +36,7 @@ export default class AdminSystem {
 
             dbModels = dbModels.view
 
-            this.elements = getTemplates(dbModels)
+            this.elements = getTemplates(dbModels, this.name)
 
             this.view = new AdminSystemView()
             // console.log(this.elements)

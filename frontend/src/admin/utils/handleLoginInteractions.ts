@@ -90,7 +90,10 @@ async function submitLogin() {
             // Log visual
             logLoginMessage("Login bem-sucedido!");
 
-            new AdminSystem(loginValue, passwordValue)
+            var name = await response.json()
+            name = name.name
+            console.log(name)
+            new AdminSystem(loginValue, passwordValue, name)
         } else {
             logLoginMessage("Login ou senha incorretos.");
         }

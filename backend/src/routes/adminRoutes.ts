@@ -21,7 +21,7 @@ router.post("/api/admin/login", async (req, res) => {
         return res.status(401).json({ message: "Login ou senha incorretos" });
       }
 
-      res.status(200).json({ message: "Login bem-sucedido"});
+      res.status(200).json({ message: "Login bem-sucedido", name: admin.name});
     } catch (error: any) {
       return res.status(500).json({ message: "Erro ao buscar admin", error: error.message });
     }

@@ -1,12 +1,19 @@
 import u from "umbrellajs";
 import { system, dbView } from "./interface.js";
 
-export default function getTemplates(elements: dbView[]) {
+export default function getTemplates(elements: dbView[], name: string) {
 
     var elementStringArray: string[] = []
 
     elements.forEach(string => {
-        elementStringArray.push(string.view)
+
+        let elementString =
+            string.view
+                .replace("%username%", name)
+
+        elementStringArray.push(
+            elementString
+        )
     })
 
 
