@@ -1,0 +1,68 @@
+.accesses{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 15px
+}
+
+.accesses-content{
+    width: calc(100% - 64px);
+}
+
+.accesses-content h2{
+    font-family: "confort";
+    font-weight: bolder;
+    margin-bottom: 15px
+}
+
+.access-list{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.access{
+    width: calc(50% - 7px);
+    height: 80px;
+    background: white;
+    border: 1px solid #80808070;
+    display: flex;
+    border-radius: 11px;
+}
+
+.access-picture{
+    width: 30%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    /* background: blue; */
+}
+
+.access-picture *{
+    margin-top: 13px
+}
+
+
+.access-text{
+    /* justify-content: center; */
+    margin-top: 11px;
+    width: 80%
+}
+
+.access-text h3{
+    font-family: "confort";
+    margin-bottom: 5px;
+}
+
+.access-text p{
+    font-family: "confort";
+    font-size: 9px;
+}
+
+.access-arrow{
+    /* background: red; */
+    width: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

@@ -17,6 +17,10 @@ main {
     margin: 0;
 }
 
+body{
+    background: #FBFAFA
+}
+
 :root{
     --orange: #B34F1E;
     --gray: #4F4F4F;

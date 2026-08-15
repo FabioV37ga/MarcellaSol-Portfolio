@@ -33,6 +33,7 @@
     width: 50px;
     flex-shrink: 0;
     object-fit: contain;
+    margin-left: -9px;
 }
 
 .presentation-text {

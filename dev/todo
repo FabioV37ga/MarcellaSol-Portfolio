@@ -1,0 +1,11 @@
+15/08
+
+Finalizei as telas de login e tela inicial de administador.
+
+Falta a tela inicial de administrador versão desktop.
+
+Ao finalizar tela de administrador desktop, iniciar desenvolvimento 
+da tela de gerenciar usuário
+(criar usuário → input login e senha, listar usuários)
+
+DETALHE: adicionar ícones gerados pelo chat nos itens de access
