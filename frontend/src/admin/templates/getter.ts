@@ -20,8 +20,10 @@ export default function getTemplates(elements: dbView[]) {
 
 
     const views: system = {
-        home: convertedElements[0],
-        test: convertedElements[1]
+        base: convertedElements[0],
+        home: convertedElements[1],
+        // home2: convertedElements[2],
+        // test: convertedElements[2]
     }
 
     return views;

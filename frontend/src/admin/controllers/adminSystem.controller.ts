@@ -38,21 +38,25 @@ export default class AdminSystem {
             this.elements = getTemplates(dbModels)
 
             this.view = new AdminSystemView()
-            this.renderSection("home")
-            // this.view.render(this.elements.test)
-
+            // console.log(this.elements)
+            this.renderSection("base")
         }
     }
 
     protected renderSection(page: string) {
         switch (page){
+
+            case "base":
+                this.view.render(
+                    this.elements.base,
+                    "body"
+                )
+                
             case "home":
                 this.view.render(
                     this.elements.home,
-                    "body"
+                    ".page-content"
                 )
-
-                console.log(this.elements.home)
                 break;
         }
     }

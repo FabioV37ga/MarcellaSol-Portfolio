@@ -1,28 +1,31 @@
-.accesses{
+.accesses {
     width: 100%;
     display: flex;
     justify-content: center;
     margin-top: 15px
 }
 
-.accesses-content{
+.accesses-content {
     width: calc(100% - 64px);
 }
 
-.accesses-content h2{
+.accesses-content h2 {
     font-family: "confort";
     font-weight: bolder;
     margin-bottom: 15px
 }
 
-.access-list{
+.access-list {
     width: 100%;
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
-.access{
+.access {
     width: calc(50% - 7px);
+    min-width: 160px;
+    max-width: 290px;
     height: 80px;
     background: white;
     border: 1px solid #80808070;
@@ -30,7 +33,7 @@
     border-radius: 11px;
 }
 
-.access-picture{
+.access-picture {
     width: 30%;
     height: 100%;
     display: flex;
@@ -38,7 +41,7 @@
     /* background: blue; */
 }
 
-.access-picture *{
+.access-picture * {
     margin-top: 10px;
     aspect-ratio: 1/1;
     width: 40px;
@@ -46,23 +49,24 @@
 }
 
 
-.access-text{
+.access-text {
     /* justify-content: center; */
-    margin-top: 11px;
+    margin-top: 15px;
     width: 80%
 }
 
-.access-text h3{
+.access-text h3 {
     font-family: "confort";
     margin-bottom: 5px;
+    font-size: 12px;
 }
 
-.access-text p{
+.access-text p {
     font-family: "confort";
     font-size: 9px;
 }
 
-.access-arrow{
+.access-arrow {
     /* background: red; */
     width: 10%;
     display: flex;
@@ -71,34 +75,39 @@
 }
 
 
-@media(min-width: 900px){
-    .access-picture{
+@media(min-width: 900px) {
+    .access-picture {
         width: 30%
     }
 
-    .access-picture *{
+    .access-picture * {
         margin-top: 8px;
         width: 60px;
         height: 60px;
     }
 
-    .access{
+    .access {
         max-width: 290px;
         height: 110px;
         cursor: pointer
     }
 
-    .access-list{
+    .access-list {
         justify-content: flex-start;
         gap: 15px
     }
 
-    .access-text{
+    .access-text {
         width: 55%;
         margin-top: 20px;
     }
 
-    .access-text p{
-        color: #9A9A9C
+    .access-text p {
+        color: #9A9A9C;
+        font-size: 12px;
+    }
+
+    .access-text h3{
+        font-size: 17px;
     }
 }
