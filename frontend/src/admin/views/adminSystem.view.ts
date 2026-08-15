@@ -2,11 +2,11 @@ import u from "umbrellajs";
 import { system } from "../templates/interface.js";
 
 export default class AdminSystemView{
-    constructor(home: HTMLElement){
+    constructor(){
         console.log("Admin System View initialized.")
 
         this.dismissLogin()
-        this.render(home)
+        // this.render(home)
     }
 
     dismissLogin(){
@@ -14,8 +14,9 @@ export default class AdminSystemView{
         login.remove()
     }
 
-    render(section: HTMLElement){
-        var container = u("body").first() as HTMLElement
+    render(section: HTMLElement, target: string){
+
+        const container = u(target).first() as HTMLElement
         container.append(section)
     }
 }

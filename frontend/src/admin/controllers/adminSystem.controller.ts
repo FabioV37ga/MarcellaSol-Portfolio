@@ -5,8 +5,8 @@ import { system } from "../templates/interface.js";
 
 export default class AdminSystem {
 
-    view: AdminSystemView | '' = ''
-    elements: system | '' = ''
+    view!: AdminSystemView
+    elements!: system
 
     constructor(user: string, password: string) {
         this.initializeSystem(user, password);
@@ -37,13 +37,23 @@ export default class AdminSystem {
 
             this.elements = getTemplates(dbModels)
 
-            this.view = new AdminSystemView(this.elements.home)
-            this.view.render(this.elements.test)
+            this.view = new AdminSystemView()
+            this.renderSection("home")
+            // this.view.render(this.elements.test)
 
         }
     }
 
     protected renderSection(page: string) {
+        switch (page){
+            case "home":
+                this.view.render(
+                    this.elements.home,
+                    "body"
+                )
 
+                console.log(this.elements.home)
+                break;
+        }
     }
 }

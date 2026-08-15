@@ -21,7 +21,12 @@ body{
     background: #FBFAFA
 }
 
+.app-container{
+    display: flex;
+}
+
 :root{
     --orange: #B34F1E;
+    --lightOrange: #FDF3EF;
     --gray: #4F4F4F;
 }

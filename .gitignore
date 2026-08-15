@@ -5,3 +5,4 @@ backend/dist
 backend/node_modules/
 .env
 *.code-workspace
+private-*
