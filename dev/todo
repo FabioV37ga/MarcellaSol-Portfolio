@@ -1,11 +1,16 @@
-15/08
+16/08
 
-Finalizei as telas de login e tela inicial de administador.
+🟩 Tela de gerenciar usuários feita (mobile, falta desktop.)
 
-Falta a tela inicial de administrador versão desktop.
+🟨 Desenvolver tela de inserir nome/login/senha/tipo de usuário
+🟨 Desenvolver tela geração de formulário-briefing (selecionar itens)
 
-Ao finalizar tela de administrador desktop, iniciar desenvolvimento 
-da tela de gerenciar usuário
-(criar usuário → input login e senha, listar usuários)
+🟨 Desenvolver ciclo de geração de usuário p/ fazer salvamento no banco.
 
-DETALHE: adicionar ícones gerados pelo chat nos itens de access
+Ou seja:
+---------------------------------
+input criar usuário → 
+insere campos → continua → 
+define itens do briefing → 
+gera usuário e salva no banco
+---------------------------------

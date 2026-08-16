@@ -42,12 +42,12 @@ export class AdminSystemView {
     }
 
     styleNavButton(button: HTMLElement){
-        console.log("style")
+        // console.log("style")
         const selected = u(".desktop-nav-item-selected").first() as HTMLElement
         u(selected).removeClass("desktop-nav-item-selected")
-        console.log(selected)
+        // console.log(selected)
 
-        console.log(button)
+        // console.log(button)
         u(button).addClass("desktop-nav-item-selected")
     }
 }
