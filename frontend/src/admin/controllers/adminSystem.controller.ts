@@ -113,12 +113,27 @@ export default class AdminSystem {
 
     protected addUserInteractions(page: string) {
         switch (page) {
-
+            case "base":
+                u(this.collection.baseElements!.desktop_nav_home)
+                    .off("click")
+                    .on("click", ()=>{
+                        this.renderSection("home")
+                        this.view.styleNavButton(this.collection.baseElements!.desktop_nav_home)
+                    })
+                    
+                u(this.collection.baseElements!.desktop_nav_client)
+                    .off("click")
+                    .on("click", ()=>{
+                        this.renderSection("clients")
+                        this.view.styleNavButton(this.collection.baseElements!.desktop_nav_client)
+                    })
+                break
             case "home":
                 u(this.collection.homeElements!.access_client)
                     .off("click")
                     .on("click", () => {
                         this.renderSection("clients")
+                        this.view.styleNavButton(this.collection.baseElements!.desktop_nav_client)
                     })
                 break;
         }
