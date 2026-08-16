@@ -1,9 +1,15 @@
 import u from "umbrellajs";
-import { system } from "../templates/interface.js";
 
-export default class AdminSystemView {
+
+export interface PageState{
+    page: string,
+    id?: number
+}
+
+
+export class AdminSystemView {
     constructor() {
-        console.log("Admin System View initialized.")
+        // console.log("Admin System View initialized.")
 
         this.dismissLogin()
         // this.render(home)
@@ -24,7 +30,7 @@ export default class AdminSystemView {
     }
 
     unrender() {
-        console.log("attempting to unrender")
+        // console.log("attempting to unrender")
         const container = u(".page-content").first() as HTMLElement
         if (container.childElementCount > 0) {
             const containerChildren = container.children
