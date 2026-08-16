@@ -2,12 +2,18 @@ import { config } from "@/utils/connection.js"
 import getTemplates from "../templates/getter.js";
 import AdminSystemView from "../views/adminSystem.view.js";
 import { system } from "../templates/interface.js";
+import collection from "../selectors/collection.js";
+import { getBaseElements } from "../selectors/base.selector.js";
+import { getHomeElements } from "../selectors/home.selector.ts.js";
+import u from "umbrellajs";
 
 export default class AdminSystem {
 
     view!: AdminSystemView
-    elements!: system;
+    models!: system;
+    collection: collection = {}
     name: string;
+
 
     constructor(user: string, password: string, name: string) {
         this.initializeSystem(user, password);
@@ -36,10 +42,10 @@ export default class AdminSystem {
 
             dbModels = dbModels.view
 
-            this.elements = getTemplates(dbModels, this.name)
+            this.models = getTemplates(dbModels, this.name)
 
             this.view = new AdminSystemView()
-            // console.log(this.elements)
+            // console.log(this.models)
             this.renderSection("base")
             document.addEventListener("keydown", (e) => {
                 if (e.key == 'w') {
@@ -54,19 +60,29 @@ export default class AdminSystem {
 
             case "base":
                 this.view.render(
-                    this.elements.base,
+                    this.models.base,
                     "body"
                 )
+                // refatorar p/ função com switch
+                // console.log(this.collection)
+                this.collection.baseElements = getBaseElements();
 
             case "home":
                 this.view.render(
-                    this.elements.home,
+                    this.models.home,
                     ".page-content"
                 )
+                // refatorar p/ função com switch
+                this.collection.homeElements = getHomeElements();
+                // teste temporario
+                u(this.collection.homeElements.access_client).on("click", ()=>{
+                    console.log("Admin clicked in client, accessing.")
+                    this.renderSection("client")
+                })
                 break;
             case "client":
                 this.view.render(
-                    this.elements.client,
+                    this.models.client,
                     ".page-content"
                 )
                 break;
