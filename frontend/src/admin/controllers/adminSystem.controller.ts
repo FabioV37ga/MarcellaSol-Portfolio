@@ -96,6 +96,7 @@ export default class AdminSystem {
                 )
                 this.collection.homeElements = getHomeElements();
                 this.addUserInteractions("home")
+                this.view.styleNavButton(this.collection.baseElements!.desktop_nav_home)
                 break;
 
             case "clients":
@@ -103,6 +104,7 @@ export default class AdminSystem {
                     this.models.client,
                     ".page-content"
                 )
+                this.view.styleNavButton(this.collection.baseElements!.desktop_nav_client)
                 break;
         }
 
@@ -116,16 +118,14 @@ export default class AdminSystem {
             case "base":
                 u(this.collection.baseElements!.desktop_nav_home)
                     .off("click")
-                    .on("click", ()=>{
+                    .on("click", () => {
                         this.renderSection("home")
-                        this.view.styleNavButton(this.collection.baseElements!.desktop_nav_home)
                     })
-                    
+
                 u(this.collection.baseElements!.desktop_nav_client)
                     .off("click")
-                    .on("click", ()=>{
+                    .on("click", () => {
                         this.renderSection("clients")
-                        this.view.styleNavButton(this.collection.baseElements!.desktop_nav_client)
                     })
                 break
             case "home":
@@ -133,7 +133,7 @@ export default class AdminSystem {
                     .off("click")
                     .on("click", () => {
                         this.renderSection("clients")
-                        this.view.styleNavButton(this.collection.baseElements!.desktop_nav_client)
+
                     })
                 break;
         }
