@@ -6,7 +6,7 @@
 }
 
 .accesses-content {
-    width: calc(100% - 64px);
+    width: calc(100% - 32px);
 }
 
 .accesses-content h2 {

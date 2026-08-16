@@ -3,6 +3,7 @@
 export interface system{
     base: HTMLElement;
     home: HTMLElement;
+    client: HTMLElement
     // home2: HTMLElement
     // test: HTMLElement
 }

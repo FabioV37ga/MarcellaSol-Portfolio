@@ -1,0 +1,90 @@
+.client-section {
+    width: calc(100% - 32px);
+    margin: 25px auto;
+}
+
+.client-title {
+    font-family: "confort";
+    margin-bottom: 15px;
+}
+
+.client-title h1 {
+    font-size: 20px;
+    font-weight: bolder;
+}
+
+.client-title p {
+    margin-top: 10px
+}
+
+#add-client {
+    background: var(--orange);
+    height: 40px;
+    width: 100%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "confort";
+    border-radius: 8px;
+}
+
+#add-client-sign {
+    margin-right: 5px;
+    /* font-size: 18px; */
+}
+
+.client-list {
+    margin: 0 auto;
+    width: calc(100% - 8px);
+    /* background: red; */
+    display: flex;
+    padding: 0 4px;
+    flex-direction: column;
+    gap: 10px
+}
+
+.client-list-title {
+    width: 100%;
+    display: flex;
+    margin-top: 20px
+}
+
+.client-list-title *{
+    font-family: "confort";
+    font-size: 10px;
+}
+
+#row-client,  .client-list-client-presentation{
+    width: 25%;
+    /* background: blue */
+}
+
+.client-list-client-presentation{
+    display: flex;
+}
+
+.client-list-client-initials{
+    margin: 0 5px 0 0
+}
+
+#row-type, .client-list-client-type {
+    width: 25%;
+    /* background: pink */
+}
+
+#row-step, .client-list-client-step {
+    width: 25%;
+    /* background: gray */
+}
+
+#row-status, .client-list-client-status{
+    width: 25%;
+    /* background: red; */
+}
+
+.client-list-client{
+    display: flex;
+    font-size: 7px;
+    font-family: "confort";
+}

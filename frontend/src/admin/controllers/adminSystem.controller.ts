@@ -41,21 +41,32 @@ export default class AdminSystem {
             this.view = new AdminSystemView()
             // console.log(this.elements)
             this.renderSection("base")
+            document.addEventListener("keydown", (e) => {
+                if (e.key == 'w') {
+                    this.renderSection("client")
+                }
+            })
         }
     }
 
     protected renderSection(page: string) {
-        switch (page){
+        switch (page) {
 
             case "base":
                 this.view.render(
                     this.elements.base,
                     "body"
                 )
-                
+
             case "home":
                 this.view.render(
                     this.elements.home,
+                    ".page-content"
+                )
+                break;
+            case "client":
+                this.view.render(
+                    this.elements.client,
                     ".page-content"
                 )
                 break;

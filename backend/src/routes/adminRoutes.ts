@@ -16,8 +16,11 @@ router.post("/api/admin/login", async (req, res) => {
       }
 
       const admin = await admins.findOne({login: login, password: password});
-
+      
+      // const test = await admins.find()
+      // console.log(test)
       if (!admin) {
+        console.log(login, password)
         return res.status(401).json({ message: "Login ou senha incorretos" });
       }
 
