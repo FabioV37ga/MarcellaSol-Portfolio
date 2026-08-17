@@ -1,7 +1,7 @@
 import u from "umbrellajs";
-import { system, dbView } from "./interface.js";
+import { system, DbView } from "./interface.js";
 
-export default function getTemplates(elements: dbView[], name: string) {
+export default function getTemplates(elements: DbView[], name: string) {
 
     var elementStringArray: string[] = []
 
@@ -33,8 +33,6 @@ export default function getTemplates(elements: dbView[], name: string) {
     const views: system = {
         base: convertedElements[0],
         home: convertedElements[1],
-        client: convertedElements[2],
-        newClient: convertedElements[3]
         // home2: convertedElements[2],
         // test: convertedElements[2]
     }

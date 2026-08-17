@@ -1,0 +1,93 @@
+7. O que você deveria poder editar nos modelos
+
+Aqui está praticamente a especificação que ele te pediu.
+
+Dentro de:
+
+Configurações → Biblioteca de Briefings
+
+você deveria conseguir controlar:
+
+Categoria
+
+Residencial
+Comercial
+
+Tipo de bloco
+
+Geral
+Ambiente
+
+Nome do bloco
+
+Cozinha
+
+Descrição interna
+
+Perguntas referentes à rotina e necessidades da cozinha.
+
+E dentro do bloco, cada pergunta deveria permitir editar:
+
+Texto da pergunta
+
+Vocês costumam cozinhar diariamente?
+
+Texto auxiliar
+
+Considere café da manhã, almoço e jantar.
+
+Tipo de resposta
+
+Texto curto
+Texto longo
+Número
+Data
+Sim/Não
+Escolha única
+Múltipla escolha
+Escala
+Upload de imagem
+Upload de arquivo
+
+Alternativas
+
+Todos os dias
+Algumas vezes por semana
+Raramente
+
+Obrigatória
+
+Sim / Não
+
+Condição
+
+Exemplo:
+
+Se responder “Sim” para “Possui lava-louças?”
+mostrar “Qual modelo?”
+
+Isso vai deixar seu briefing MUITO mais inteligente
+
+11. Eu dividiria o desenvolvimento em três níveis
+
+Pra impedir seu namorado de pedir divórcio antes mesmo de vocês casarem KKKKKKK:
+
+MVP — fazer agora
+
+Criação de cliente com Residencial/Comercial + subtipo; cadastro dos tipos; biblioteca de ambientes; briefing geral residencial/comercial; seleção dos ambientes; geração do briefing a partir dos módulos; perguntas pré-cadastradas; cliente responder; você visualizar as respostas.
+
+Segunda fase
+
+Editar perguntas pelo painel; criar novos ambientes sem programar; ordenar perguntas; obrigatória/opcional; adicionar pergunta específica para um cliente; duplicar ambientes; PDF organizado.
+
+Terceira fase
+
+Perguntas condicionais; ambientes sugeridos automaticamente pelo tipo de imóvel; IA organizando/resumindo as respostas; geração automática de relatório do briefing; analytics sobre preenchimento; modelos específicos por segmento comercial.
+
+E sim, eu mudaria agora a tela de Novo Cliente.
+
+Porque a estrutura:
+
+Cliente → categoria do imóvel → tipo do imóvel → briefing correspondente → ambientes → perguntas
+
+vira a espinha dorsal do sistema inteiro.

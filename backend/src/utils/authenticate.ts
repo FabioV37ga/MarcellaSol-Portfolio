@@ -11,3 +11,13 @@ export async function authenticateAdmin(req: JSON) {
 
     return response
 }
+
+export async function authenticateClient(req: JSON) {
+    return fetch(`${config.apiBaseUrl}/client/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(req)
+    });
+}

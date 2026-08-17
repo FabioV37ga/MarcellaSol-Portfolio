@@ -108,8 +108,6 @@ async function submitLogin(login: string, password: string) {
             password,
             timestamp
         }))
-
-
     }
 
 
