@@ -1,11 +1,13 @@
 import { config } from "@/utils/connection.js"
-import getTemplates from "../templates/getter.js";
+import u from "umbrellajs";
 import { AdminSystemView, PageState } from "../views/adminSystem.view.js";
 import { system } from "../templates/interface.js";
 import collection from "../selectors/collection.js";
+import getTemplates from "../templates/getter.js";
 import { getBaseElements } from "../selectors/base.selector.js";
 import { getHomeElements } from "../selectors/home.selector.ts.js";
-import u from "umbrellajs";
+import { getClientsElements } from "../selectors/clients.selector.js";
+import { getNewClientElements } from "../selectors/new-client.selector.js";
 
 export default class AdminSystem {
 
@@ -86,7 +88,6 @@ export default class AdminSystem {
                     "body"
                 )
                 this.collection.baseElements = getBaseElements();
-                this.addUserInteractions("base")
                 break;
 
             case "home":
@@ -95,7 +96,6 @@ export default class AdminSystem {
                     ".page-content"
                 )
                 this.collection.homeElements = getHomeElements();
-                this.addUserInteractions("home")
                 this.view.styleNavButton(this.collection.baseElements!.desktop_nav_home)
                 break;
 
@@ -104,9 +104,21 @@ export default class AdminSystem {
                     this.models.client,
                     ".page-content"
                 )
+                this.collection.clientsElements = getClientsElements();
                 this.view.styleNavButton(this.collection.baseElements!.desktop_nav_client)
                 break;
+            case "new-client":
+                this.view.render(
+                    this.models.newClient,
+                    ".page-content"
+                )
+                this.collection.newClientElements = getNewClientElements();
+                // this.addUserInteractions(this.collection.)
+
+                break;
         }
+
+        this.addUserInteractions(page)
 
         if (shouldPushHistory && this.shouldPushHistory(page, id)) {
             this.setNavigationState(page, id)
@@ -134,6 +146,27 @@ export default class AdminSystem {
                     .on("click", () => {
                         this.renderSection("clients")
 
+                    })
+                break;
+            case "clients":
+                u(this.collection.clientsElements!.new_client)
+                    .off("click")
+                    .on("click", () => {
+                        console.log("Clicked new client")
+                        this.renderSection("new-client")
+                    })
+
+                break;
+            case "new-client":
+                u(this.collection.newClientElements!.cancel)
+                    .off("click")
+                    .on("click", ()=>{
+                        this.renderSection("clients")
+                    })
+                u(this.collection.newClientElements!.root)
+                    .off("click")
+                    .on("click", ()=>{
+                        this.renderSection("clients")
                     })
                 break;
         }

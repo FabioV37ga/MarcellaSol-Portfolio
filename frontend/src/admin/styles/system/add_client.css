@@ -89,7 +89,7 @@
 }
 
 .add-client-form-input{
-    width: calc(100% - 5px);
+    width: calc(100% - 20px);
     border: 1px solid var(--borderGray);
     border-radius: 8px;
     padding: 15px 10px
@@ -124,4 +124,24 @@
 #add-client-confirm{
     background: var(--orange);
     color: white
+}
+
+@media (min-width: 900px){
+    .add-client-window{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .add-client-buttons{
+        width: 350px;
+    }
+
+    .add-client-window-header{
+        width: 100%
+    }
+
+    .add-client-form{
+        width: 100%;
+    }
 }

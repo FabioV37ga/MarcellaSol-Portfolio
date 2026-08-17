@@ -110,6 +110,12 @@
     font-size: 7px;
     font-family: "confort";
     height: 30px;
+    cursor: pointer;
+}
+
+.client-list-client:hover{
+    background: var(--borderGray) !important;
+    border-radius: 10px;
 }
 
 
