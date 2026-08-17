@@ -28,7 +28,7 @@
     max-width: 290px;
     height: 80px;
     background: white;
-    border: 1px solid #80808070;
+    border: 1px solid var(--borderGray);
     display: flex;
     border-radius: 11px;
 }

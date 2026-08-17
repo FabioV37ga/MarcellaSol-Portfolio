@@ -4,7 +4,7 @@
     /* background: red; */
     display: flex;
     justify-content: center;
-    border-bottom: 1px solid #80808070;
+    border-bottom: 1px solid var(--borderGray);
 }
 
 .navigation-container-content {
@@ -80,7 +80,7 @@
         align-items: center;
         height: 100%;
         width: 260px;
-        border-right: 1px solid #80808070;
+        border-right: 1px solid var(--borderGray);
         border-bottom: 0;
         position: relative;
     }
@@ -101,7 +101,7 @@
         height: 100px;
         padding-bottom: 20px;
         width: 160px;
-        border-bottom: 1px solid #80808070
+        border-bottom: 1px solid var(--borderGray)
     }
 
     .presentation-text * {

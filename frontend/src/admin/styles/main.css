@@ -17,25 +17,26 @@ main {
     margin: 0;
 }
 
-body{
+body {
     background: #FBFAFA
 }
 
-.app-container{
+.app-container {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
 }
 
-@media (min-width: 900px){
-    .app-container{
+@media (min-width: 900px) {
+    .app-container {
         flex-direction: row;
     }
 }
 
-:root{
+:root {
     --orange: #B34F1E;
     --lightOrange: #FDF3EF;
     --gray: #4F4F4F;
+    --borderGray: #80808070;
 }

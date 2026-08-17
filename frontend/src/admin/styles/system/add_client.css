@@ -1,0 +1,127 @@
+.create-client-container{
+    width: calc(100% - 32px);
+    margin: 0 auto;
+    font-family: "confort";
+}
+
+.page-index{
+    margin-top: 15px;
+    display: flex;
+    font-size: 12px;
+    margin-bottom: 20px
+}
+
+.root-index{
+    color: var(--orange);
+    cursor: pointer;
+    margin-right: 7px;
+}
+
+.page-index p{
+    color: var(--gray)
+}
+
+.add-client-title{
+    margin: 10px 0;
+    /* background: red; */
+}
+
+.add-client-title h1{
+    margin-bottom: 7px;
+    font-size: 20px;
+}
+
+.add-client-title p{
+    font-size: 12px;
+}
+
+.add-client-window{
+    width: calc(100% - 24px);
+    padding: 12px 12px;
+    margin: 0 auto;
+    border: 1px solid var(--borderGray);
+    border-radius: 12px;
+}
+
+.add-client-window-header{
+    /* background: red; */
+    display: flex;
+    height: 70px
+}
+
+.add-client-window-header-pic{
+    aspect-ratio: 1/1;
+    /* width: 20%; */
+    height: 100%;
+    /* background: blue; */
+    /* border-radius: 100%; */
+}
+
+.add-client-window-header-text{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.add-client-window-header-text h2{
+    font-size: 18px;
+}
+
+.add-client-window-header-text p{
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.add-client-form{
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px
+}
+
+.add-client-form-item{
+    display: flex;
+    flex-direction: column;
+}
+
+.add-client-form-item-label{
+    margin-bottom: 5px
+}
+
+.add-client-form-input{
+    width: calc(100% - 5px);
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+    padding: 15px 10px
+}
+
+.add-client-form-input::placeholder{
+    font-family: "confort";
+}
+
+.add-client-buttons{
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px
+}
+
+.add-client-buttons a{
+    width: calc(50% - 8px);
+    /* background: red; */
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#add-client-cancel{
+    color: var(--orange);
+    border: 2px solid var(--orange)
+}
+
+#add-client-confirm{
+    background: var(--orange);
+    color: white
+}
