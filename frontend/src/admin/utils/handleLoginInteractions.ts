@@ -23,14 +23,14 @@ export function initializeAdminPanel() {
 
     // Clicar no botão para submeter login ----------------------------------------------------------
     loginButton.addEventListener("click", async () => {
-        await submitLogin();
+        await submitLogin(login.value, password.value);
     })
 
     // Apertar ENTER para submeter login ------------------------------------------------------------
     password.addEventListener("keydown", async (event) => {
         if (event.key === "Enter") {
             event.preventDefault()
-            await submitLogin();
+            await submitLogin(login.value, password.value);
         }
     })
 
@@ -58,20 +58,60 @@ function togglePasswordVisibility() {
 }
 
 
+var rememberSection: boolean = false;
 // Função p/ alternar salvamento da sessão no dispositivo --------------------------------------------
 function toggleRememberSession() {
     if (u(rememberMeActive).hasClass("remember-me-active-on")) {
         u(rememberMeActive).removeClass("remember-me-active-on").addClass("remember-me-active-off");
+        rememberSection = false;
     } else {
         u(rememberMeActive).removeClass("remember-me-active-off").addClass("remember-me-active-on");
+        rememberSection = true;
     }
 }
 
+function checkSection() {
+    var section = localStorage.getItem("Admin-Section")
+    var currentTimestamp = Number(Date.now())
+    var validPeriod = 604800000
+    // var validPeriod = 60000
 
-async function submitLogin() {
 
-    const loginValue: string = login.value;
-    const passwordValue: string = password.value;
+    if (section) {
+
+        var jsonSection = JSON.parse(section)
+
+        if (
+            currentTimestamp - validPeriod < Number(jsonSection.timestamp)
+        ) {
+            submitLogin(
+                jsonSection.login,
+                jsonSection.password
+            )
+        } else {
+
+            localStorage.removeItem("Admin-Section")
+        }
+    } else {
+
+    }
+}
+checkSection()
+
+
+async function submitLogin(login: string, password: string) {
+
+    if (rememberSection) {
+        var timestamp = Date.now()
+        localStorage.setItem("Admin-Section", JSON.stringify({
+            login,
+            password,
+            timestamp
+        }))
+
+
+    }
+
 
     try {
 
@@ -81,7 +121,7 @@ async function submitLogin() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ login: loginValue, password: passwordValue })
+            body: JSON.stringify({ login: login, password: password })
         });
 
         // se login bem-sucedido...
@@ -92,13 +132,13 @@ async function submitLogin() {
 
             var name = await response.json()
             name = name.name
-            console.log(name)
-            new AdminSystem(loginValue, passwordValue, name)
+
+            new AdminSystem(login, password, name)
         } else {
             logLoginMessage("Login ou senha incorretos.");
         }
     } catch (error) {
-        console.error("Erro ao fazer login:", error);
+
     }
 }
 

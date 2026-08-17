@@ -160,12 +160,12 @@ export default class AdminSystem {
             case "new-client":
                 u(this.collection.newClientElements!.cancel)
                     .off("click")
-                    .on("click", ()=>{
+                    .on("click", () => {
                         this.renderSection("clients")
                     })
                 u(this.collection.newClientElements!.root)
                     .off("click")
-                    .on("click", ()=>{
+                    .on("click", () => {
                         this.renderSection("clients")
                     })
                 break;
