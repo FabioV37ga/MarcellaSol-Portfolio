@@ -7,8 +7,8 @@ import getTemplates from "../templates/getter.js";
 import { getBaseElements } from "../selectors/base.selector.js";
 import { getHomeElements } from "../selectors/home.selector.ts.js";
 import { getClientsElements } from "../selectors/clients.selector.js";
-import { getNewClientElements } from "../selectors/new-client.selector.js";
-import { newClient } from "./clients/client.controller.js";
+import { getNewClientElements } from "../selectors/newClient/new-client.selector.js";
+import { newClient } from "./newClient/newClient.controller.js";
 
 export default class AdminSystem {
 
@@ -129,6 +129,9 @@ export default class AdminSystem {
                     this.briefingModels.home!,
                     ".page-content"
                 )
+                break
+            case "briefing-rooms":
+                console.log("Callback working.")
                 break;
         }
 
@@ -189,7 +192,9 @@ export default class AdminSystem {
                     })
                 break;
             case "briefing-home":
-                // this.newClient.addUserInteractions("home")
+                this.newClient!.addUserInteractions("home", 
+                    (section: string)=>{this.renderSection(section)}
+                    )
                 break;
         }
     }

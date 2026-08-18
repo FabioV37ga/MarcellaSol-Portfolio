@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="admin/styles/reset.css">
+    <link rel="stylesheet" href="admin/styles/main.css">
+    <link rel="stylesheet" href="admin/styles/login.css">
+    <link rel="stylesheet" href="admin/styles/system/generate_briefing.css">
+    <link rel="stylesheet" href="admin/styles/system/briefing-rooms.css">
+    <link rel="stylesheet" href="admin/styles/system/add_client.css">
+    <link rel="stylesheet" href="admin/styles/system/client.css">
+    <link rel="stylesheet" href="admin/styles/system/access.css">
+    <link rel="stylesheet" href="admin/styles/system/navigation.css">
+    <link rel="stylesheet" href="admin/styles/system/welcome.css">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <section class="app-container">
+        <section class="navigation-container">
+            <div class="navigation-container-content">
+                <div class="presentation">
+                    <div class="presentation-logo"><svg id="homePage-main-header-logo"
+                            preserveAspectRatio="xMidYMid meet" style="display:block" version="1.1"
+                            viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M1382.8 343.425c4.35-.356 8.64-.364 12.99-.096 195.65 12.051 214.83 245.216 208.31 392.037-12.98 5.236-26.02 11.742-39.13 17.213-6.44-2.155-13.15-5.444-19.01-8.798-28.28-16.177-50.57-26.845-83.5-27.848-72.29-2.204-134.01 55.703-133.83 128.525.24 101.564 94.77 146.23 168.81 192.702 41.99 26.13 83.88 53.7 119.41 88.49 208.09 208.8 58.24 598.42-244.5 588.69-52.9-1.69-112.19-18.04-149.74-56.55 17.36 7.06 34.42 18.01 52.9 25.38 226.49 90.38 412.71-136.28 374.86-351.07-23.17-131.43-116.55-186.07-221.27-250.33-53.31-32.65-106.74-67.8-131.45-128.171-18.49-42.953-19.19-98.051-1.33-141.52a175.9 175.9 0 0 1 96.91-96.894c52.63-21.464 103.79-14.384 155.71 5.402 12.2 4.65 23.9 10.689 36 15.787 4.8-114.959-2.88-279.043-109.02-348.672-36.71-24.085-81.16-29.189-123.42-19.171-88.06 20.875-138.7 99.141-183.05 170.876a14209 14209 0 0 0-81.72 141.392l-185.532 325.321c-8.25 14.47-80.288 145.45-87.314 149.41-7.141-3.16-76.349-105.35-87.487-121.14l-181.197-258.061a9470 9470 0 0 0-89.997-128.385c-1.831 62.786-.312 133.304-.322 196.72l-.027 375.856.001 200.34.025 59.64c.015 14.74-.403 30.6 1.494 45.13 2.07 2.78 4.757 5.84 7.005 8.54-4.105.66-8.233 1.18-12.375 1.54-4.971.4-13.529 1.13-17.31-2.14-.626-3.76 2.701-7.67 3.901-11.52 1.235-3.97 1.508-10.5 1.516-14.67.123-64.95.02-130.04.008-194.98l.017-528.597c-.005-89.937-1.755-185.234.154-274.691 13.992 18.02 25.529 35.611 38.49 54.263l54.116 77.155 152.973 214.61 106.296 148.63c12.833 18.09 36.801 48.91 46.954 67.44 8.208-11.97 20.866-35.98 28.291-49.14a7729 7729 0 0 1 48.303-84.463l190.717-332.954c65.96-112.919 128.65-247.998 276.37-261.228"
+                                stroke="#B34F1E" stroke-linecap="round" stroke-linejoin="round" stroke-width="60">
+                            </path>
+                        </svg></div>
+                    <div class="presentation-text">
+                        <h1>Marcella Sol</h1>
+                        <p>Área administrativa</p>
+                    </div>
+                </div>
+                <div class="expand-menu"><i aria-hidden="true" class="fa fa-bars"></i></div>
+                <ul class="desktop-navigation">
+                    <li class="desktop-navigation-item">
+                        <div class="desktop-navigation-item-icon"><i aria-hidden="true" class="fa fa-home"></i></div>
+                        <span class="desktop-navigation-item-label"><span>Início</span></span>
+                    </li>
+                    <li class="desktop-navigation-item">
+                        <div class="desktop-navigation-item-icon"><i aria-hidden="true"
+                                class="fa fa-window-maximize"></i></div><span
+                            class="desktop-navigation-item-label"><span>Portfolio</span></span>
+                    </li>
+                    <li class="desktop-navigation-item desktop-nav-item-selected">
+                        <div class="desktop-navigation-item-icon"><i aria-hidden="true" class="fa fa-users"></i></div>
+                        <span class="desktop-navigation-item-label"><span>Clientes</span></span>
+                    </li>
+                </ul>
+                <div class="logout-desktop"><i aria-hidden="true" class="fa fa-sign-out"></i> <span>Sair</span></div>
+            </div>
+        </section>
+        <main>
+            <section class="welcome">
+                <div class="welcome-content">
+                    <div class="welcome-text">
+                        <h2>Olá, Fábio 👋</h2>
+                        <p>Bem-vindo(a) à sua área administrativa.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="page-content">
+                <div class="briefing-rooms-container">
+                    <div class="page-index">
+                        <a class="root-index">Clientes</a>
+                        <p>/</p>
+                        <a class="root-index">Novo cliente</a>
+                        <p>/</p>
+                        <a class="root-index">Gerar briefing</a>
+                        <p>/</p>
+                        <span>Cômodos</span>
+                    </div>
+
+                    <div class="briefing-rooms-title">
+                        <h1>Criar cômodos</h1>
+                        <p>Adicione os cômodos que farão parte do briefing e personalize quando houver opções disponíveis.</p>
+                    </div>
+
+                    <div class="briefing-rooms-window">
+                        <div class="briefing-rooms-header">
+                            <div class="briefing-rooms-header-text">
+                                <h2>Cômodos do briefing</h2>
+                                <p>Selecione os ambientes desejados. Alguns cômodos podem ter configurações adicionais.</p>
+                            </div>
+                            <button class="briefing-room-add" type="button">
+                                <i class="fa fa-plus" aria-hidden="true"></i>
+                                <span>Adicionar cômodo</span>
+                            </button>
+                        </div>
+
+                        <div class="briefing-rooms-list">
+                            <div class="briefing-room-card">
+                                <div class="briefing-room-card-header">
+                                    <label for="briefing-room-1">Cômodo 1</label>
+                                    <button class="briefing-room-delete" type="button" aria-label="Excluir cômodo 1">
+                                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                <select id="briefing-room-1" class="briefing-room-select">
+                                    <option value="sala-estar">Sala de estar</option>
+                                    <option value="sala-jantar">Sala de jantar</option>
+                                    <option value="cozinha">Cozinha</option>
+                                    <option value="varanda">Varanda</option>
+                                    <option value="lavanderia">Lavanderia</option>
+                                    <option value="quarto">Quarto</option>
+                                    <option value="banheiro">Banheiro</option>
+                                    <option value="lavabo">Lavabo</option>
+                                </select>
+                            </div>
+
+                            <div class="briefing-room-card">
+                                <div class="briefing-room-card-header">
+                                    <label for="briefing-room-2">Cômodo 2</label>
+                                    <button class="briefing-room-delete" type="button" aria-label="Excluir cômodo 2">
+                                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                <select id="briefing-room-2" class="briefing-room-select">
+                                    <option value="sala-estar">Sala de estar</option>
+                                    <option value="sala-jantar">Sala de jantar</option>
+                                    <option value="cozinha">Cozinha</option>
+                                    <option value="varanda" selected>Varanda</option>
+                                    <option value="lavanderia">Lavanderia</option>
+                                    <option value="quarto">Quarto</option>
+                                    <option value="banheiro">Banheiro</option>
+                                    <option value="lavabo">Lavabo</option>
+                                </select>
+                                <label class="briefing-room-option">
+                                    <input type="checkbox" checked>
+                                    <span class="briefing-room-checkbox"><i class="fa fa-check" aria-hidden="true"></i></span>
+                                    <span>Incluir pergunta sobre integração de varanda/sala</span>
+                                </label>
+                            </div>
+
+                            <div class="briefing-room-card briefing-room-card-customizable">
+                                <div class="briefing-room-card-header">
+                                    <label for="briefing-room-3">Cômodo 3</label>
+                                    <button class="briefing-room-delete" type="button" aria-label="Excluir cômodo 3">
+                                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                <select id="briefing-room-3" class="briefing-room-select">
+                                    <option value="sala-estar">Sala de estar</option>
+                                    <option value="sala-jantar">Sala de jantar</option>
+                                    <option value="cozinha">Cozinha</option>
+                                    <option value="varanda">Varanda</option>
+                                    <option value="lavanderia">Lavanderia</option>
+                                    <option value="quarto" selected>Quarto</option>
+                                    <option value="banheiro">Banheiro</option>
+                                    <option value="lavabo">Lavabo</option>
+                                </select>
+
+                                <div class="briefing-room-customizations">
+                                    <div class="briefing-room-customization-type">
+                                        <label for="briefing-bedroom-type">Tipo</label>
+                                        <select id="briefing-bedroom-type" class="briefing-room-select">
+                                            <option value="dormitorio">Dormitório</option>
+                                            <option value="suite">Suíte</option>
+                                        </select>
+                                    </div>
+
+                                    <label class="briefing-room-option">
+                                        <input type="checkbox" checked>
+                                        <span class="briefing-room-checkbox"><i class="fa fa-check" aria-hidden="true"></i></span>
+                                        <span>Incluir pergunta de utilizador e função principal</span>
+                                    </label>
+                                    <label class="briefing-room-option">
+                                        <input type="checkbox" checked>
+                                        <span class="briefing-room-checkbox"><i class="fa fa-check" aria-hidden="true"></i></span>
+                                        <span>Incluir pergunta de fluxo diário</span>
+                                    </label>
+
+                                    <fieldset class="briefing-room-considerations">
+                                        <legend>Incluir lista de considerações</legend>
+                                        <div class="briefing-room-considerations-grid">
+                                            <label><input type="checkbox" checked> <span>Cama</span></label>
+                                            <label><input type="checkbox" checked> <span>TV</span></label>
+                                            <label><input type="checkbox" checked> <span>Espaço de leitura</span></label>
+                                            <label><input type="checkbox" checked> <span>Home office</span></label>
+                                            <label><input type="checkbox" checked> <span>Penteadeira/Camarim</span></label>
+                                            <label><input type="checkbox" checked> <span>Estante/prateleiras</span></label>
+                                            <label><input type="checkbox" checked> <span>Guarda-roupa</span></label>
+                                            <label><input type="checkbox" checked> <span>Mesa de trabalho/estudo</span></label>
+                                        </div>
+                                    </fieldset>
+
+                                    <label class="briefing-room-option">
+                                        <input type="checkbox" checked>
+                                        <span class="briefing-room-checkbox"><i class="fa fa-check" aria-hidden="true"></i></span>
+                                        <span>Incluir pergunta de quantidade de roupas e acessórios</span>
+                                    </label>
+                                    <label class="briefing-room-option">
+                                        <input type="checkbox" checked>
+                                        <span class="briefing-room-checkbox"><i class="fa fa-check" aria-hidden="true"></i></span>
+                                        <span>Incluir pergunta de preferências de armazenamento</span>
+                                    </label>
+                                    <label class="briefing-room-option">
+                                        <input type="checkbox" checked>
+                                        <span class="briefing-room-checkbox"><i class="fa fa-check" aria-hidden="true"></i></span>
+                                        <span>Incluir slider de equilíbrio entre armazenamento e leveza</span>
+                                    </label>
+                                    <label class="briefing-room-option">
+                                        <input type="checkbox" checked>
+                                        <span class="briefing-room-checkbox"><i class="fa fa-check" aria-hidden="true"></i></span>
+                                        <span>Incluir caixa de texto para desejos especiais</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="briefing-rooms-available">Opções disponíveis: Sala de estar, Sala de jantar, cozinha, varanda, lavanderia, quarto, banheiro, lavabo.</p>
+
+                        <div class="briefing-rooms-buttons">
+                            <button id="briefing-rooms-cancel" type="button">Cancelar</button>
+                            <button id="briefing-rooms-confirm" type="button">Continuar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </section>
+</body>
+<script type="module" src="admin/app.ts"></script>
+
+</html>

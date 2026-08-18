@@ -31,7 +31,7 @@ export class newClient{
         return await this.briefingController.getModels(this.login,this.password, this.name, this.adminLogin, this.adminPassword)!
     }
     
-    addUserInteractions(){
-
+    addUserInteractions(page: string, callback: any){
+        this.briefingController.addUserInteractions(page, callback)
     }
 }

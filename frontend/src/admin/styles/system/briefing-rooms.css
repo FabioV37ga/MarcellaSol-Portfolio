@@ -1,0 +1,277 @@
+.briefing-rooms-container {
+    width: calc(100% - 32px);
+    margin: 0 auto;
+    padding-bottom: 30px;
+    font-family: "confort";
+}
+
+.briefing-rooms-container .page-index {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 15px 0 20px;
+    font-size: 12px;
+}
+
+.briefing-rooms-container .root-index {
+    margin: 0;
+    color: var(--orange);
+    cursor: pointer;
+}
+
+.briefing-rooms-container .page-index p {
+    margin: 0 7px;
+    padding: 0;
+    color: var(--gray);
+}
+
+.briefing-rooms-container .page-index span {
+    color: var(--gray);
+}
+
+.briefing-rooms-title {
+    margin-bottom: 25px;
+}
+
+.briefing-rooms-title h1 {
+    margin-bottom: 9px;
+    font-size: 20px;
+}
+
+.briefing-rooms-title p,
+.briefing-rooms-header-text p,
+.briefing-rooms-available {
+    color: var(--gray);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.briefing-rooms-window {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 20px;
+    border: 1px solid var(--borderGray);
+    border-radius: 12px;
+}
+
+.briefing-rooms-header {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.briefing-rooms-header-text h2 {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.briefing-room-add,
+.briefing-rooms-buttons button {
+    height: 42px;
+    border: 2px solid var(--orange);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--orange);
+    font-family: "confort";
+    cursor: pointer;
+}
+
+.briefing-room-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 0 22px;
+    font-size: 15px;
+}
+
+.briefing-room-add i {
+    font-size: 22px;
+}
+
+.briefing-rooms-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.briefing-room-card {
+    box-sizing: border-box;
+    padding: 17px;
+    border: 1px solid var(--borderGray);
+    border-radius: 10px;
+}
+
+.briefing-room-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.briefing-room-card-header label {
+    font-size: 14px;
+}
+
+.briefing-room-delete {
+    padding: 0 3px;
+    border: 0;
+    background: transparent;
+    color: var(--orange);
+    font-size: 21px;
+    cursor: pointer;
+}
+
+.briefing-room-select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 45px;
+    padding: 0 15px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--gray);
+    font-family: "confort";
+    font-size: 14px;
+}
+
+.briefing-room-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 13px 15px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.briefing-room-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-room-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 22px;
+    height: 22px;
+    border: 1px solid var(--borderGray);
+    border-radius: 4px;
+    color: transparent;
+}
+
+.briefing-room-option input:checked + .briefing-room-checkbox {
+    border-color: var(--orange);
+    background: var(--orange);
+    color: white;
+}
+
+.briefing-room-customizations {
+    display: flex;
+    flex-direction: column;
+    margin-top: 15px;
+}
+
+.briefing-room-customization-type {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 15px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.briefing-room-customization-type .briefing-room-select {
+    background: #fff;
+}
+
+.briefing-room-considerations {
+    margin-top: 12px;
+    padding: 15px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+}
+
+.briefing-room-considerations legend {
+    padding: 0 6px;
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.briefing-room-considerations-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.briefing-room-considerations-grid label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray);
+    font-size: 12px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.briefing-room-considerations-grid input {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    accent-color: var(--orange);
+}
+
+.briefing-rooms-available {
+    margin-top: 14px;
+}
+
+.briefing-rooms-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.briefing-rooms-buttons button {
+    flex: 1;
+    font-size: 14px;
+}
+
+#briefing-rooms-confirm {
+    background: var(--orange);
+    color: white;
+}
+
+@media (min-width: 900px) {
+    .briefing-rooms-container {
+        width: calc(100% - 40px);
+    }
+
+    .briefing-rooms-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .briefing-room-add {
+        min-width: 220px;
+    }
+
+    .briefing-room-considerations-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-rooms-buttons {
+        justify-content: flex-end;
+    }
+
+    .briefing-rooms-buttons button {
+        flex: 0 0 170px;
+    }
+}
