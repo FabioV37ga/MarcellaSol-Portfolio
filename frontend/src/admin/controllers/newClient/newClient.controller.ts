@@ -1,4 +1,4 @@
-import { Briefing, briefing } from "./briefing.controller.js";
+import { Briefing, briefingObject } from "./briefing.controller.js";
 
 interface client{
     _id?: string;
@@ -6,7 +6,7 @@ interface client{
     password: string;
     name: string;
     hasFilledBriefing: boolean;
-    briefing: briefing
+    briefing: briefingObject
 }
 
 export class newClient{
@@ -15,7 +15,7 @@ export class newClient{
     private name: string;
     private login: string;
     private password: string;
-    private briefing?: briefing;
+    private briefing?: briefingObject;
     private briefingController!: Briefing
 
     constructor(name: string, login: string, password: string, adminLogin: string, adminPassword: string){
@@ -32,6 +32,8 @@ export class newClient{
     }
     
     addUserInteractions(page: string, callback: any){
+        console.log("we are here - new client bi")
+        console.log(page)
         this.briefingController.addUserInteractions(page, callback)
     }
 }

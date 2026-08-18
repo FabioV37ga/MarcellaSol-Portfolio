@@ -130,6 +130,12 @@ export default class AdminSystem {
                     ".page-content"
                 )
                 break
+            case "briefing-investment":
+                this.view.render(
+                    this.briefingModels.investment!,
+                    ".page-content"
+                )
+                break;
             case "briefing-rooms":
                 // console.log("Callback working.")
                 this.view.render(
@@ -205,11 +211,15 @@ export default class AdminSystem {
                     (section: string) => { this.renderSection(section) }
                 )
                 break;
-            case "added-room":
-                console.log("this should add a room item")
+            case "briefing-investment":
+                // console.log("this should add a room item")
                 // this.renderSection(
-
+                //     ""
                 // )
+                console.log("b-i admincontroller")
+                this.newClient!.addUserInteractions("investment",
+                    (section: string) => { this.renderSection(section) }
+                )
                 break;
         }
     }

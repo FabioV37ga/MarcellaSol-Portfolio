@@ -1,4 +1,5 @@
-import { briefingHome, briefingRooms, getBriefingHome, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
+import { briefingHome, briefingInvestment, briefingRooms, getBriefingHome, getBriefingInvestment, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
+import { getBriefingRoomOptions } from "@/admin/templates/briefing/briefing-room-options.template.js";
 import { roomItem } from "@/admin/templates/briefing/briefing.template.js";
 import getTemplates from "@/admin/templates/getter.js";
 import { briefing } from "@/admin/templates/interface.js";
@@ -31,6 +32,7 @@ export class Briefing {
     private lastRoomId = 0;
     private lastRoomIndex = 0;
     private home!: briefingHome
+    private investment!: briefingInvestment
     private rooms!: briefingRooms
     private addedRooms?: roomItem[] = []
     private models!: briefing
@@ -82,17 +84,27 @@ export class Briefing {
                 u(this.home.confirm)
                     .off("click")
                     .on("click", () => {
-                        this.checkFields(page) ? callback("briefing-rooms") : null
+                        this.checkFields(page) ? callback("briefing-investment") : null
                     })
-
                 break
+            case "investment":
+                this.investment = getBriefingInvestment()
+                console.log("we are here - briefingcontroller")
+                console.log(this.investment.confirm)
+                u(this.investment.confirm)
+                    .off("click")
+                    .on("click", ()=>{
+                        callback("briefing-rooms")
+                    })
+                break;
             case "rooms":
                 this.rooms = getBriefingRooms();
 
                 u(this.rooms.addRoom)
                     .off("click")
                     .on("click", () => {
-                        // callback("added-room")
+                        callback("added-room")
+                        // callback("investment")
                         this.createRoomItem()
 
                     })
@@ -148,11 +160,28 @@ export class Briefing {
         this.configRoomItem(u(".briefing-room-card").last() as HTMLElement)
     }
 
-    configRoomItem(item: HTMLElement){
-        u(item).on("click", (e)=>{
-            e.preventDefault()
-            e.stopImmediatePropagation()
+    configRoomItem(item: HTMLElement) {
+        const roomSelect = u(item)
+            .children(".briefing-room-select")
+            .first() as HTMLSelectElement
+
+        u(roomSelect).on("change", () => {
+            this.appendRoomSpecs(item, roomSelect.value)
         })
+    }
+
+    appendRoomSpecs(room: HTMLElement, roomType: string) {
+        u(room).children(".briefing-room-customizations").remove()
+
+        const roomOptions = getBriefingRoomOptions(roomType)
+
+        if (roomOptions) {
+            room.insertAdjacentHTML("beforeend", roomOptions)
+            u(room).addClass("briefing-room-card-customizable")
+            return
+        }
+
+        u(room).removeClass("briefing-room-card-customizable")
     }
 
 }

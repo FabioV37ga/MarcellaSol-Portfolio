@@ -27,6 +27,17 @@ function getBriefingHome(): briefingHome{
     }
 }
 
+interface briefingInvestment{
+    confirm: HTMLElement
+}
+
+function getBriefingInvestment():briefingInvestment{
+    return{
+        confirm: u("#briefing-rooms-confirm").first() as HTMLElement
+    }
+}
+
+
 interface briefingRooms{
     addRoom: HTMLElement
     roomContainer: HTMLElement;
@@ -45,5 +56,6 @@ function getBriefingRooms():briefingRooms{
 
 export {
     getBriefingHome, briefingHome,
+    getBriefingInvestment, briefingInvestment,
     getBriefingRooms, briefingRooms
 }
