@@ -27,4 +27,23 @@ function getBriefingHome(): briefingHome{
     }
 }
 
-export {getBriefingHome, briefingHome}
+interface briefingRooms{
+    addRoom: HTMLElement
+    roomContainer: HTMLElement;
+    addedRooms?: HTMLElement[]
+}
+
+function getBriefingRooms():briefingRooms{
+    const addRoom = u(".briefing-room-add").first() as HTMLElement
+    const roomContainer = u(".briefing-rooms-list").first() as HTMLElement
+
+    return {
+        addRoom,
+        roomContainer
+    }
+}
+
+export {
+    getBriefingHome, briefingHome,
+    getBriefingRooms, briefingRooms
+}

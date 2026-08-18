@@ -43,7 +43,9 @@ export default function getTemplates(templateType: string, elements: dbView[], n
             break;
         case "briefing":{
             views = {
-                home: convertedElements[0]
+                home: convertedElements[0],
+                rooms: convertedElements[1],
+                addedRoom: convertedElements[2]
             }
         }
     }

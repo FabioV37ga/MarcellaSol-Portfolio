@@ -1,10 +1,12 @@
-import { briefingHome, getBriefingHome } from "@/admin/selectors/newClient/briefing.selector.js";
+import { briefingHome, briefingRooms, getBriefingHome, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
+import { roomItem } from "@/admin/templates/briefing/briefing.template.js";
 import getTemplates from "@/admin/templates/getter.js";
+import { briefing } from "@/admin/templates/interface.js";
 import { DbView } from "@/client/templates/interface.js";
 import { config } from "@/utils/connection.js";
 import u from "umbrellajs";
 
-export interface briefing {
+export interface briefingObject {
     id?: string;
     user: {
         name: string
@@ -15,6 +17,7 @@ export interface briefing {
     };
     residentAmount: number;
     rooms: room[]
+
 }
 
 interface room {
@@ -25,9 +28,13 @@ interface room {
 }
 
 export class Briefing {
-    private currentPage = 0;
+    private lastRoomId = 0;
+    private lastRoomIndex = 0;
     private home!: briefingHome
-    // private models: ;
+    private rooms!: briefingRooms
+    private addedRooms?: roomItem[] = []
+    private models!: briefing
+
 
     constructor() {
         // this.getModels("","")
@@ -48,13 +55,15 @@ export class Briefing {
 
         var data = await response.json()
 
-        return getTemplates("briefing", data.views, name)
+        const templates = getTemplates("briefing", data.views, name)
+        this.models = templates as briefing
+        return templates
     }
 
     addUserInteractions(page: string, callback: any) {
-        this.home = getBriefingHome();
         switch (page) {
             case "home":
+                this.home = getBriefingHome();
 
                 var clientsRoot = u(this.home.root).nodes[0] as HTMLElement
                 u(clientsRoot)
@@ -66,36 +75,93 @@ export class Briefing {
                 var newClientRoot = u(this.home.root).nodes[1] as HTMLElement
                 u(newClientRoot)
                     .off("click")
-                    .on("click", ()=>{
+                    .on("click", () => {
                         callback("new-client")
                     })
 
                 u(this.home.confirm)
                     .off("click")
-                    .on("click", ()=>{
+                    .on("click", () => {
                         this.checkFields(page) ? callback("briefing-rooms") : null
                     })
 
                 break
+            case "rooms":
+                this.rooms = getBriefingRooms();
+
+                u(this.rooms.addRoom)
+                    .off("click")
+                    .on("click", () => {
+                        // callback("added-room")
+                        this.createRoomItem()
+
+                    })
+
+
+                break;
         }
     }
 
-    protected checkFields(page: string):boolean{
-        switch(page){
+    protected checkFields(page: string): boolean {
+        switch (page) {
             case "home":
                 if (
                     this.home.category.value &&
                     this.home.type.value &&
                     this.home.name.value &&
                     this.home.peopleAmount.value
-                ){
+                ) {
                     return true
-                }else{
+                } else {
                     return false
                 }
-                
+
         }
         return false
     }
+
+    createRoomItem() {
+        this.addedRooms!.push(
+            {
+                id: this.lastRoomId,
+                index: this.lastRoomIndex
+            }
+        )
+
+        const roomObj = roomItem(
+            this.models.addedRoom!,
+            this.lastRoomId!,
+            this.lastRoomIndex!
+        )
+
+        this.appendRoomItem(roomObj as HTMLElement)
+
+        this.lastRoomId += 1
+        this.lastRoomIndex += 1
+
+    }
+
+    appendRoomItem(model: HTMLElement) {
+        var container = u(".briefing-rooms-list").first() as HTMLElement
+
+        container.append(model)
+        this.configRoomItem(u(".briefing-room-card").last() as HTMLElement)
+    }
+
+    configRoomItem(item: HTMLElement){
+        u(item).on("click", (e)=>{
+            e.preventDefault()
+            e.stopImmediatePropagation()
+        })
+    }
+
+}
+
+interface roomItem {
+    id?: number;
+    index?: number;
+    name?: string;
+    type?: string;
+    specs?: boolean[]
 
 }

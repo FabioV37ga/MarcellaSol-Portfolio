@@ -10,7 +10,9 @@ export interface system{
 }
 
 export interface briefing{
-    home?: HTMLElement
+    home?: HTMLElement;
+    rooms: HTMLElement;
+    addedRoom?: HTMLElement
 }
 
 export interface dbView{

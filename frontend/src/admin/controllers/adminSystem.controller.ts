@@ -25,7 +25,7 @@ export default class AdminSystem {
         this.initializeSystem(user, password);
         this.name = name;
     }
-    
+
     async initializeSystem(user: string, password: string) {
         this.adminLogin = user
         this.adminPassword = password
@@ -131,7 +131,11 @@ export default class AdminSystem {
                 )
                 break
             case "briefing-rooms":
-                console.log("Callback working.")
+                // console.log("Callback working.")
+                this.view.render(
+                    this.briefingModels.rooms!,
+                    ".page-content"
+                )
                 break;
         }
 
@@ -187,14 +191,25 @@ export default class AdminSystem {
                     })
                 u(this.collection.newClientElements!.confirm)
                     .off("click")
-                    .on("click", ()=>{
+                    .on("click", () => {
                         this.createClient()
                     })
                 break;
             case "briefing-home":
-                this.newClient!.addUserInteractions("home", 
-                    (section: string)=>{this.renderSection(section)}
-                    )
+                this.newClient!.addUserInteractions("home",
+                    (section: string) => { this.renderSection(section) }
+                )
+                break;
+            case "briefing-rooms":
+                this.newClient!.addUserInteractions("rooms",
+                    (section: string) => { this.renderSection(section) }
+                )
+                break;
+            case "added-room":
+                console.log("this should add a room item")
+                // this.renderSection(
+
+                // )
                 break;
         }
     }
@@ -217,27 +232,27 @@ export default class AdminSystem {
         window.history.pushState(state, "")
     }
 
-    protected async createClient(){
+    protected async createClient() {
         var name = this.collection.newClientElements?.nameField.value as string
         var login = this.collection.newClientElements?.loginField.value as string
         var password = this.collection.newClientElements?.passwordField.value as string
 
-            if(
-                name.length! > 0 &&
-                login.length! > 0 &&
-                password.length! > 0 
-            ){
-                this.newClient = new newClient(
-                    name,
-                    login,
-                    password,
-                    this.adminLogin,
-                    this.adminPassword
-                )
-                this.briefingModels = await this.newClient.getModels()
+        if (
+            name.length! > 0 &&
+            login.length! > 0 &&
+            password.length! > 0
+        ) {
+            this.newClient = new newClient(
+                name,
+                login,
+                password,
+                this.adminLogin,
+                this.adminPassword
+            )
+            this.briefingModels = await this.newClient.getModels() as briefing
 
-                this.renderSection("briefing-home")
-                console.log(this.briefingModels)
-            }
+            this.renderSection("briefing-home")
+            console.log(this.briefingModels)
+        }
     }
 }
