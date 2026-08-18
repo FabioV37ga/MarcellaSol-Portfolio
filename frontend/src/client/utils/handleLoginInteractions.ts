@@ -132,11 +132,11 @@ async function submitLogin(login: string, password: string) {
 
             var client = await response.json()
             var name = client.name
-            var hasBriefing = client.hasBriefing
+            var hasFilledBriefing = client.hasFilledBriefing
 
             console.log(name)
             // new AdminSystem(loginValue, passwordValue, name)
-            new ClientSystem(login, password, name, hasBriefing)
+            new ClientSystem(login, password, name, hasFilledBriefing)
         } else {
             logLoginMessage("Login ou senha incorretos.");
         }

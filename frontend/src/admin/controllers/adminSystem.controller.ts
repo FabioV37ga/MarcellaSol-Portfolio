@@ -1,13 +1,14 @@
 import { config } from "@/utils/connection.js"
 import u from "umbrellajs";
 import { AdminSystemView, PageState } from "../views/adminSystem.view.js";
-import { system } from "../templates/interface.js";
+import { briefing, system } from "../templates/interface.js";
 import collection from "../selectors/collection.js";
 import getTemplates from "../templates/getter.js";
 import { getBaseElements } from "../selectors/base.selector.js";
 import { getHomeElements } from "../selectors/home.selector.ts.js";
 import { getClientsElements } from "../selectors/clients.selector.js";
 import { getNewClientElements } from "../selectors/new-client.selector.js";
+import { newClient } from "./clients/client.controller.js";
 
 export default class AdminSystem {
 
@@ -15,13 +16,19 @@ export default class AdminSystem {
     models!: system;
     collection: collection = {}
     name: string;
+    newClient?: newClient;
+    briefingModels!: briefing;
+    private adminLogin!: string
+    private adminPassword!: string
 
     constructor(user: string, password: string, name: string) {
         this.initializeSystem(user, password);
         this.name = name;
     }
-
+    
     async initializeSystem(user: string, password: string) {
+        this.adminLogin = user
+        this.adminPassword = password
         await this.getModels(user, password);
 
 
@@ -58,7 +65,7 @@ export default class AdminSystem {
 
             dbModels = dbModels.view
 
-            this.models = getTemplates(dbModels, this.name)
+            this.models = getTemplates("system", dbModels, this.name)
 
             this.view = new AdminSystemView()
             // console.log(this.models)
@@ -84,7 +91,7 @@ export default class AdminSystem {
 
             case "base":
                 this.view.render(
-                    this.models.base,
+                    this.models.base!,
                     "body"
                 )
                 this.collection.baseElements = getBaseElements();
@@ -92,7 +99,7 @@ export default class AdminSystem {
 
             case "home":
                 this.view.render(
-                    this.models.home,
+                    this.models.home!,
                     ".page-content"
                 )
                 this.collection.homeElements = getHomeElements();
@@ -101,7 +108,7 @@ export default class AdminSystem {
 
             case "clients":
                 this.view.render(
-                    this.models.client,
+                    this.models.client!,
                     ".page-content"
                 )
                 this.collection.clientsElements = getClientsElements();
@@ -109,12 +116,19 @@ export default class AdminSystem {
                 break;
             case "new-client":
                 this.view.render(
-                    this.models.newClient,
+                    this.models.newClient!,
                     ".page-content"
                 )
                 this.collection.newClientElements = getNewClientElements();
                 // this.addUserInteractions(this.collection.)
 
+                break;
+            case "briefing-home":
+                console.log(this.briefingModels.home)
+                this.view.render(
+                    this.briefingModels.home!,
+                    ".page-content"
+                )
                 break;
         }
 
@@ -168,6 +182,14 @@ export default class AdminSystem {
                     .on("click", () => {
                         this.renderSection("clients")
                     })
+                u(this.collection.newClientElements!.confirm)
+                    .off("click")
+                    .on("click", ()=>{
+                        this.createClient()
+                    })
+                break;
+            case "briefing-home":
+                // this.newClient.addUserInteractions("home")
                 break;
         }
     }
@@ -188,5 +210,29 @@ export default class AdminSystem {
         }
 
         window.history.pushState(state, "")
+    }
+
+    protected async createClient(){
+        var name = this.collection.newClientElements?.nameField.value as string
+        var login = this.collection.newClientElements?.loginField.value as string
+        var password = this.collection.newClientElements?.passwordField.value as string
+
+            if(
+                name.length! > 0 &&
+                login.length! > 0 &&
+                password.length! > 0 
+            ){
+                this.newClient = new newClient(
+                    name,
+                    login,
+                    password,
+                    this.adminLogin,
+                    this.adminPassword
+                )
+                this.briefingModels = await this.newClient.getModels()
+
+                this.renderSection("briefing-home")
+                console.log(this.briefingModels)
+            }
     }
 }

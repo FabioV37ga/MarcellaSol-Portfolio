@@ -5,7 +5,7 @@ const adminSchema = new mongoose.Schema({
     login: {type: String, required: true},
     password: {type: String, required: true},
     name: {type: String, required: true},
-    hasBriefing: {type: Boolean, required: true}
+    hasFilledBriefing: {type: Boolean, required: true}
 },{collection: 'clients'}
 )
 

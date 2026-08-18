@@ -1,12 +1,16 @@
 // import html from "nanohtml"
 
 export interface system{
-    base: HTMLElement;
-    home: HTMLElement;
-    client: HTMLElement;
-    newClient: HTMLElement
+    base?: HTMLElement;
+    home?: HTMLElement;
+    client?: HTMLElement;
+    newClient?: HTMLElement
     // home2: HTMLElement
     // test: HTMLElement
+}
+
+export interface briefing{
+    home?: HTMLElement
 }
 
 export interface dbView{

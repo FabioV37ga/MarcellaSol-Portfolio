@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { authenticateAdmin, authenticateClient } from "../utils/authenticate.js";
 import views from "../models/view.js";
+import view from "../models/view.js";
 
 const router = express.Router();
 
@@ -32,6 +33,29 @@ router.post("/api/view/admin", async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Erro ao buscar admin:", error);
         res.status(401).json({ message: "Acesso negado. Login ou senha incorretos." });
+    }
+})
+
+router.post("/api/view/admin/briefing", async (req: Request, res: Response) => {
+    console.log("started looking for admin briefing")
+    try {
+        const authentication = await authenticateAdmin(req.body)
+
+        if (!authentication.ok) {
+            return
+        }
+
+        console.log("got here")
+        const view = await views.find({permission: "admin", type: "briefing"})
+
+        if (!view){
+            res.status(404)
+        }
+
+        res.status(200).json({views: view})
+
+    } catch (error) {
+        res.status(500).json({message: error})
     }
 })
 

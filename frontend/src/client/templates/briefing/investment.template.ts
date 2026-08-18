@@ -1,0 +1,104 @@
+import html from 'nanohtml'
+
+function flexibility() {
+    return html`
+     <div class="briefing-input-box">
+        <label>Onde vocês têm flexibilidade e onde preferem não economizar?</label>
+        <small>Conte um pouco sobre suas prioridades e limites.</small>
+        <textarea
+            class="briefing-input-big"
+            maxlength="1000"
+            placeholder="Ex.: temos flexibilidade em acabamentos de áreas de serviço, mas não abrimos mão de marcenaria de qualidade e boa iluminação."
+        ></textarea>
+        <small>0/1000</small>
+    </div>
+    `
+}
+
+export function investment(askFlexibility: boolean) {
+    return html`
+        <div class="form-page-06">
+                <h1 class="briefing-title">Investimento</h1>
+                <p class="briefing-subtitle">
+                    Para alinharmos expectativas e construirmos o projeto ideal.
+                </p>
+
+                <fieldset class="briefing-input-box">
+                    <legend>Qual a sua expectativa de investimento?</legend>
+                    <small>Selecione uma faixa aproximada para o investimento total do projeto.</small>
+
+                    <div class="briefing-select-box">
+                        <input type="radio" name="investment-range" value="ate-250-mil">
+                        <label class="button-option">Até R$ 250 mil</label>
+
+                        <input type="radio" name="investment-range" value="250-500-mil">
+                        <label class="button-option">R$ 250 a R$ 500 mil</label>
+
+                        <input type="radio" name="investment-range" value="500-mil-1-milhao">
+                        <label class="button-option">R$ 500 mil a R$ 1 milhão</label>
+
+                        <input type="radio" name="investment-range" value="acima-1-milhao">
+                        <label class="button-option">Acima de R$ 1 milhão</label>
+                    </div>
+                </fieldset>
+
+                <div class="briefing-input-box">
+                    <label>Valor máximo disponível (opcional)</label>
+                    <small>Se preferir, informe um valor aproximado.</small>
+                    <input
+                        type="text"
+                        class="briefing-input"
+                        inputmode="decimal"
+                        placeholder="Ex.: R$ 750.000,00"
+                    >
+                </div>
+
+                <fieldset class="briefing-input-box">
+                    <legend>O investimento inclui:</legend>
+                    <small>Selecione os itens que você acha que devem estar cobertos pelo investimento.</small>
+
+                    <div class="briefing-select-box">
+                        <input type="checkbox" value="obra">
+                        <label class="button-option">Obra</label>
+
+                        <input type="checkbox" value="marcenaria">
+                        <label class="button-option">Marcenaria</label>
+
+                        <input type="checkbox" value="marmoraria">
+                        <label class="button-option">Marmoraria</label>
+
+                        <input type="checkbox" value="revestimentos">
+                        <label class="button-option">Revestimentos</label>
+
+                        <input type="checkbox" value="iluminacao">
+                        <label class="button-option">Iluminação</label>
+
+                        <input type="checkbox" value="loucas-metais">
+                        <label class="button-option">Louças e metais</label>
+
+                        <input type="checkbox" value="mobiliario">
+                        <label class="button-option">Mobiliário</label>
+
+                        <input type="checkbox" value="eletrodomesticos">
+                        <label class="button-option">Eletrodomésticos</label>
+
+                        <input type="checkbox" value="ar-condicionado">
+                        <label class="button-option">Ar-condicionado</label>
+
+                        <input type="checkbox" value="cortinas-persianas">
+                        <label class="button-option">Cortinas e persianas</label>
+
+                        <input type="checkbox" value="decoracao">
+                        <label class="button-option">Decoração</label>
+                    </div>
+                </fieldset>
+
+               ${askFlexibility ? flexibility() : null}
+
+                <div class="briefing-navigation">
+                    <a>← Voltar</a>
+                    <a>Continuar →</a>
+                </div>
+            </div>
+    `
+}

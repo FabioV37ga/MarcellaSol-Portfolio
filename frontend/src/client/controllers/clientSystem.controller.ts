@@ -12,13 +12,13 @@ export default class ClientSystem {
     private collection: ClientElementCollection = {};
     private readonly name: string;
 
-    constructor(login: string, password: string, name: string, hasBriefing: boolean) {
+    constructor(login: string, password: string, name: string, hasFilledBriefing: boolean) {
         this.name = name;
-        void this.initializeSystem(login, password, hasBriefing);
+        void this.initializeSystem(login, password, hasFilledBriefing);
     }
 
-    private async initializeSystem(login: string, password: string, hasBriefing: boolean): Promise<void> {
-        const initialized = await this.getModels(login, password, hasBriefing);
+    private async initializeSystem(login: string, password: string, hasFilledBriefing: boolean): Promise<void> {
+        const initialized = await this.getModels(login, password, hasFilledBriefing);
 
         if (!initialized) {
             return;
@@ -33,7 +33,7 @@ export default class ClientSystem {
         });
     }
 
-    private async getModels(login: string, password: string, hasBriefing: boolean): Promise<boolean> {
+    private async getModels(login: string, password: string, hasFilledBriefing: boolean): Promise<boolean> {
         const response = await fetch(`${config.apiBaseUrl}/view/client`, {
             method: "POST",
             headers: {
@@ -50,11 +50,11 @@ export default class ClientSystem {
         this.models = getTemplates(data.view, this.name);
 
         this.view = new ClientSystemView();
-        if (hasBriefing){
+        if (hasFilledBriefing){
             this.renderSection("base")
             this.renderSection("home")
         }else{
-            this.renderSection("briefing")
+            // this.renderSection("briefing")
         }
 
 
@@ -62,15 +62,8 @@ export default class ClientSystem {
     }
 
     private renderSection(page: string, options: { pushHistory?: boolean } = {}): void {
-        const template = this.models[page];
 
-        if (!template) {
-            return;
-        }
         switch (page) {
-            case "briefing":
-                
-                break;
             case "base":
                 this.view.render(this.models.base, "body");
                 this.collection.baseElements = getBaseElements();

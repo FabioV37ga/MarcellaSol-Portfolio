@@ -93,12 +93,74 @@
                 </fieldset>
 
                 <div class="briefing-input-box">
+                    <label>Em qual cômodo desejam instalar o ar-condicionado?</label>
+                    <select class="briefing-input" name="air-conditioning-room">
+                        <option value="" selected disabled>Selecione um cômodo</option>
+                        <option value="sala-de-estar">Sala de estar</option>
+                        <option value="sala-de-jantar">Sala de jantar</option>
+                        <option value="cozinha">Cozinha</option>
+                        <option value="suite">Suíte</option>
+                        <option value="segundo-quarto">Segundo quarto</option>
+                        <option value="escritorio">Escritório</option>
+                        <option value="varanda">Varanda</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="briefing-input-box">
                     <label>Anexar especificação do condomínio</label>
                     <input
                         type="file"
                         class="briefing-input"
                         accept="image/jpeg,image/png,image/webp"
                     >
+                </div>
+
+                <fieldset class="briefing-input-box">
+                    <legend>Desejam integrar automação?</legend>
+
+                    <div class="briefing-select-box">
+                        <label class="button-option">
+                            <input type="radio" name="home-automation" value="sim">
+                            <span>Sim</span>
+                        </label>
+
+                        <label class="button-option">
+                            <input type="radio" name="home-automation" value="nao">
+                            <span>Não</span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <div class="briefing-input-box">
+                    <label>Quais tipos de automação desejam integrar?</label>
+                    <small>Selecione uma ou mais opções.</small>
+                    <select class="briefing-input" name="automation-types" multiple size="8">
+                        <option value="iluminacao">Iluminação e criação de cenas</option>
+                        <option value="climatizacao">Climatização</option>
+                        <option value="cortinas-persianas">Cortinas e persianas</option>
+                        <option value="audio-video">Áudio e vídeo</option>
+                        <option value="seguranca">Segurança e monitoramento</option>
+                        <option value="fechaduras-acesso">Fechaduras e controle de acesso</option>
+                        <option value="irrigacao">Irrigação de plantas</option>
+                        <option value="eletrodomesticos">Eletrodomésticos inteligentes</option>
+                    </select>
+                </div>
+
+                <div class="briefing-input-box">
+                    <label>Em quais cômodos desejam instalar as automações?</label>
+                    <small>Selecione um ou mais cômodos.</small>
+                    <select class="briefing-input" name="automation-rooms" multiple size="9">
+                        <option value="sala-de-estar">Sala de estar</option>
+                        <option value="sala-de-jantar">Sala de jantar</option>
+                        <option value="cozinha">Cozinha</option>
+                        <option value="suite">Suíte</option>
+                        <option value="segundo-quarto">Segundo quarto</option>
+                        <option value="banheiro-lavabo">Banheiro / Lavabo</option>
+                        <option value="escritorio">Escritório</option>
+                        <option value="varanda">Varanda</option>
+                        <option value="lavanderia">Lavanderia</option>
+                    </select>
                 </div>
 
                 <div class="briefing-input-box">
