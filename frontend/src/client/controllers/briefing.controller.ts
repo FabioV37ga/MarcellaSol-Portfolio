@@ -1,3 +1,4 @@
+import { config } from "@/utils/connection.js";
 import { about_1, about_2 } from "../templates/briefing/about.template.js";
 import { ambient } from "../templates/briefing/ambient.template.js";
 import { balcony } from "../templates/briefing/balcony.template.js";
@@ -133,13 +134,47 @@ function considerationPage(roomType: string): HTMLElement | undefined {
     }
 }
 
+interface BriefingAnswer {
+    key: string;
+    question: string;
+    controlType: string;
+    value: string | number | boolean | string[] | Array<{ name: string; size: number; type: string }>;
+}
+
+interface BriefingAnswerSection {
+    key: string;
+    title: string;
+    answers: BriefingAnswer[];
+}
+
+interface BriefingRoomAnswers {
+    id: number;
+    index: number;
+    name: string;
+    type: string;
+    subtype?: string;
+    sections: BriefingAnswerSection[];
+}
+
+export interface CompletedBriefing {
+    version: 1;
+    project: BriefingObject["description"];
+    sections: BriefingAnswerSection[];
+    rooms: BriefingRoomAnswers[];
+    submittedAt: string;
+}
+
 export default class ClientBriefingController {
     private readonly pages: HTMLElement[];
     private readonly template: HTMLElement;
     private currentPage = 0;
     private navigationBound = false;
 
-    constructor(readonly client: ClientObject, readonly briefing: BriefingObject) {
+    constructor(
+        readonly client: ClientObject,
+        readonly briefing: BriefingObject,
+        private readonly authentication: { login: string; password: string }
+    ) {
         const generatedPages = this.createPages();
         this.template = briefingTemplate(generatedPages, briefing.description.name || "Briefing residencial");
         this.pages = Array.from(
@@ -182,28 +217,80 @@ export default class ClientBriefingController {
             const environmentPage = roomPage(room, residents);
             const itemsPage = considerationPage(room.type);
 
-            if (environmentPage) pages.push(environmentPage);
-            if (itemsPage) pages.push(itemsPage);
+            if (environmentPage) {
+                pages.push(this.identifyPage(environmentPage, `room-${room.id}`, room, "environment"));
+            }
+            if (itemsPage) {
+                pages.push(this.identifyPage(
+                    itemsPage,
+                    `room-${room.id}-considerations`,
+                    room,
+                    "considerations"
+                ));
+            }
             return pages;
         }, []);
 
-        return [
-            home(),
-            about_1(residents, true),
-            about_2(),
-            routine(),
-            investment(this.briefing.investmentFlexibility),
-            preferences_1(),
-            preferences_2(),
-            preferences_3(),
-            ambient(
+        const fixedPages = [
+            ["welcome", home()],
+            ["about-property", about_1(residents, true)],
+            ["about-residents", about_2()],
+            ["routine", routine()],
+            ["investment", investment(this.briefing.investmentFlexibility)],
+            ["preferences-atmosphere", preferences_1()],
+            ["preferences-colors", preferences_2()],
+            ["preferences-materials", preferences_3()],
+            ["environments-overview", ambient(
                 rooms.map(room => room.name || roomLabels[room.type] || room.type),
                 residents
-            ),
+            )]
+        ] as Array<[string, HTMLElement]>;
+        const identifiedFixedPages = fixedPages.map(([key, page]) => this.identifyPage(page, key));
+
+        const furniturePage = this.identifyPage(existing.existingFurniture(), "existing-furniture");
+        const endingPage = this.identifyPage(ending(), "ending");
+
+        return [
+            ...identifiedFixedPages,
             ...configuredRoomPages,
-            existing.existingFurniture(),
-            ending()
+            furniturePage,
+            endingPage
         ];
+    }
+
+    private identifyPage(
+        page: HTMLElement,
+        key: string,
+        room?: BriefingRoom,
+        kind?: "environment" | "considerations"
+    ): HTMLElement {
+        let pageElement = page;
+
+        if (!(page instanceof HTMLElement)) {
+            const fragment = page as unknown as DocumentFragment;
+            const elementChildren = Array.from(fragment.children ?? []);
+
+            if (elementChildren.length === 1) {
+                pageElement = elementChildren[0] as HTMLElement;
+            } else {
+                pageElement = document.createElement("div");
+                pageElement.className = "briefing-generated-page";
+                pageElement.append(fragment);
+            }
+
+            console.warn(`Briefing: o template "${key}" retornou múltiplas raízes e foi normalizado.`);
+        }
+
+        pageElement.dataset.briefingPageKey = key;
+        if (!room) return pageElement;
+
+        pageElement.dataset.briefingRoomId = String(room.id);
+        pageElement.dataset.briefingRoomIndex = String(room.index);
+        pageElement.dataset.briefingRoomName = room.name;
+        pageElement.dataset.briefingRoomType = room.type;
+        pageElement.dataset.briefingRoomSubtype = room.subtype ?? "";
+        pageElement.dataset.briefingRoomPageKind = kind ?? "environment";
+        return pageElement;
     }
 
     private showPage(
@@ -300,7 +387,7 @@ export default class ClientBriefingController {
             }
         });
 
-        this.template.addEventListener("click", (event: MouseEvent) => {
+        this.template.addEventListener("click", async (event: MouseEvent) => {
             const target = event.target as HTMLElement;
             const control = target.closest<HTMLElement>(".briefing-navigation a, .briefing-navigation button");
             const navigation = control?.closest<HTMLElement>(".briefing-navigation");
@@ -333,8 +420,165 @@ export default class ClientBriefingController {
                 return;
             }
 
-            page.querySelector<HTMLElement>(".briefing-success-message")?.removeAttribute("hidden");
+            const submitButton = control instanceof HTMLButtonElement ? control : undefined;
+            const originalText = submitButton?.textContent ?? "";
+
+            try {
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = "Enviando...";
+                }
+
+                await this.submitBriefing();
+                page.querySelector<HTMLElement>(".briefing-success-message")?.removeAttribute("hidden");
+            } catch (error) {
+                console.error("Briefing: falha ao enviar respostas.", error);
+                window.alert(error instanceof Error ? error.message : "Não foi possível enviar o briefing.");
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                }
+            }
         });
+    }
+
+    public buildCompletedBriefing(): CompletedBriefing {
+        const sections: BriefingAnswerSection[] = [];
+        const roomsById = new Map<string, BriefingRoomAnswers>();
+
+        this.pages.forEach(page => {
+            const section = this.captureSection(page);
+            const roomId = page.dataset.briefingRoomId;
+
+            if (!roomId) {
+                sections.push(section);
+                return;
+            }
+
+            let roomAnswers = roomsById.get(roomId);
+            if (!roomAnswers) {
+                roomAnswers = {
+                    id: Number(roomId),
+                    index: Number(page.dataset.briefingRoomIndex) || 0,
+                    name: page.dataset.briefingRoomName ?? "",
+                    type: page.dataset.briefingRoomType ?? "",
+                    subtype: page.dataset.briefingRoomSubtype || undefined,
+                    sections: []
+                };
+                roomsById.set(roomId, roomAnswers);
+            }
+
+            roomAnswers.sections.push(section);
+        });
+
+        return {
+            version: 1,
+            project: { ...this.briefing.description },
+            sections,
+            rooms: Array.from(roomsById.values()).sort((a, b) => a.index - b.index),
+            submittedAt: new Date().toISOString()
+        };
+    }
+
+    private captureSection(page: HTMLElement): BriefingAnswerSection {
+        const fields = Array.from(page.querySelectorAll<
+            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >("input, select, textarea"));
+        const processedGroups = new Set<string>();
+        const answers: BriefingAnswer[] = [];
+
+        fields.forEach((field, fieldIndex) => {
+            if (this.isLogicallyDisabled(field) || field.closest(".briefing-navigation")) return;
+
+            const type = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
+            const key = field.name || field.id || `field-${fieldIndex + 1}`;
+            const groupKey = `${type}:${key}`;
+
+            if ((type === "radio" || type === "checkbox") && processedGroups.has(groupKey)) return;
+
+            if (type === "radio" || type === "checkbox") {
+                processedGroups.add(groupKey);
+                const group = fields.filter(candidate =>
+                    candidate instanceof HTMLInputElement
+                    && candidate.type === type
+                    && (candidate.name || candidate.id || `field-${fields.indexOf(candidate) + 1}`) === key
+                    && !this.isLogicallyDisabled(candidate)
+                ) as HTMLInputElement[];
+                const selectedValues = group.filter(candidate => candidate.checked).map(candidate => candidate.value);
+
+                answers.push({
+                    key,
+                    question: this.getQuestion(field),
+                    controlType: type,
+                    value: type === "radio" ? (selectedValues[0] ?? "") : selectedValues
+                });
+                return;
+            }
+
+            if (field instanceof HTMLInputElement && field.type === "file") {
+                answers.push({
+                    key,
+                    question: this.getQuestion(field),
+                    controlType: "file",
+                    value: Array.from(field.files ?? []).map(file => ({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type
+                    }))
+                });
+                return;
+            }
+
+            const value = field instanceof HTMLSelectElement && field.multiple
+                ? Array.from(field.selectedOptions).map(option => option.value)
+                : field instanceof HTMLInputElement && field.type === "number"
+                    ? Number(field.value)
+                    : field.value;
+
+            answers.push({ key, question: this.getQuestion(field), controlType: type, value });
+        });
+
+        return {
+            key: page.dataset.briefingPageKey ?? page.className,
+            title: page.querySelector<HTMLElement>(".briefing-title")?.textContent?.trim() ?? "",
+            answers
+        };
+    }
+
+    private isLogicallyDisabled(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): boolean {
+        const disabledBeforePageWasHidden = field.dataset.briefingDisabledBeforeHide;
+        return disabledBeforePageWasHidden === undefined
+            ? field.disabled
+            : disabledBeforePageWasHidden === "true";
+    }
+
+    private getQuestion(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): string {
+        const container = field.closest<HTMLElement>(".briefing-input-box, fieldset");
+        const heading = container?.querySelector<HTMLElement>(
+            ":scope > legend, :scope > p, :scope > label:not(.briefing-ignore-option)"
+        );
+        return heading?.textContent?.trim()
+            || field.labels?.[0]?.textContent?.trim()
+            || field.name
+            || field.id
+            || "Campo sem título";
+    }
+
+    private async submitBriefing(): Promise<void> {
+        const response = await fetch(`${config.apiBaseUrl}/client/briefing`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                ...this.authentication,
+                briefing: this.buildCompletedBriefing()
+            })
+        });
+
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({})) as { message?: string };
+            throw new Error(result.message || "Não foi possível enviar o briefing.");
+        }
     }
 
     private syncAmbientSummary(page: HTMLElement): void {

@@ -66,7 +66,8 @@ export default class ClientSystem {
         const normalizedData = normalizeBriefingData(data, this.name);
         this.briefingController = new ClientBriefingController(
             normalizedData.clientObject,
-            normalizedData.briefingObject
+            normalizedData.briefingObject,
+            { login, password }
         );
         this.models.briefing = this.briefingController.getTemplate();
 

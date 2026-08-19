@@ -1,7 +1,53 @@
 import express, {Request, Response } from "express";
 import clients from "../models/client.js";
+import clientBriefings from "../models/clientBriefing.js";
 
 const router = express.Router();
+
+router.post("/api/client/briefing", async (req: Request, res: Response) => {
+    try {
+      const { login, password, briefing } = req.body ?? {};
+
+      if (typeof login !== "string" || typeof password !== "string") {
+        return res.status(400).json({ message: "Login e senha são obrigatórios" });
+      }
+
+      if (!briefing || typeof briefing !== "object" || Array.isArray(briefing)) {
+        return res.status(400).json({ message: "Briefing inválido" });
+      }
+
+      const client = await clients.findOne({ login, password });
+      if (!client) {
+        return res.status(401).json({ message: "Acesso negado. Login ou senha incorretos." });
+      }
+
+      const clientData = client.toObject();
+
+      const savedBriefing = await clientBriefings.findOneAndUpdate(
+        { clientId: client._id },
+        {
+          $set: {
+            clientLogin: client.login,
+            briefingDefinition: clientData.briefing,
+            responses: briefing,
+            submittedAt: new Date()
+          }
+        },
+        { upsert: true, new: true, runValidators: true }
+      );
+
+      client.hasFilledBriefing = true;
+      await client.save();
+
+      return res.status(200).json({
+        message: "Briefing enviado com sucesso",
+        briefingId: savedBriefing._id
+      });
+    } catch (error: unknown) {
+      console.error("Erro ao salvar briefing do cliente:", error);
+      return res.status(500).json({ message: "Erro ao salvar briefing" });
+    }
+});
 
 
 
