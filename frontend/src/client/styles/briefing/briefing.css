@@ -31,7 +31,8 @@
 }
 
 .briefing-app{
-    width: 100%
+    width: 100%;
+
 }
 
 html {
@@ -39,8 +40,9 @@ html {
     background: var(--briefing-bg);
 }
 
-body {
-    min-height: 100vh;
+html body {
+    height: fit-content !important;
+    min-height: 100vh !important;
     margin: 0;
     background:
         radial-gradient(circle at 90% 0%, rgb(255 255 255 / 72%), transparent 32rem),
@@ -102,31 +104,34 @@ main {
     background: rgb(255 253 249 / 44%);
 }
 
-main > p {
+.briefing-index {
     grid-column: 1;
     grid-row: 1 / span 2;
     min-height: 100%;
     margin: 0;
     padding: 47px 28px;
     border-right: 1px solid var(--briefing-border);
-    color: var(--briefing-accent-dark);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
 }
 
-main > p::after {
-    content: "1  Boas-vindas\A\A2  Sobre vocês e o imóvel\A\A3  Rotina\A\A4  Projeto\A\A5  Investimento\A\A6  Preferências\A\A7  Ambientes\A\A8  Finalizar";
-    display: block;
-    margin-top: 30px;
+.briefing-index ol {
+    margin: 0;
+    padding-left: 22px;
     color: var(--briefing-ink);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0;
-    line-height: 2.1;
+    line-height: 1.45;
     text-transform: none;
-    white-space: pre-line;
+}
+
+.briefing-index li {
+    padding: 7px 0 7px 4px;
+    transition: color .2s ease, font-weight .2s ease;
+}
+
+.briefing-index li.is-active {
+    color: var(--briefing-accent);
+    font-weight: 800;
 }
 
 .progress {
@@ -1554,13 +1559,13 @@ input[type="file"]::file-selector-button {
         border: 0;
     }
 
-    main > p {
+    .briefing-index {
         min-height: auto;
         padding: 22px 20px 8px;
         border: 0;
     }
 
-    main > p::after {
+    .briefing-index ol {
         display: none;
     }
 

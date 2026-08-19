@@ -176,7 +176,7 @@ export default class ClientBriefingController {
         private readonly authentication: { login: string; password: string }
     ) {
         const generatedPages = this.createPages();
-        this.template = briefingTemplate(generatedPages, briefing.description.name || "Briefing residencial");
+        this.template = briefingTemplate(generatedPages);
         this.pages = Array.from(
             this.template.querySelectorAll<HTMLElement>(".form-page-container > div")
         );
@@ -330,6 +330,7 @@ export default class ClientBriefingController {
         progress.setAttribute("aria-valuenow", String(index + 1));
         progress.style.setProperty("--briefing-progress", `${((index + 1) / this.pages.length) * 100}%`);
         this.configureRequiredFields(page);
+        this.syncActiveIndex(page);
         this.syncAmbientSummary(page);
         this.syncAirConditionerFields(page);
         this.syncAutomationFields(page);
@@ -348,6 +349,25 @@ export default class ClientBriefingController {
         }
 
         window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    private syncActiveIndex(page: HTMLElement): void {
+        const pageKey = page.dataset.briefingPageKey ?? "";
+        let section = "environments";
+
+        if (pageKey === "welcome") section = "welcome";
+        else if (pageKey.startsWith("about-")) section = "about";
+        else if (pageKey === "routine") section = "routine";
+        else if (pageKey === "investment") section = "investment";
+        else if (pageKey.startsWith("preferences-")) section = "preferences";
+        else if (pageKey === "ending") section = "ending";
+
+        this.template.querySelectorAll<HTMLElement>("[data-briefing-index]").forEach(item => {
+            const isActive = item.dataset.briefingIndex === section;
+            item.classList.toggle("is-active", isActive);
+            if (isActive) item.setAttribute("aria-current", "step");
+            else item.removeAttribute("aria-current");
+        });
     }
 
     private bindNavigation(): void {

@@ -125,6 +125,7 @@
     resize: none;
     border: none;
     outline: none;
+    background: transparent;
     font-family: "confort";
     font-size: 12px;
     padding-left: 10px;

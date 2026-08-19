@@ -1,11 +1,21 @@
 import html from "nanohtml";
 
-export function briefingTemplate(pages: HTMLElement[], title = "Briefing residencial") {
+export function briefingTemplate(pages: HTMLElement[]) {
     return html`
         <div class="briefing-app">
             <header>Marcella Sol</header>
             <main>
-                <p>${title}</p>
+                <nav class="briefing-index" aria-label="Etapas do briefing">
+                    <ol>
+                        <li data-briefing-index="welcome">Boas-vindas</li>
+                        <li data-briefing-index="about">Sobre vocês e o imóvel</li>
+                        <li data-briefing-index="routine">Rotina</li>
+                        <li data-briefing-index="investment">Investimento</li>
+                        <li data-briefing-index="preferences">Preferências</li>
+                        <li data-briefing-index="environments">Ambientes</li>
+                        <li data-briefing-index="ending">Finalizar</li>
+                    </ol>
+                </nav>
                 <div
                     class="progress"
                     role="progressbar"
