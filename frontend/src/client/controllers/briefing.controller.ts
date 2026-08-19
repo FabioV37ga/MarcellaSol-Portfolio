@@ -842,12 +842,12 @@ export default class ClientBriefingController {
     }
 
     private ensureStylesheet(): void {
-        if (document.querySelector('link[data-client-briefing="true"]')) return;
+        // if (document.querySelector('link[data-client-briefing="true"]')) return;
 
-        const stylesheet = document.createElement("link");
-        stylesheet.rel = "stylesheet";
-        stylesheet.href = "/client/styles/briefing/briefing.css";
-        stylesheet.dataset.clientBriefing = "true";
-        document.head.append(stylesheet);
+        // const stylesheet = document.createElement("link");
+        // stylesheet.rel = "stylesheet";
+        // stylesheet.href = "/client/styles/briefing/briefing.css";
+        // stylesheet.dataset.clientBriefing = "true";
+        // document.head.append(stylesheet);
     }
 }

@@ -65,7 +65,7 @@ label {
     -webkit-tap-highlight-color: transparent;
 }
 
-header {
+.briefing-app header {
     position: relative;
     z-index: 2;
     display: flex;
