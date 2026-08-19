@@ -13,7 +13,7 @@ export function ending(){
 
                 <div class="briefing-summary">
                     <section class="briefing-summary-item">
-                        <div class="image-placeholder">Placeholder da imagem</div>
+                        <img class="briefing-summary-icon" src="/images/briefing/summary/sobre-imovel.png" alt="">
                         <div>
                             <h2>Sobre vocês e o imóvel</h2>
                             <p>Casa&nbsp; • &nbsp;3 moradores&nbsp; • &nbsp;São Paulo, SP</p>
@@ -22,7 +22,7 @@ export function ending(){
                     </section>
 
                     <section class="briefing-summary-item">
-                        <div class="image-placeholder">Placeholder da imagem</div>
+                        <img class="briefing-summary-icon" src="/images/briefing/summary/rotina.png" alt="">
                         <div>
                             <h2>Rotina</h2>
                             <p>Manhã prática&nbsp; • &nbsp;Home office&nbsp; • &nbsp;Recebem amigos com frequência</p>
@@ -31,7 +31,7 @@ export function ending(){
                     </section>
 
                     <section class="briefing-summary-item">
-                        <div class="image-placeholder">Placeholder da imagem</div>
+                        <img class="briefing-summary-icon" src="/images/briefing/summary/projeto.png" alt="">
                         <div>
                             <h2>Projeto</h2>
                             <p>Reforma parcial&nbsp; • &nbsp;Cozinha integrada&nbsp; • &nbsp;Estilo contemporâneo</p>
@@ -40,7 +40,7 @@ export function ending(){
                     </section>
 
                     <section class="briefing-summary-item">
-                        <div class="image-placeholder">Placeholder da imagem</div>
+                        <img class="briefing-summary-icon" src="/images/briefing/summary/investimento.png" alt="">
                         <div>
                             <h2>Investimento</h2>
                             <p>Faixa de investimento: R$ 120.000 – R$ 150.000</p>
@@ -49,7 +49,7 @@ export function ending(){
                     </section>
 
                     <section class="briefing-summary-item">
-                        <div class="image-placeholder">Placeholder da imagem</div>
+                        <img class="briefing-summary-icon" src="/images/briefing/summary/preferencias.png" alt="">
                         <div>
                             <h2>Preferências</h2>
                             <p>Cores neutras&nbsp; • &nbsp;Madeira clara&nbsp; • &nbsp;Iluminação quente</p>
@@ -58,7 +58,7 @@ export function ending(){
                     </section>
 
                     <section class="briefing-summary-item">
-                        <div class="image-placeholder">Placeholder da imagem</div>
+                        <img class="briefing-summary-icon" src="/images/briefing/summary/ambientes.png" alt="">
                         <div>
                             <h2>Ambientes</h2>
                             <p>9 ambientes informados</p>
@@ -104,7 +104,7 @@ export function ending(){
                 </div>
 
                 <div class="briefing-success-message" hidden>
-                    <div class="image-placeholder">Placeholder da imagem</div>
+                    <img class="briefing-success-icon" src="/images/briefing/summary/sucesso.png" alt="">
                     <div>
                         <strong>Obrigada por confiar em nós!</strong>
                         <p>Seu briefing foi enviado e nossa equipe entrará em contato em breve.</p>

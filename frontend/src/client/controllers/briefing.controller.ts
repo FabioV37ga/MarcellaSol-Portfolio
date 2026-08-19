@@ -1,0 +1,609 @@
+import { about_1, about_2 } from "../templates/briefing/about.template.js";
+import { ambient } from "../templates/briefing/ambient.template.js";
+import { balcony } from "../templates/briefing/balcony.template.js";
+import { bathroom } from "../templates/briefing/bathroom.template.js";
+import { bedroom } from "../templates/briefing/bedroom.template.js";
+import { briefingTemplate } from "../templates/briefing/briefing.template.js";
+import { diningRoom } from "../templates/briefing/diningRoom.template.js";
+import { ending } from "../templates/briefing/ending.template.js";
+import { existing } from "../templates/briefing/existing.template.js";
+import { home } from "../templates/briefing/home.template.js";
+import { investment } from "../templates/briefing/investment.template.js";
+import { kitchen } from "../templates/briefing/kitchen.template.js";
+import { laundry } from "../templates/briefing/laundry.template.js";
+import { livingRoom } from "../templates/briefing/livingRoom.template.js";
+import { preferences_1, preferences_2, preferences_3 } from "../templates/briefing/preferences.template.js";
+import { routine } from "../templates/briefing/routine.template.js";
+import { toilet } from "../templates/briefing/toilet.template.js";
+
+export interface BriefingRoom {
+    id: number;
+    index: number;
+    name: string;
+    type: string;
+    subtype?: string;
+    options: boolean[];
+}
+
+export interface BriefingObject {
+    id?: string;
+    user?: { name?: string };
+    description: {
+        category: string;
+        type: string;
+        name: string;
+        residentAmount: number;
+    };
+    investmentFlexibility: boolean;
+    rooms: BriefingRoom[];
+}
+
+export interface ClientObject {
+    id?: string;
+    name: string;
+    hasFilledBriefing: boolean;
+}
+
+export interface ClientBriefingResponse {
+    clientObject?: Partial<ClientObject>;
+    briefingObject?: Partial<BriefingObject>;
+}
+
+const roomLabels: Record<string, string> = {
+    "sala-estar": "Sala de estar",
+    "sala-jantar": "Sala de jantar",
+    cozinha: "Cozinha",
+    varanda: "Varanda",
+    lavanderia: "Área de serviço",
+    quarto: "Quarto",
+    banheiro: "Banheiro",
+    lavabo: "Lavabo"
+};
+
+function normalizeRoom(room: Partial<BriefingRoom>, position: number): BriefingRoom {
+    return {
+        id: Number.isFinite(Number(room.id)) ? Number(room.id) : position,
+        index: Number.isFinite(Number(room.index)) ? Number(room.index) : position,
+        name: typeof room.name === "string" ? room.name.trim() : "",
+        type: typeof room.type === "string" ? room.type.trim().toLowerCase() : "",
+        subtype: typeof room.subtype === "string" ? room.subtype : undefined,
+        options: Array.isArray(room.options) ? room.options.map(Boolean) : []
+    };
+}
+
+export function normalizeBriefingData(
+    response: ClientBriefingResponse,
+    fallbackName: string
+): { clientObject: ClientObject; briefingObject: BriefingObject } {
+    const rawBriefing = response.briefingObject ?? {};
+    const description = rawBriefing.description ?? {} as BriefingObject["description"];
+    const rooms = Array.isArray(rawBriefing.rooms)
+        ? rawBriefing.rooms.map(normalizeRoom).sort((a, b) => a.index - b.index)
+        : [];
+
+    return {
+        clientObject: {
+            id: typeof response.clientObject?.id === "string" ? response.clientObject.id : undefined,
+            name: response.clientObject?.name?.trim() || rawBriefing.user?.name?.trim() || fallbackName,
+            hasFilledBriefing: Boolean(response.clientObject?.hasFilledBriefing)
+        },
+        briefingObject: {
+            id: typeof rawBriefing.id === "string" ? rawBriefing.id : undefined,
+            user: { name: rawBriefing.user?.name?.trim() || fallbackName },
+            description: {
+                category: typeof description.category === "string" ? description.category : "",
+                type: typeof description.type === "string" ? description.type : "",
+                name: typeof description.name === "string" ? description.name : "",
+                residentAmount: Math.max(0, Number(description.residentAmount) || 0)
+            },
+            investmentFlexibility: Boolean(rawBriefing.investmentFlexibility),
+            rooms
+        }
+    };
+}
+
+function roomPage(room: BriefingRoom, residents: number): HTMLElement | undefined {
+    const option = (index: number, fallback = true) => room.options[index] ?? fallback;
+
+    switch (room.type) {
+        case "sala-estar": return livingRoom();
+        case "sala-jantar": return diningRoom();
+        case "cozinha": return kitchen(residents, option(0));
+        case "varanda": return balcony(option(0));
+        case "lavanderia": return laundry();
+        case "quarto": return bedroom(
+            option(0), option(1), room.options.slice(2, 10).some(value => value) || room.options.length < 3,
+            option(2), option(3), option(4), option(5), option(6), option(7), option(8), option(9),
+            option(10), option(11), option(12), option(13)
+        );
+        case "banheiro": return bathroom();
+        case "lavabo": return toilet();
+        default: return undefined;
+    }
+}
+
+function considerationPage(roomType: string): HTMLElement | undefined {
+    switch (roomType) {
+        case "cozinha": return existing.existingKitchen();
+        case "lavanderia": return existing.existingLaundry();
+        case "sala-estar": return existing.existingLivingRoom();
+        case "varanda": return existing.existingGourmetBalcony();
+        case "quarto": return existing.existingDormitories();
+        default: return undefined;
+    }
+}
+
+export default class ClientBriefingController {
+    private readonly pages: HTMLElement[];
+    private readonly template: HTMLElement;
+    private currentPage = 0;
+    private navigationBound = false;
+
+    constructor(readonly client: ClientObject, readonly briefing: BriefingObject) {
+        const generatedPages = this.createPages();
+        this.template = briefingTemplate(generatedPages, briefing.description.name || "Briefing residencial");
+        this.pages = Array.from(
+            this.template.querySelectorAll<HTMLElement>(".form-page-container > div")
+        );
+
+        if (this.pages.length !== generatedPages.length) {
+            console.error("Briefing: nem todos os templates geraram uma página HTML válida.", {
+                expected: generatedPages.length,
+                rendered: this.pages.length
+            });
+        }
+    }
+
+    getTemplate(): HTMLElement {
+        return this.template;
+    }
+
+    initialize(): void {
+        this.ensureStylesheet();
+        if (!this.navigationBound) {
+            this.bindNavigation();
+            this.navigationBound = true;
+        }
+
+        // Um reload recria os campos sem suas respostas. Por isso, uma nova
+        // inicialização sempre começa do início, em vez de restaurar apenas o
+        // índice salvo no history e exibir uma etapa posterior vazia.
+        this.showPage(0, { replaceHistory: true });
+    }
+
+    navigateToStep(index: number): void {
+        this.showPage(index, { pushHistory: false });
+    }
+
+    private createPages(): HTMLElement[] {
+        const rooms = this.briefing.rooms;
+        const residents = this.briefing.description.residentAmount;
+        const configuredRoomPages = rooms.reduce<HTMLElement[]>((pages, room) => {
+            const environmentPage = roomPage(room, residents);
+            const itemsPage = considerationPage(room.type);
+
+            if (environmentPage) pages.push(environmentPage);
+            if (itemsPage) pages.push(itemsPage);
+            return pages;
+        }, []);
+
+        return [
+            home(),
+            about_1(residents, true),
+            about_2(),
+            routine(),
+            investment(this.briefing.investmentFlexibility),
+            preferences_1(),
+            preferences_2(),
+            preferences_3(),
+            ambient(
+                rooms.map(room => room.name || roomLabels[room.type] || room.type),
+                residents
+            ),
+            ...configuredRoomPages,
+            existing.existingFurniture(),
+            ending()
+        ];
+    }
+
+    private showPage(
+        index: number,
+        historyOptions: { pushHistory?: boolean; replaceHistory?: boolean } = {}
+    ): void {
+        if (index < 0 || index >= this.pages.length) return;
+
+        const page = this.pages[index];
+        const progress = this.template.querySelector<HTMLElement>(".progress");
+
+        if (!page || !progress) return;
+
+        this.currentPage = index;
+        this.pages.forEach((candidate, candidateIndex) => {
+            const isCurrentPage = candidateIndex === index;
+            candidate.hidden = !isCurrentPage;
+            candidate.setAttribute("aria-hidden", String(!isCurrentPage));
+
+            candidate.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLButtonElement>(
+                "input, select, textarea, button"
+            ).forEach(field => {
+                if (!isCurrentPage) {
+                    if (field.dataset.briefingDisabledBeforeHide === undefined) {
+                        field.dataset.briefingDisabledBeforeHide = String(field.disabled);
+                    }
+                    field.disabled = true;
+                    return;
+                }
+
+                const wasDisabled = field.dataset.briefingDisabledBeforeHide === "true";
+                field.disabled = wasDisabled;
+                delete field.dataset.briefingDisabledBeforeHide;
+            });
+        });
+        progress.setAttribute("aria-valuemax", String(this.pages.length));
+        progress.setAttribute("aria-valuenow", String(index + 1));
+        progress.style.setProperty("--briefing-progress", `${((index + 1) / this.pages.length) * 100}%`);
+        this.configureRequiredFields(page);
+        this.syncAmbientSummary(page);
+        this.syncAirConditionerFields(page);
+        this.syncAutomationFields(page);
+        this.syncPetFields(page);
+        this.syncAttentionOtherField(page);
+        this.syncOtherFields(page);
+        this.syncBedSizeField(page);
+        this.syncIgnoredItems(page);
+        this.bindTextCounters(page);
+
+        const historyState = { page: "briefing", briefingStep: index };
+        if (historyOptions.replaceHistory) {
+            window.history.replaceState(historyState, "");
+        } else if (historyOptions.pushHistory ?? true) {
+            window.history.pushState(historyState, "");
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    private bindNavigation(): void {
+        this.template.addEventListener("change", (event: Event) => {
+            const field = event.target as HTMLInputElement;
+
+            if (field.name === "home-automation") {
+                this.syncAutomationFields(this.pages[this.currentPage]);
+            }
+
+            if (field.name === "air-conditioning-structure") {
+                this.syncAirConditionerFields(this.pages[this.currentPage]);
+            }
+
+            if (field.name === "has-pets") {
+                this.syncPetFields(this.pages[this.currentPage]);
+            }
+
+            if (field.type === "checkbox" && field.closest("[data-max-selections]")) {
+                this.syncMaximumSelections(field.closest<HTMLElement>("[data-max-selections]")!);
+            }
+
+            if (field.name === "form-input-66" && field.value === "outros") {
+                this.syncAttentionOtherField(this.pages[this.currentPage]);
+            }
+
+            if (/^(outro|outros)$/.test(field.value)) {
+                this.syncOtherFields(this.pages[this.currentPage]);
+            }
+
+            if (field.type === "checkbox" && field.name === "form-input-103" && field.value === "cama") {
+                this.syncBedSizeField(this.pages[this.currentPage]);
+            }
+
+            if (field.closest(".briefing-ignore-option")) {
+                this.syncIgnoredItems(this.pages[this.currentPage]);
+            }
+        });
+
+        this.template.addEventListener("click", (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            const control = target.closest<HTMLElement>(".briefing-navigation a, .briefing-navigation button");
+            const navigation = control?.closest<HTMLElement>(".briefing-navigation");
+
+            if (!control || !navigation) return;
+
+            event.preventDefault();
+
+            const controls = Array.from(navigation.querySelectorAll<HTMLElement>("a, button"));
+            const isBackControl = this.currentPage > 0 && control === controls[0];
+
+            if (isBackControl) {
+                window.history.back();
+                return;
+            }
+
+            console.info(`Briefing: continuar da etapa ${this.currentPage + 1}`);
+
+            const page = this.pages[this.currentPage];
+            const form = this.template.querySelector<HTMLFormElement>(".form-page-container");
+            this.validateCheckboxGroups(page);
+            if (form && !form.checkValidity()) {
+                this.logInvalidFields(page);
+                form.reportValidity();
+                return;
+            }
+
+            if (this.currentPage < this.pages.length - 1) {
+                this.showPage(this.currentPage + 1);
+                return;
+            }
+
+            page.querySelector<HTMLElement>(".briefing-success-message")?.removeAttribute("hidden");
+        });
+    }
+
+    private syncAmbientSummary(page: HTMLElement): void {
+        const areaOutput = page.querySelector<HTMLElement>("[data-briefing-property-area]");
+        if (!areaOutput) return;
+
+        const areaField = this.template.querySelector<HTMLInputElement>('#property-area');
+        areaOutput.textContent = areaField?.value ? `${areaField.value} m²` : "Não informado";
+    }
+
+    private syncAutomationFields(page: HTMLElement): void {
+        const selectedOption = page.querySelector<HTMLInputElement>(
+            'input[name="home-automation"]:checked'
+        );
+        const shouldShowDetails = selectedOption?.value === "sim";
+
+        page.querySelectorAll<HTMLElement>(".briefing-automation-details").forEach(container => {
+            container.hidden = !shouldShowDetails;
+            container.setAttribute("aria-hidden", String(!shouldShowDetails));
+            container.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                "input, select, textarea"
+            ).forEach(field => {
+                field.disabled = !shouldShowDetails;
+            });
+        });
+    }
+
+    private syncAirConditionerFields(page: HTMLElement): void {
+        const selectedOption = page.querySelector<HTMLInputElement>(
+            'input[name="air-conditioning-structure"]:checked'
+        );
+        const shouldShowDetails = selectedOption?.value === "sim";
+
+        page.querySelectorAll<HTMLElement>(".briefing-air-conditioning-details").forEach(container => {
+            container.hidden = !shouldShowDetails;
+            container.setAttribute("aria-hidden", String(!shouldShowDetails));
+            container.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                "input, select, textarea"
+            ).forEach(field => {
+                field.disabled = !shouldShowDetails;
+            });
+        });
+    }
+
+    private syncPetFields(page: HTMLElement): void {
+        const selectedOption = page.querySelector<HTMLInputElement>(
+            'input[name="has-pets"]:checked'
+        );
+        const shouldShowDetails = selectedOption?.value === "sim";
+
+        page.querySelectorAll<HTMLElement>(".briefing-pet-details").forEach(container => {
+            container.hidden = !shouldShowDetails;
+            container.setAttribute("aria-hidden", String(!shouldShowDetails));
+            container.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                "input, select, textarea"
+            ).forEach(field => {
+                field.disabled = !shouldShowDetails;
+            });
+        });
+    }
+
+    private syncMaximumSelections(group: HTMLElement): void {
+        const maximum = Number(group.dataset.maxSelections);
+        const fields = Array.from(group.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
+        const selectedAmount = fields.filter(field => field.checked).length;
+
+        if (!Number.isFinite(maximum)) return;
+
+        fields.forEach(field => {
+            field.disabled = selectedAmount >= maximum && !field.checked;
+        });
+    }
+
+    private syncAttentionOtherField(page: HTMLElement): void {
+        const otherOption = page.querySelector<HTMLInputElement>(
+            'input[name="form-input-66"][value="outros"]'
+        );
+        const details = page.querySelector<HTMLElement>(".briefing-attention-details");
+        const field = details?.querySelector<HTMLInputElement>("input");
+
+        if (!details || !field) return;
+
+        const shouldShowDetails = Boolean(otherOption?.checked);
+        details.hidden = !shouldShowDetails;
+        details.setAttribute("aria-hidden", String(!shouldShowDetails));
+        field.disabled = !shouldShowDetails;
+        field.required = shouldShowDetails;
+    }
+
+    private syncOtherFields(page: HTMLElement): void {
+        const controls = Array.from(page.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+            'input[type="checkbox"], select'
+        ));
+
+        page.querySelectorAll<HTMLElement>("[data-briefing-other-for]").forEach(target => {
+            const groupName = target.dataset.briefingOtherFor;
+            const otherOption = controls.find(field =>
+                field.name === groupName && /^(outro|outros)$/.test(field.value)
+            );
+            const shouldShow = otherOption instanceof HTMLSelectElement
+                ? /^(outro|outros)$/.test(otherOption.value)
+                : Boolean(otherOption?.checked);
+            const fields = target.matches("input, select, textarea")
+                ? [target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement]
+                : Array.from(target.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                    "input, select, textarea"
+                ));
+
+            target.hidden = !shouldShow;
+            target.setAttribute("aria-hidden", String(!shouldShow));
+            fields.forEach(field => {
+                field.disabled = !shouldShow;
+                field.required = shouldShow;
+            });
+        });
+    }
+
+    private syncBedSizeField(page: HTMLElement): void {
+        const bedOption = page.querySelector<HTMLInputElement>(
+            'input[type="checkbox"][name="form-input-103"][value="cama"]'
+        );
+        const sizeField = page.querySelector<HTMLSelectElement>("[data-briefing-bed-size]");
+        if (!sizeField) return;
+
+        const shouldShow = Boolean(bedOption?.checked);
+        sizeField.hidden = !shouldShow;
+        sizeField.setAttribute("aria-hidden", String(!shouldShow));
+        sizeField.disabled = !shouldShow;
+        sizeField.required = shouldShow;
+    }
+
+    private syncIgnoredItems(page: HTMLElement): void {
+        page.querySelectorAll<HTMLInputElement>(
+            '.briefing-ignore-option input[type="checkbox"]'
+        ).forEach(ignoreField => {
+            const box = ignoreField.closest<HTMLElement>(".briefing-input-box");
+            if (!box) return;
+
+            box.classList.toggle("is-not-considered", ignoreField.checked);
+            box.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                "input, select, textarea"
+            ).forEach(field => {
+                if (field === ignoreField) return;
+
+                if (ignoreField.checked) {
+                    if (field.dataset.wasRequired === undefined) {
+                        field.dataset.wasRequired = String(field.required);
+                    }
+                    field.required = false;
+                    field.disabled = true;
+                    return;
+                }
+
+                if (field.dataset.wasRequired !== undefined) {
+                    field.required = field.dataset.wasRequired === "true";
+                    delete field.dataset.wasRequired;
+                }
+                field.disabled = false;
+            });
+        });
+    }
+
+    private configureRequiredFields(page: HTMLElement): void {
+        page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+            "input:not([type='checkbox']):not([type='file']), select, textarea"
+        ).forEach(field => {
+            if (!this.isOptionalField(field)) field.required = true;
+        });
+
+        page.querySelectorAll<HTMLInputElement>("input[type='radio']")
+            .forEach(field => { field.required = true; });
+
+        page.querySelectorAll<HTMLInputElement>("input[type='checkbox']")
+            .forEach(field => {
+                if (field.closest(".briefing-ignore-option")) return;
+                field.addEventListener("change", () => this.validateCheckboxGroups(page));
+            });
+
+        page.querySelectorAll<HTMLElement>("[data-max-selections]")
+            .forEach(group => this.syncMaximumSelections(group));
+    }
+
+    private isOptionalField(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): boolean {
+        const container = field.closest<HTMLElement>(".briefing-input-box, fieldset, label");
+        const context = container?.textContent?.toLowerCase() ?? "";
+        const identity = `${field.name} ${field.className} ${field.getAttribute("placeholder") ?? ""}`.toLowerCase();
+
+        return context.includes("opcional")
+            || field.hasAttribute("data-briefing-optional")
+            || context.includes("algum outro item")
+            || identity.includes("other")
+            || identity.includes("outro")
+            || identity.includes("qual?")
+            || field.disabled;
+    }
+
+    private validateCheckboxGroups(page: HTMLElement): void {
+        const groups = new Map<string, HTMLInputElement[]>();
+
+        page.querySelectorAll<HTMLInputElement>("input[type='checkbox'][name]").forEach(field => {
+            if (field.closest(".briefing-ignore-option") || this.isOptionalField(field)) return;
+
+            const fields = groups.get(field.name) ?? [];
+            fields.push(field);
+            groups.set(field.name, fields);
+        });
+
+        groups.forEach(fields => {
+            const message = fields.some(field => field.checked)
+                ? ""
+                : "Selecione pelo menos uma opção.";
+
+            fields[0]?.setCustomValidity(message);
+        });
+    }
+
+    private logInvalidFields(page: HTMLElement): void {
+        const invalidFields = Array.from(
+            page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                "input:invalid, select:invalid, textarea:invalid"
+            )
+        );
+
+        console.group(`Briefing: ${invalidFields.length} campo(s) inválido(s)`);
+        invalidFields.forEach(field => {
+            const label = field.labels?.[0]?.textContent?.trim();
+
+            console.warn({
+                field: field.name || field.id || "sem identificador",
+                label: label || "sem label",
+                type: field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase(),
+                value: field.value,
+                message: field.validationMessage,
+                validity: {
+                    valueMissing: field.validity.valueMissing,
+                    typeMismatch: field.validity.typeMismatch,
+                    patternMismatch: field.validity.patternMismatch,
+                    tooShort: field.validity.tooShort,
+                    tooLong: field.validity.tooLong,
+                    rangeUnderflow: field.validity.rangeUnderflow,
+                    rangeOverflow: field.validity.rangeOverflow,
+                    stepMismatch: field.validity.stepMismatch,
+                    badInput: field.validity.badInput,
+                    customError: field.validity.customError
+                },
+                element: field
+            });
+        });
+        console.groupEnd();
+    }
+
+    private bindTextCounters(page: HTMLElement): void {
+        page.querySelectorAll<HTMLTextAreaElement>("textarea[maxlength]").forEach(field => {
+            const counter = field.parentElement?.querySelector<HTMLElement>(":scope > small");
+            if (!counter) return;
+
+            const update = () => { counter.textContent = `${field.value.length}/${field.maxLength}`; };
+            field.addEventListener("input", update);
+            update();
+        });
+    }
+
+    private ensureStylesheet(): void {
+        if (document.querySelector('link[data-client-briefing="true"]')) return;
+
+        const stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = "/client/styles/briefing/briefing.css";
+        stylesheet.dataset.clientBriefing = "true";
+        document.head.append(stylesheet);
+    }
+}

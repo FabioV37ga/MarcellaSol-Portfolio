@@ -1,7 +1,7 @@
 import html from 'nanohtml'
 
-function bathroom() {
-    html`
+export function bathroom() {
+    return html`
     <div class="form-page-17">
 
                 <h1 class="briefing-title">Banheiro</h1>
@@ -15,16 +15,14 @@ function bathroom() {
                     <p>Quem utiliza este ambiente?</p>
                     <span>Selecione todas as opções que se aplicam.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-bathroom-users">
                         <label>
                             <input type="checkbox" name="form-input-115" value="moradores-da-casa">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Moradores da casa</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-115" value="visitas-hospedes">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Visitas / hóspedes</span>
                         </label>
                     </div>
@@ -34,34 +32,29 @@ function bathroom() {
                     <p>O que precisa ser armazenado ou ter à disposição?</p>
                     <span>Selecione os itens que são importantes neste ambiente.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-bathroom-storage">
                         <label>
                             <input type="checkbox" name="form-input-116" value="itens-de-higiene-pessoal">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Itens de higiene pessoal</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-116" value="maquiagem">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Maquiagem</span>
                         </label>
                         
                         <label>
                             <input type="checkbox" name="form-input-116" value="secador-modeladores">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Secador / modeladores</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-116" value="produtos-de-reposicao">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Produtos de reposição</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-116" value="toalhas">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Toalhas</span>
                         </label>
 
@@ -73,9 +66,11 @@ function bathroom() {
 
                     <input
                         type="text"
-                        class="briefing-input"
+                        class="briefing-input briefing-bathroom-storage-other"
                         name="form-input-117"
+                        data-briefing-other-for="form-input-116"
                         placeholder="Especifique..."
+                        hidden
                     >
                 </div>
 
@@ -87,6 +82,7 @@ function bathroom() {
                     </span>
 
                     <textarea
+                        data-briefing-optional
                         class="briefing-input-big"
                         maxlength="500"
                         placeholder="Ex.: barras de apoio, ducha higiênica, espelho com iluminação, tomadas extras, aquecedor de toalhas..."

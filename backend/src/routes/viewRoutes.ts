@@ -68,8 +68,14 @@ router.post("/api/view/client", async (req: Request, res: Response) => {
             return;
         }
 
+        const authenticationData = await authentication.json();
         const view = await views.find({ permission: "client" });
-        res.status(200).json({ view });
+
+        res.status(200).json({
+            view,
+            clientObject: authenticationData.clientObject,
+            briefingObject: authenticationData.briefingObject
+        });
     } catch (error) {
         console.error("Erro ao buscar views do cliente:", error);
         res.status(500).json({ message: "Erro ao buscar views do cliente." });

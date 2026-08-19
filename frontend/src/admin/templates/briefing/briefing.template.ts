@@ -54,7 +54,7 @@ const roomOptionNames: Record<string, string[]> = {
     quarto: [
         "Utilizador e função principal",
         "Fluxo diário",
-        "Cama",
+        "Tamanho da cama",
         "TV",
         "Espaço de leitura",
         "Home office",

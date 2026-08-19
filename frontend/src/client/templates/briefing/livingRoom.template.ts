@@ -37,18 +37,20 @@ export function livingRoom(){
                             <span>Trabalhar / estudar</span>
                         </label>
 
-                        <label>
+                        <label class="briefing-other-option">
                             <input type="checkbox" name="form-input-77" value="outros">
                             <span>Outros</span>
                         </label>
                     </div>
 
-                    <textarea
-                        class="briefing-input-medium"
-                        maxlength="200"
-                        placeholder="Conte como usam este ambiente"
-                    ></textarea>
-                    <small>0/200</small>
+                    <div data-briefing-other-for="form-input-77" hidden>
+                        <textarea
+                            class="briefing-input-medium briefing-other-input"
+                            maxlength="200"
+                            placeholder="Conte como usam este ambiente"
+                        ></textarea>
+                        <small>0/200</small>
+                    </div>
                 </div>
 
                 <div class="briefing-input-box">
@@ -101,18 +103,22 @@ export function livingRoom(){
                             <span>Iluminação</span>
                         </label>
 
+                    </div>
+
+                    <div class="briefing-other-row">
                         <label>
                             <input type="checkbox" name="form-input-80" value="outros">
                             <span>Outros</span>
                         </label>
+                        <div class="briefing-other-field" data-briefing-other-for="form-input-80" hidden>
+                            <textarea
+                                class="briefing-input-medium briefing-other-input"
+                                maxlength="200"
+                                placeholder="Conte outros elementos importantes"
+                            ></textarea>
+                            <small>0/200</small>
+                        </div>
                     </div>
-
-                    <textarea
-                        class="briefing-input-medium"
-                        maxlength="200"
-                        placeholder="Conte outros elementos importantes"
-                    ></textarea>
-                    <small>0/200</small>
                 </div>
 
                 <div class="briefing-input-box">
@@ -120,6 +126,7 @@ export function livingRoom(){
                     <span>Alguma necessidade específica que devemos considerar?</span>
 
                     <textarea
+                        data-briefing-optional
                         class="briefing-input-big"
                         maxlength="300"
                         placeholder="Ex.: espaço para obras de arte, som ambiente, cantinho para leitura..."

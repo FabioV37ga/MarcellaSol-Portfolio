@@ -9,7 +9,7 @@ function userFunction() {
                 <div class="briefing-input-box">
                     <label>Quem utilizará o quarto?</label>
                     <select class="briefing-input" name="form-input-110">
-                        <option value="" selected disabled>Selecione uma opção</option>
+                        <option value="" selected disabled>Selecione</option>
                         <option value="filho">Filho(a)</option>
                         <option value="hospedes">Hóspedes</option>
                         <option value="morador">Outro morador</option>
@@ -20,7 +20,7 @@ function userFunction() {
                 <div class="briefing-input-box">
                     <label>Qual será a principal função do cômodo?</label>
                     <select class="briefing-input" name="form-input-111">
-                        <option value="" selected disabled>Selecione uma opção</option>
+                        <option value="" selected disabled>Selecione</option>
                         <option value="dormitorio">Dormitório</option>
                         <option value="quarto-de-hospedes">Quarto de hóspedes</option>
                         <option value="escritorio">Escritório</option>
@@ -29,6 +29,7 @@ function userFunction() {
                         <option value="outro">Outro</option>
                 </select>
             </div>
+        </div>
         </div>
     `
 }
@@ -60,7 +61,7 @@ function specifics(askBed: boolean,
     return html`
         <div class="briefing-input-box">
                 <p>3. O que não pode faltar no quarto?</p>
-                <div class="briefing-options">
+                <div class="briefing-options briefing-bedroom-essentials">
 
                     ${askBed ? bed() : null}
                     ${askTV ? TV() : null}
@@ -68,17 +69,25 @@ function specifics(askBed: boolean,
                     ${askHomeoffice ? homeoffice() : null}
                     ${askHair ? hair() : null}
                     ${askShelf ? shelf() : null}
-                    ${askWardrobe ? wardrobe : null}
+                    ${askWardrobe ? wardrobe() : null}
                     ${askWorkdesk ? workdesk() : null}
 
                 <label>
                     <input type="checkbox" name="form-input-103" value="outros">
-                    <div class="image-placeholder">Placeholder da imagem</div>
+                    <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/outros.png" alt="">
                     <span>Outros</span>
                 </label>
                 </div>
 
                 ${askBed ? bedList() : null}
+                <input
+                    type="text"
+                    class="briefing-input briefing-bedroom-other-item"
+                    name="form-input-113"
+                    data-briefing-other-for="form-input-103"
+                    placeholder="Qual outro item?"
+                    hidden
+                >
         </div>
     `
 }
@@ -87,8 +96,8 @@ function bed() {
     return html`
         <label>
             <input type="checkbox" name="form-input-103" value="cama">
-            <div class="image-placeholder">Placeholder da imagem</div>
-            <span>Cama (qual tipo?)</span>
+            <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/cama.png" alt="">
+            <span>Cama (qual tamanho?)</span>
         </label>
     `
 }
@@ -97,7 +106,7 @@ function TV() {
     return html`
         <label>
             <input type="checkbox" name="form-input-103" value="tv">
-            <div class="image-placeholder">Placeholder da imagem</div>
+            <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/tv.png" alt="">
             <span>TV</span>
         </label>
     `
@@ -107,7 +116,7 @@ function reading() {
     return html`
      <label>
         <input type="checkbox" name="form-input-103" value="espaco-para-leitura">
-        <div class="image-placeholder">Placeholder da imagem</div>
+        <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/leitura.png" alt="">
         <span>Espaço para leitura</span>
     </label>
     
@@ -118,7 +127,7 @@ function homeoffice() {
     return html`
     <label>
         <input type="checkbox" name="form-input-103" value="home-office">
-        <div class="image-placeholder">Placeholder da imagem</div>
+        <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/home-office.png" alt="">
         <span>Home office</span>
     </label>
     `
@@ -129,7 +138,7 @@ function hair() {
     return html`
     <label>
         <input type="checkbox" name="form-input-103" value="penteadeira-camarim">
-        <div class="image-placeholder">Placeholder da imagem</div>
+        <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/penteadeira.png" alt="">
         <span>Penteadeira / camarim</span>
     </label>
     `
@@ -139,7 +148,7 @@ function shelf() {
     return html`
     <label>
         <input type="checkbox" name="form-input-103" value="estante-prateleiras">
-        <div class="image-placeholder">Placeholder da imagem</div>
+        <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/estante.png" alt="">
         <span>Estante / prateleiras</span>
     </label>
     `
@@ -149,7 +158,7 @@ function wardrobe() {
     return html`
     <label>
         <input type="checkbox" name="form-input-103" value="guarda-roupa">
-        <div class="image-placeholder">Placeholder da imagem</div>
+        <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/guarda-roupa.png" alt="">
         <span>Guarda-roupa</span>
     </label>
     `
@@ -159,7 +168,7 @@ function workdesk() {
     return html`
     <label>
         <input type="checkbox" name="form-input-103" value="mesa-trabalho-estudo">
-        <div class="image-placeholder">Placeholder da imagem</div>
+        <img class="briefing-bedroom-icon" src="/images/briefing/bedroom/mesa-trabalho.png" alt="">
         <span>Mesa de trabalho / estudo</span>
     </label>
     `
@@ -167,8 +176,8 @@ function workdesk() {
 
 function bedList() {
     return html`
-        <select class="briefing-input" name="form-input-104">
-        <option value="" selected disabled>Selecione o tipo de cama</option>
+        <select class="briefing-input briefing-bed-size" name="form-input-104" data-briefing-bed-size hidden>
+        <option value="" selected disabled>Selecione o tamanho da cama</option>
         <option value="berco">Berço</option>
         <option value="montessoriano">Montessoriano</option>
         <option value="solteiro">Solteiro</option>
@@ -177,13 +186,6 @@ function bedList() {
         <option value="queen">Queen</option>
         <option value="king">King</option>
     </select>
-
-    <input
-        type="text"
-        class="briefing-input"
-        name="form-input-113"
-        placeholder="Qual outro item?"
-    >
     `
 }
 
@@ -208,7 +210,7 @@ function storagePreference() {
     <div class="briefing-input-box">
         <p>5. O que precisa de mais espaço/armazenamento?</p>
 
-        <div class="briefing-options">
+        <div class="briefing-options briefing-bedroom-storage">
             <label>
                 <input type="checkbox" name="form-input-106" value="roupas-longas">
                 <span>Roupas longas</span>
@@ -242,9 +244,11 @@ function storagePreference() {
 
         <input
             type="text"
-            class="briefing-input"
+            class="briefing-input briefing-bedroom-storage-other"
             name="form-input-107"
+            data-briefing-other-for="form-input-106"
             placeholder="Qual?"
+            hidden
         >
     </div>
     `

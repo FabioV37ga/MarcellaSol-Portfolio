@@ -28,17 +28,10 @@ export function investment(askFlexibility: boolean) {
                     <small>Selecione uma faixa aproximada para o investimento total do projeto.</small>
 
                     <div class="briefing-select-box">
-                        <input type="radio" name="investment-range" value="ate-250-mil">
-                        <label class="button-option">Até R$ 250 mil</label>
-
-                        <input type="radio" name="investment-range" value="250-500-mil">
-                        <label class="button-option">R$ 250 a R$ 500 mil</label>
-
-                        <input type="radio" name="investment-range" value="500-mil-1-milhao">
-                        <label class="button-option">R$ 500 mil a R$ 1 milhão</label>
-
-                        <input type="radio" name="investment-range" value="acima-1-milhao">
-                        <label class="button-option">Acima de R$ 1 milhão</label>
+                        <label class="button-option"><input type="radio" name="investment-range" value="ate-250-mil"> <span>Até R$ 250 mil</span></label>
+                        <label class="button-option"><input type="radio" name="investment-range" value="250-500-mil"> <span>R$ 250 a R$ 500 mil</span></label>
+                        <label class="button-option"><input type="radio" name="investment-range" value="500-mil-1-milhao"> <span>R$ 500 mil a R$ 1 milhão</span></label>
+                        <label class="button-option"><input type="radio" name="investment-range" value="acima-1-milhao"> <span>Acima de R$ 1 milhão</span></label>
                     </div>
                 </fieldset>
 
@@ -57,39 +50,18 @@ export function investment(askFlexibility: boolean) {
                     <legend>O investimento inclui:</legend>
                     <small>Selecione os itens que você acha que devem estar cobertos pelo investimento.</small>
 
-                    <div class="briefing-select-box">
-                        <input type="checkbox" value="obra">
-                        <label class="button-option">Obra</label>
-
-                        <input type="checkbox" value="marcenaria">
-                        <label class="button-option">Marcenaria</label>
-
-                        <input type="checkbox" value="marmoraria">
-                        <label class="button-option">Marmoraria</label>
-
-                        <input type="checkbox" value="revestimentos">
-                        <label class="button-option">Revestimentos</label>
-
-                        <input type="checkbox" value="iluminacao">
-                        <label class="button-option">Iluminação</label>
-
-                        <input type="checkbox" value="loucas-metais">
-                        <label class="button-option">Louças e metais</label>
-
-                        <input type="checkbox" value="mobiliario">
-                        <label class="button-option">Mobiliário</label>
-
-                        <input type="checkbox" value="eletrodomesticos">
-                        <label class="button-option">Eletrodomésticos</label>
-
-                        <input type="checkbox" value="ar-condicionado">
-                        <label class="button-option">Ar-condicionado</label>
-
-                        <input type="checkbox" value="cortinas-persianas">
-                        <label class="button-option">Cortinas e persianas</label>
-
-                        <input type="checkbox" value="decoracao">
-                        <label class="button-option">Decoração</label>
+                    <div class="briefing-select-box briefing-investment-grid">
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="obra"> <span>Obra</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="marcenaria"> <span>Marcenaria</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="marmoraria"> <span>Marmoraria</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="revestimentos"> <span>Revestimentos</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="iluminacao"> <span>Iluminação</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="loucas-metais"> <span>Louças e metais</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="mobiliario"> <span>Mobiliário</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="eletrodomesticos"> <span>Eletrodomésticos</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="ar-condicionado"> <span>Ar-condicionado</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="cortinas-persianas"> <span>Cortinas e persianas</span></label>
+                        <label class="button-option"><input type="checkbox" name="investment-includes" value="decoracao"> <span>Decoração</span></label>
                     </div>
                 </fieldset>
 

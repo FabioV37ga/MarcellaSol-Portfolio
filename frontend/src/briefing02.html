@@ -34,15 +34,19 @@
                     <small>0/500</small>
                 </div>
 
-                <div class="briefing-input-flex-box">
+                <div class="briefing-input-box">
                     <fieldset class="briefing-input-box">
                         <legend>Pets?</legend>
-                        <div class="briefing-checkbox-box">
-                            <input type="radio" name="has-pets" value="sim">
-                            <label>Sim</label>
+                        <div class="briefing-select-box">
+                            <label class="button-option">
+                                <input type="radio" name="has-pets" value="sim">
+                                <span>Sim</span>
+                            </label>
 
-                            <input type="radio" name="has-pets" value="nao">
-                            <label>Não</label>
+                            <label class="button-option">
+                                <input type="radio" name="has-pets" value="nao">
+                                <span>Não</span>
+                            </label>
                         </div>
                     </fieldset>
 
@@ -58,51 +62,51 @@
                     </div>
                 </div>
 
-                <fieldset class="briefing-input-row">
+                <fieldset class="briefing-input-box">
                     <legend>Mudanças futuras nos próximos anos</legend>
                     <small>Marque tudo o que se aplica à realidade de vocês.</small>
 
-                    <div class="row-content">
-                        <div class="briefing-input-checkbox">
+                    <div class="briefing-select-box briefing-future-changes">
+                        <label class="button-option">
                             <input type="checkbox" value="filhos">
-                            <label>Ter filhos</label>
-                        </div>
+                            <span>Ter filhos</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
+                        <label class="button-option">
                             <input type="checkbox" value="novo-pet">
-                            <label>Novo pet</label>
-                        </div>
+                            <span>Novo pet</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
+                        <label class="button-option">
                             <input type="checkbox" value="trabalho-remoto">
-                            <label>Trabalho remoto</label>
-                        </div>
+                            <span>Trabalho remoto</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
+                        <label class="button-option">
                             <input type="checkbox" value="acessibilidade">
-                            <label>Acessibilidade futura</label>
-                        </div>
+                            <span>Acessibilidade futura</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
+                        <label class="button-option">
                             <input type="checkbox" value="familiar">
-                            <label>Familiar morando junto</label>
-                        </div>
+                            <span>Familiar morando junto</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
+                        <label class="button-option">
                             <input type="checkbox" value="nenhuma">
-                            <label>Nenhuma prevista</label>
-                        </div>
+                            <span>Nenhuma prevista</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
+                        <label class="button-option">
                             <input type="checkbox" value="outros">
-                            <label>Outros, quais?</label>
-                            <input
-                                type="text"
-                                class="briefing-input"
-                                placeholder="Conte quais mudanças vocês imaginam"
-                            >
-                        </div>
+                            <span>Outros</span>
+                        </label>
                     </div>
+                    <input
+                        type="text"
+                        class="briefing-input briefing-future-other"
+                        placeholder="Conte quais outras mudanças vocês imaginam"
+                    >
                 </fieldset>
 
                 <fieldset class="briefing-input-box">

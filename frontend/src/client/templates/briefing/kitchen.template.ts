@@ -5,7 +5,7 @@ function askResidentAmount(){
          <div class="briefing-input-box">
                     <p>Mais de uma pessoa cozinha ao mesmo tempo?</p>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-kitchen-binary">
                         <label>
                             <input type="radio" name="form-input-88" value="sim">
                             <span>Sim</span>
@@ -25,7 +25,7 @@ function askFastMeals(){
          <div class="briefing-input-box">
                     <p>Vocês costumam fazer refeições rápidas na cozinha?</p>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-kitchen-binary">
                         <label>
                             <input type="radio" name="form-input-92" value="sim">
                             <span>Sim</span>
@@ -83,101 +83,93 @@ export function kitchen(residents: number, fastMeals: boolean){
                     <p>Quais eletrodomésticos são essenciais?</p>
                     <span>Selecione todos que se aplicam.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-kitchen-appliances">
                         <label>
                             <input type="checkbox" name="form-input-89" value="geladeira">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Geladeira</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="freezer">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Freezer</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="forno">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Forno</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="micro-ondas">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Micro-ondas</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="cooktop">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Cooktop</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="coifa">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Coifa</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="lava-loucas">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Lava-louças</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="adega-frigobar">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Adega / Frigobar</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-89" value="outro">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Outro</span>
                         </label>
                     </div>
+                    <input
+                        type="text"
+                        class="briefing-input"
+                        data-briefing-other-for="form-input-89"
+                        placeholder="Qual outro eletrodoméstico?"
+                        hidden
+                    >
                 </div>
 
                 <div class="briefing-input-box">
                     <p>Acessórios especiais desejados:</p>
                     <span>Selecione o que deseja ter na sua cozinha.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-kitchen-accessories">
                         <label>
                             <input type="checkbox" name="form-input-90" value="triturador-de-alimentos">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Triturador de alimentos na cuba</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-90" value="lixeira-embutida">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Lixeira embutida</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-90" value="calha-umida">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Calha úmida</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-90" value="dispenser-de-detergente">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Dispenser de detergente embutido</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-90" value="torneira-com-filtro">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Torneira com filtro</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-90" value="torres-tomadas-embutidas">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Torres / tomadas embutidas</span>
                         </label>
                     </div>
@@ -196,6 +188,13 @@ export function kitchen(residents: number, fastMeals: boolean){
                         <option value="temperos">Temperos</option>
                         <option value="outros">Outros</option>
                     </select>
+                    <input
+                        type="text"
+                        class="briefing-input"
+                        data-briefing-other-for="form-input-91"
+                        placeholder="O que precisa de mais armazenamento?"
+                        hidden
+                    >
                 </div>
 
                 ${fastMeals ? askFastMeals() : null}
@@ -204,6 +203,7 @@ export function kitchen(residents: number, fastMeals: boolean){
                     <p>Há algum hábito, problema ou desejo especial?</p>
 
                     <textarea
+                        data-briefing-optional
                         class="briefing-input-big"
                         maxlength="400"
                         placeholder="Conte para a gente..."

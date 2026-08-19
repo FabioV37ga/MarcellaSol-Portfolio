@@ -12,19 +12,17 @@ export function toilet() {
                 </p>
 
                 <div class="briefing-input-box">
-                    <p>Quem utiliza este ambiente?</p>
-                    <span>Selecione todas as opções que se aplicam.</span>
+                    <p>Quem utiliza MAIS este ambiente?</p>
+                    <span>Selecione a opção principal.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-bathroom-users">
                         <label>
-                            <input type="checkbox" name="lavabo-users" value="moradores-da-casa">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <input type="radio" name="lavabo-users" value="moradores-da-casa">
                             <span>Moradores da casa</span>
                         </label>
 
                         <label>
-                            <input type="checkbox" name="lavabo-users" value="visitas-hospedes">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <input type="radio" name="lavabo-users" value="visitas-hospedes">
                             <span>Visitas / hóspedes</span>
                         </label>
                     </div>
@@ -34,35 +32,30 @@ export function toilet() {
                     <p>O que precisa ser armazenado ou ter à disposição?</p>
                     <span>Selecione os itens que são importantes neste ambiente.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-bathroom-storage">
                         <label>
-                            <input type="checkbox" name="lavabo-storage" value="papel-higienico">
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                            <span>Papel higiênico</span>
+                            <input type="checkbox" name="lavabo-storage" value="itens-de-higiene-pessoal">
+                            <span>Itens de higiene pessoal</span>
                         </label>
 
                         <label>
-                            <input type="checkbox" name="lavabo-storage" value="sabonete">
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                            <span>Sabonete</span>
+                            <input type="checkbox" name="lavabo-storage" value="maquiagem">
+                            <span>Maquiagem</span>
                         </label>
 
                         <label>
-                            <input type="checkbox" name="lavabo-storage" value="toalhas-de-rosto">
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                            <span>Toalhas de rosto</span>
+                            <input type="checkbox" name="lavabo-storage" value="secador-modeladores">
+                            <span>Secador / modeladores</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="lavabo-storage" value="produtos-de-reposicao">
-                            <div class="image-placeholder">Placeholder da imagem</div>
                             <span>Produtos de reposição</span>
                         </label>
 
                         <label>
-                            <input type="checkbox" name="lavabo-storage" value="itens-decorativos">
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                            <span>Itens decorativos</span>
+                            <input type="checkbox" name="lavabo-storage" value="toalhas">
+                            <span>Toalhas</span>
                         </label>
 
                         <label>
@@ -73,11 +66,27 @@ export function toilet() {
 
                     <input
                         type="text"
-                        class="briefing-input"
+                        class="briefing-input briefing-bathroom-storage-other"
                         name="lavabo-storage-other"
+                        data-briefing-other-for="lavabo-storage"
                         placeholder="Especifique..."
+                        hidden
                     >
                 </div>
+
+                <fieldset class="briefing-input-box">
+                    <legend>Como esse ambiente deve se comportar?</legend>
+                    <div class="briefing-select-box">
+                        <label class="button-option">
+                            <input type="radio" name="lavabo-identity" value="seguir-identidade-imovel">
+                            <span>Seguir a identidade do imóvel</span>
+                        </label>
+                        <label class="button-option">
+                            <input type="radio" name="lavabo-identity" value="ponto-de-destaque">
+                            <span>Ser um ponto de destaque</span>
+                        </label>
+                    </div>
+                </fieldset>
 
                 <div class="briefing-input-box">
                     <p>Equipamentos, acabamentos ou desejos especiais</p>
@@ -87,6 +96,7 @@ export function toilet() {
                     </span>
 
                     <textarea
+                        data-briefing-optional
                         class="briefing-input-big"
                         maxlength="500"
                         placeholder="Ex.: espelho com iluminação, cuba esculpida, metais especiais, papel de parede, iluminação decorativa..."

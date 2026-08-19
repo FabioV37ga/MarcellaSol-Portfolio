@@ -45,33 +45,34 @@ export function diningRoom(){
                     <p>A mesa também é usada para trabalho/estudo/jogos/apoio?</p>
                     <span>Pode selecionar mais de uma opção.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-dining-options">
                         <label>
                             <input type="checkbox" name="form-input-84" value="trabalho">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-dining-icon" src="/images/briefing/dining/trabalho.png" alt="">
                             <span>Trabalho</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-84" value="estudo">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-dining-icon" src="/images/briefing/dining/estudo.png" alt="">
                             <span>Estudo</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-84" value="jogos">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-dining-icon" src="/images/briefing/dining/jogos.png" alt="">
                             <span>Jogos</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-84" value="apoio-tarefas-do-dia-a-dia">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-dining-icon" src="/images/briefing/dining/apoio.png" alt="">
                             <span>Apoio / tarefas do dia a dia</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-84" value="apenas-refeicoes">
+                            <img class="briefing-dining-icon" src="/images/briefing/dining/refeicoes.png" alt="">
                             <span>Não, apenas para refeições</span>
                         </label>
                     </div>
@@ -82,6 +83,7 @@ export function diningRoom(){
                     <span>Ex.: louceiro, buffet, adega, cristaleira, aparador, etc.</span>
 
                     <textarea
+                        data-briefing-optional
                         class="briefing-input-big"
                         maxlength="400"
                         placeholder="Conte para a gente..."

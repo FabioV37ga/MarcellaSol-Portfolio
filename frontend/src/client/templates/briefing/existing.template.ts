@@ -24,6 +24,10 @@ function equipmentFields(equipment: Equipment[]) {
     return equipment.map(item => html`
         <div class="briefing-input-box">
             <label>${item.label}</label>
+            <label class="briefing-ignore-option">
+                <input type="checkbox" name="${item.voltageName}-nao-considerar" value="nao-considerar">
+                <span>Não considerar</span>
+            </label>
             <input type="text" class="briefing-input" placeholder="${item.placeholder}" required>
             ${voltageSelect(item.voltageName, item.allowNotApplicable)}
         </div>
@@ -34,7 +38,7 @@ function otherItem(placeholder = 'Coloque o link ou descreva aqui') {
     return html`
         <div class="briefing-input-box">
             <label>Algum outro item?</label>
-            <textarea class="briefing-input-medium" maxlength="500" placeholder="${placeholder}"></textarea>
+            <textarea data-briefing-optional class="briefing-input-medium" maxlength="500" placeholder="${placeholder}"></textarea>
             <small>0/500</small>
         </div>
     `
@@ -103,16 +107,16 @@ function existingLaundry() {
 
                 <div class="briefing-input-box">
                     <label>Máquina de lavar roupas</label>
+                    <label class="briefing-ignore-option">
+                        <input type="checkbox" name="maquina-lavar-nao-considerar" value="nao-considerar">
+                        <span>Não considerar</span>
+                    </label>
                     <select class="briefing-input" required>
                         <option value="" selected disabled>Selecione o tipo</option>
                         <option value="lava-e-seca">Lava e seca</option>
                         <option value="convencional">Convencional</option>
                     </select>
-                </div>
-
-                <div class="briefing-input-box">
-                    <label>Modelo, medidas ou link da máquina</label>
-                    <input type="text" class="briefing-input" placeholder="Informe modelo, medidas ou link">
+                    <input type="text" class="briefing-input" placeholder="Informe modelo, medidas ou link" required>
                     ${voltageSelect('maquina-lavar-voltagem')}
                 </div>
 
@@ -144,6 +148,10 @@ function existingLivingRoom() {
 
                 <div class="briefing-input-box">
                     <label>Fechadura digital</label>
+                    <label class="briefing-ignore-option">
+                        <input type="checkbox" name="fechadura-digital-nao-considerar" value="nao-considerar">
+                        <span>Não considerar</span>
+                    </label>
                     <input type="text" class="briefing-input" placeholder="Informe o modelo ou link" required>
                 </div>
 
@@ -212,7 +220,7 @@ function existingDormitories() {
 function existingFurniture() {
     return html`
         <div class="form-page-24">
-            <h1 class="briefing-title">Móveis a serem mantidos no projeto</h1>
+            <h1 class="briefing-title">Itens a manter</h1>
             <p class="briefing-subtitle">
                 Liste os móveis, todas as medidas e os ambientes em que gostaria de mantê-los.
                 Caso não existam móveis a serem mantidos, responda apenas “Não consta”.
@@ -223,6 +231,10 @@ function existingFurniture() {
 
                 <div class="briefing-input-box">
                     <label>Móveis, medidas e ambientes</label>
+                    <label class="briefing-ignore-option">
+                        <input type="checkbox" name="moveis-nao-considerar" value="nao-considerar">
+                        <span>Não considerar</span>
+                    </label>
                     <textarea
                         class="briefing-input-big"
                         maxlength="1500"

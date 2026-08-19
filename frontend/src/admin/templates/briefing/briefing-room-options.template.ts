@@ -29,7 +29,7 @@ const bedroomOptions = `
     <fieldset class="briefing-room-considerations">
         <legend>Incluir lista de considerações</legend>
         <div class="briefing-room-considerations-grid">
-            <label><input type="checkbox" checked> <span>Cama</span></label>
+            <label><input type="checkbox" checked> <span>Tamanho da cama</span></label>
             <label><input type="checkbox" checked> <span>TV</span></label>
             <label><input type="checkbox" checked> <span>Espaço de leitura</span></label>
             <label><input type="checkbox" checked> <span>Home office</span></label>

@@ -23,6 +23,7 @@
 
                     <div class="briefing-input-box">
                         <label>Geladeira</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="geladeira-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <input type="text" class="briefing-input" placeholder="Informe modelo, medidas ou link" required>
                         <select class="briefing-input" name="geladeira-voltagem" required>
                             <option value="" selected disabled>Selecione a voltagem</option>
@@ -33,6 +34,7 @@
 
                     <div class="briefing-input-box">
                         <label>Fogão de piso ou cooktop</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="fogao-cooktop-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <input type="text" class="briefing-input" placeholder="Informe o tipo, modelo, medidas ou link" required>
                         <select class="briefing-input" name="fogao-cooktop-voltagem" required>
                             <option value="" selected disabled>Selecione a voltagem</option>
@@ -44,6 +46,7 @@
 
                     <div class="briefing-input-box">
                         <label>Forno de embutir</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="forno-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <input type="text" class="briefing-input" placeholder="Informe modelo, medidas ou link" required>
                         <select class="briefing-input" name="forno-voltagem" required>
                             <option value="" selected disabled>Selecione a voltagem</option>
@@ -55,6 +58,7 @@
 
                     <div class="briefing-input-box">
                         <label>Depurador ou coifa</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="depurador-coifa-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <input type="text" class="briefing-input" placeholder="Informe o tipo, modelo, medidas ou link" required>
                         <select class="briefing-input" name="depurador-coifa-voltagem" required>
                             <option value="" selected disabled>Selecione a voltagem</option>
@@ -65,6 +69,7 @@
 
                     <div class="briefing-input-box">
                         <label>Micro-ondas</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="micro-ondas-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <input type="text" class="briefing-input" placeholder="Informe modelo, medidas ou link" required>
                         <select class="briefing-input" name="micro-ondas-voltagem" required>
                             <option value="" selected disabled>Selecione a voltagem</option>
@@ -75,6 +80,7 @@
 
                     <div class="briefing-input-box">
                         <label>Lava-louças</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="lava-loucas-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <input type="text" class="briefing-input" placeholder="Informe modelo, medidas ou link" required>
                         <select class="briefing-input" name="lava-loucas-voltagem" required>
                             <option value="" selected disabled>Selecione a voltagem</option>
@@ -85,6 +91,7 @@
 
                     <div class="briefing-input-box">
                         <label>Filtro de água</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="filtro-agua-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <input type="text" class="briefing-input" placeholder="Informe modelo, medidas ou link" required>
                         <select class="briefing-input" name="filtro-agua-voltagem" required>
                             <option value="" selected disabled>Selecione a voltagem</option>
@@ -119,6 +126,7 @@
             </div>
         </div>
     </main>
+    <script type="module" src="/client/utils/briefingIgnoreItems.ts"></script>
 </body>
 
 </html>

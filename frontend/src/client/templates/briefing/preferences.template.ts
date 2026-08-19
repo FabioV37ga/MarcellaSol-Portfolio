@@ -14,76 +14,76 @@ export function preferences_1(){
                 <div class="briefing-input-box">
                     <p>Escolha a atmosfera que mais combina com vocês:</p>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-style-options">
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-65"
-                                value="contemporanea-sofisticada"
+                                value="contemporaneo-brasileiro"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/styles/contemporaneo-brasileiro.png" alt="Ambiente no estilo contemporâneo brasileiro">
                             <span>Opção A</span>
-                            <strong>Contemporânea sofisticada</strong>
+                            <strong>Contemporâneo brasileiro</strong>
                         </label>
 
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-65"
-                                value="acolhedora-natural"
+                                value="moderno"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/styles/moderno.png" alt="Ambiente no estilo moderno">
                             <span>Opção B</span>
-                            <strong>Acolhedora natural</strong>
+                            <strong>Moderno</strong>
                         </label>
 
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-65"
-                                value="minimalista-leve"
+                                value="japandi"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/styles/japandi.png" alt="Ambiente no estilo japandi">
                             <span>Opção C</span>
-                            <strong>Minimalista leve</strong>
+                            <strong>Japandi</strong>
                         </label>
 
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-65"
-                                value="classica-atemporal"
+                                value="industrial"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/styles/industrial.png" alt="Ambiente no estilo industrial">
                             <span>Opção D</span>
-                            <strong>Clássica atemporal</strong>
+                            <strong>Industrial</strong>
                         </label>
 
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-65"
-                                value="industrial-urbana"
+                                value="rustico"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/styles/rustico.png" alt="Ambiente no estilo rústico">
                             <span>Opção E</span>
-                            <strong>Industrial urbana</strong>
+                            <strong>Rústico</strong>
                         </label>
 
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-65"
-                                value="praiana-relaxada"
+                                value="boho"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/styles/boho.png" alt="Ambiente no estilo boho">
                             <span>Opção F</span>
-                            <strong>Praiana relaxada</strong>
+                            <strong>Boho</strong>
                         </label>
                     </div>
                 </div>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box" data-max-selections="5">
                     <p>O que mais chamou a atenção nas imagens escolhidas?</p>
                     <span>Selecione até 5 itens.</span>
 
@@ -196,9 +196,21 @@ export function preferences_1(){
                             <span>Outros</span>
                         </label>
                     </div>
+
+                    <div class="briefing-attention-details" hidden>
+                        <label for="briefing-attention-details">Conte o que mais chamou a atenção</label>
+                        <input
+                            type="text"
+                            class="briefing-input"
+                            id="briefing-attention-details"
+                            name="attention-details"
+                            placeholder="Descreva aqui..."
+                            disabled
+                        >
+                    </div>
                 </div>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box" data-max-selections="5">
                     <p>Como vocês descreveriam a casa dos sonhos?</p>
                     <span>Escolha até 5 adjetivos.</span>
 
@@ -338,6 +350,13 @@ export function preferences_1(){
                             <span>Outros</span>
                         </label>
                     </div>
+                    <input
+                        type="text"
+                        class="briefing-input"
+                        data-briefing-other-for="form-input-67"
+                        placeholder="Qual outro adjetivo descreve a casa dos sonhos?"
+                        hidden
+                    >
                 </div>
 
                 <div class="briefing-input-box">
@@ -376,14 +395,14 @@ export function preferences_2(){
                 <div class="briefing-input-box">
                     <p>Qual família de cores vocês mais gostam?</p>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-style-options briefing-material-options">
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-65"
                                 value="neutros-quentes"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/palettes/neutros-quentes.png" alt="Paleta de cores neutras quentes">
                             <span>Opção A</span>
                             <strong>Neutros quentes</strong>
                         </label>
@@ -394,7 +413,7 @@ export function preferences_2(){
                                 name="form-input-65"
                                 value="neutros-frios"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/palettes/neutros-frios.png" alt="Paleta de cores neutras frias">
                             <span>Opção B</span>
                             <strong>Neutros frios</strong>
                         </label>
@@ -405,7 +424,7 @@ export function preferences_2(){
                                 name="form-input-65"
                                 value="tons-terrosos-naturais"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/palettes/tons-terrosos.png" alt="Paleta de tons terrosos e naturais">
                             <span>Opção C</span>
                             <strong>Tons terrosos e naturais</strong>
                         </label>
@@ -416,7 +435,7 @@ export function preferences_2(){
                                 name="form-input-65"
                                 value="cores-suaves"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/palettes/cores-suaves.png" alt="Paleta de cores suaves">
                             <span>Opção D</span>
                             <strong>Cores suaves</strong>
                         </label>
@@ -427,7 +446,7 @@ export function preferences_2(){
                                 name="form-input-65"
                                 value="cores-profundas"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/palettes/cores-profundas.png" alt="Paleta de cores profundas">
                             <span>Opção E</span>
                             <strong>Cores profundas</strong>
                         </label>
@@ -464,15 +483,14 @@ export function preferences_2(){
                     <p>Qual tonalidade de madeira vocês preferem?</p>
                     <span>Selecione uma preferência geral.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-style-options briefing-material-options briefing-wood-options">
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-68"
                                 value="madeira-1"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                            <span>Clara</span>
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-1.png" alt="Amostra da madeira 1">
                         </label>
 
                         <label>
@@ -481,7 +499,7 @@ export function preferences_2(){
                                 name="form-input-68"
                                 value="madeira-2"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-2.png" alt="Amostra da madeira 2">
                         </label>
 
                         <label>
@@ -490,25 +508,7 @@ export function preferences_2(){
                                 name="form-input-68"
                                 value="madeira-3"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                        </label>
-
-                        <label>
-                            <input
-                                type="radio"
-                                name="form-input-68"
-                                value="madeira-4"
-                            >
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                        </label>
-
-                        <label>
-                            <input
-                                type="radio"
-                                name="form-input-68"
-                                value="madeira-5"
-                            >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-3.png" alt="Amostra da madeira 3">
                         </label>
 
                         <label>
@@ -517,7 +517,7 @@ export function preferences_2(){
                                 name="form-input-68"
                                 value="madeira-6"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-6.png" alt="Amostra da madeira 6">
                         </label>
 
                         <label>
@@ -526,7 +526,7 @@ export function preferences_2(){
                                 name="form-input-68"
                                 value="madeira-7"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-7.png" alt="Amostra da madeira 7">
                         </label>
 
                         <label>
@@ -535,9 +535,22 @@ export function preferences_2(){
                                 name="form-input-68"
                                 value="madeira-8"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
-                            <span>Muito escura</span>
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-8.png" alt="Amostra da madeira 8">
                         </label>
+
+                        <label>
+                            <input type="radio" name="form-input-68" value="madeira-9">
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-9.png" alt="Amostra da madeira 9">
+                        </label>
+
+                        <label>
+                            <input type="radio" name="form-input-68" value="madeira-10">
+                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-10.png" alt="Amostra da madeira 10">
+                        </label>
+                    </div>
+                    <div class="briefing-wood-scale-labels" aria-hidden="true">
+                        <span>Clara</span>
+                        <span>Muito escura</span>
                     </div>
                 </div>
 
@@ -545,14 +558,14 @@ export function preferences_2(){
                     <p>Qual linguagem de formas combina mais com vocês?</p>
                     <span>Escolha a que mais representa o estilo que desejam.</span>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-style-options briefing-shape-options">
                         <label>
                             <input
                                 type="radio"
                                 name="form-input-69"
                                 value="retas"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/shapes/retas.png" alt="Móvel de linhas retas">
                             <span>Retas</span>
                         </label>
 
@@ -562,7 +575,7 @@ export function preferences_2(){
                                 name="form-input-69"
                                 value="curvas"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/shapes/curvas.png" alt="Poltrona de linhas curvas">
                             <span>Curvas</span>
                         </label>
 
@@ -572,7 +585,7 @@ export function preferences_2(){
                                 name="form-input-69"
                                 value="mistura-equilibrada"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/shapes/mistura-equilibrada.png" alt="Composição equilibrada de linhas retas e curvas">
                             <span>Mistura equilibrada</span>
                         </label>
 
@@ -582,7 +595,7 @@ export function preferences_2(){
                                 name="form-input-69"
                                 value="curvas-em-destaque"
                             >
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-option-image" src="/images/briefing/shapes/curvas-em-destaque.png" alt="Composição com formas curvas em destaque">
                             <span>Curvas em destaque</span>
                         </label>
                     </div>
@@ -598,7 +611,7 @@ export function preferences_2(){
 }
 
 
-export function preferences_3(){
+export function preferences_3(showCostObservation = true){
     return html`
         <div class="form-page-08">
 
@@ -611,69 +624,61 @@ export function preferences_3(){
                 <div class="briefing-input-box">
                     <p>Elementos que vocês gostam e desejam considerar no projeto</p>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-elements-options">
                         <label>
                             <input type="checkbox" name="form-input-70" value="ripado">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/ripado.png" alt="Ícone de ripado">
                             <span>Ripado</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-70" value="muxarabi">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/muxarabi.png" alt="Ícone de muxarabi">
                             <span>Muxarabi</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-70" value="palhinha-fibra-natural">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/palhinha-fibra-natural.png" alt="Ícone de palhinha e fibra natural">
                             <span>Palhinha / Fibra natural</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-70" value="vidro-canelado">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/vidro-canelado.png" alt="Ícone de vidro canelado">
                             <span>Vidro canelado</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-70" value="serralheria">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/serralheria.png" alt="Ícone de serralheria">
                             <span>Serralheria</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-70" value="marcenaria-curva">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/marcenaria-curva.png" alt="Ícone de marcenaria curva">
                             <span>Marcenaria curva</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-70" value="paineis-lisos">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/paineis-lisos.png" alt="Ícone de painéis lisos">
                             <span>Painéis lisos</span>
                         </label>
 
                         <label>
                             <input type="checkbox" name="form-input-70" value="pedra-veios-marcantes">
-                            <div class="image-placeholder">Placeholder da imagem</div>
+                            <img class="briefing-element-icon" src="/images/briefing/elements/pedra-veios-marcantes.png" alt="Ícone de pedra com veios marcantes">
                             <span>Pedra com veios marcantes</span>
                         </label>
 
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="todos">
-                            <span>Todos</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="nenhum">
-                            <span>Nenhum</span>
-                        </label>
                     </div>
 
-                    <div class="briefing-info-box">
+                    ${showCostObservation ? html`<div class="briefing-info-box briefing-cost-observation">
+                        <span class="briefing-info-icon" aria-hidden="true">i</span>
                         <span>Ripados, muxarabi, palhinha e marcenaria curva costumam aumentar o custo da marcenaria.</span>
-                    </div>
+                    </div>` : null}
                 </div>
 
                 <div class="briefing-input-box">
@@ -699,7 +704,7 @@ export function preferences_3(){
                 <div class="briefing-input-box">
                     <p>Preferência de manutenção</p>
 
-                    <div class="briefing-options">
+                    <div class="briefing-options briefing-maintenance-options">
                         <label>
                             <input type="radio" name="form-input-73" value="baixa">
                             <strong>Baixa manutenção</strong>
@@ -745,7 +750,7 @@ export function preferences_3(){
                             type="url"
                             class="briefing-input"
                             name="form-input-75"
-                            placeholder="Cole o link do seu perfil ou pasta"
+                            placeholder="Cole aqui o link de referência do Pinterest"
                         >
                     </label>
 
@@ -755,7 +760,7 @@ export function preferences_3(){
                             type="url"
                             class="briefing-input"
                             name="form-input-76"
-                            placeholder="Cole o link do seu perfil salvo"
+                            placeholder="Cole aqui o link de referência do Instagram"
                         >
                     </label>
                 </div>

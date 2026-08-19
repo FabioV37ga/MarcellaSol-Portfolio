@@ -65,6 +65,7 @@ export function routine(){
                 <div class="briefing-input-box">
                     <p>Alguma particularidade importante que devemos saber?</p>
                     <textarea
+                        data-briefing-optional
                         class="briefing-input-medium"
                         maxlength="200"
                         placeholder="Ex.: crianças pequenas, pets, cuidados especiais, horários de silêncio, etc."
@@ -126,29 +127,14 @@ export function routine(){
                     <small>Selecione até 5 opções.</small>
 
                     <div class="briefing-select-box">
-                        <input type="checkbox" value="conforto">
-                        <label class="button-option">Conforto</label>
-
-                        <input type="checkbox" value="organizacao">
-                        <label class="button-option">Organização</label>
-
-                        <input type="checkbox" value="praticidade">
-                        <label class="button-option">Praticidade</label>
-
-                        <input type="checkbox" value="armazenamento">
-                        <label class="button-option">Armazenamento</label>
-
-                        <input type="checkbox" value="integracao">
-                        <label class="button-option">Integração</label>
-
-                        <input type="checkbox" value="privacidade">
-                        <label class="button-option">Privacidade</label>
-
-                        <input type="checkbox" value="iluminacao">
-                        <label class="button-option">Iluminação</label>
-
-                        <input type="checkbox" value="estetica">
-                        <label class="button-option">Estética</label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="conforto"> <span>Conforto</span></label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="organizacao"> <span>Organização</span></label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="praticidade"> <span>Praticidade</span></label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="armazenamento"> <span>Armazenamento</span></label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="integracao"> <span>Integração</span></label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="privacidade"> <span>Privacidade</span></label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="iluminacao"> <span>Iluminação</span></label>
+                        <label class="button-option"><input type="checkbox" name="main-priorities" value="estetica"> <span>Estética</span></label>
                     </div>
                 </fieldset>
 

@@ -4,40 +4,14 @@ export function laundry() {
     return html`
         <div class="form-page-14">
 
-                <h1 class="briefing-title">Lavanderia</h1>
+                <h1 class="briefing-title">Área de Serviço</h1>
 
                 <p class="briefing-subtitle">
-                    Conte-nos como deve ser a lavanderia ideal para vocês.
+                    Conte-nos como deve ser a área de serviço ideal para vocês.
                 </p>
 
                 <div class="briefing-input-box">
-                    <p>1. Qual equipamento será utilizado para lavagem?</p>
-
-                    <div class="briefing-options">
-                        <label>
-                            <input type="radio" name="form-input-97" value="maquina-convencional">
-                            <span>Máquina convencional</span>
-                        </label>
-
-                        <label>
-                            <input type="radio" name="form-input-97" value="lava-e-seca">
-                            <span>Lava e seca</span>
-                        </label>
-
-                        <label>
-                            <input type="radio" name="form-input-97" value="ainda-nao-sabemos">
-                            <span>Ainda não sabemos</span>
-                        </label>
-
-                        <label>
-                            <input type="radio" name="form-input-97" value="ja-possuimos">
-                            <span>Já possuímos</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="briefing-input-box">
-                    <p>3. Quais são as necessidades de armazenamento?</p>
+                    <p>1. Quais são as necessidades de armazenamento?</p>
 
                     <div class="briefing-options">
                         <label>
@@ -75,12 +49,14 @@ export function laundry() {
                         type="text"
                         class="briefing-input"
                         name="form-input-101"
+                        data-briefing-other-for="form-input-100"
                         placeholder="Qual?"
+                        hidden
                     >
                 </div>
 
                 <div class="briefing-input-box">
-                    <p>4. Há algum hábito ou necessidade especial que devemos considerar?</p>
+                    <p>2. Há algum hábito ou necessidade especial que devemos considerar?</p>
 
                     <textarea
                         class="briefing-input-big"

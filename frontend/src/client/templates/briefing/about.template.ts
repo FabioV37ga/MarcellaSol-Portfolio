@@ -11,7 +11,7 @@ function residentInfo(amount: number) {
                 <input type="text" class="briefing-input" autocomplete="name" id="resident-${id}-name">
             </div>
 
-            <div class="briefing-input-flex-box class="client-contact-fields">
+            <div class="briefing-input-flex-box client-contact-fields">
                 <div class="briefing-input-box">
                     <label>Telefone</label>
                     <input type="tel" class="briefing-input-half" autocomplete="tel" id="resident-${id}-phone">
@@ -80,20 +80,44 @@ export function about_1(residentAmount: number, showAirConditioner: boolean) {
                     <input type="text" class="briefing-input" autocomplete="street-address">
                 </div>
 
-                <div class="briefing-input-flex-box">
+                <div class="briefing-input-flex-box briefing-property-details">
                     <div class="briefing-input-box">
-                        <p>Metragem aproximada</p>
-                        <div>55m²</div>
+                        <label for="property-area">Metragem aproximada</label>
+                        <div class="briefing-area-input">
+                            <input
+                                type="number"
+                                class="briefing-input"
+                                id="property-area"
+                                name="property-area"
+                                min="1"
+                                step="0.01"
+                                inputmode="decimal"
+                                placeholder="Ex.: 55"
+                            >
+                            <span>m²</span>
+                        </div>
                     </div>
 
                     <div class="briefing-input-box">
-                        <p>Propriedade</p>
-                        <div>Própria</div>
+                        <label for="property-ownership">Propriedade</label>
+                        <select class="briefing-input" id="property-ownership" name="property-ownership">
+                            <option value="" selected disabled>Selecione...</option>
+                            <option value="propria">Própria</option>
+                            <option value="alugada">Alugada</option>
+                        </select>
                     </div>
 
-                    <div class="briefing-input-box">
-                        <p>Situação atual do imóvel</p>
-                        <div>Em construção</div>
+                    <div class="briefing-input-box briefing-property-status">
+                        <label for="property-status">Situação atual do imóvel</label>
+                        <select class="briefing-input" id="property-status" name="property-status">
+                            <option value="" selected disabled>Selecione...</option>
+                            <option value="antigo">Imóvel antigo</option>
+                            <option value="pronto-para-morar">Pronto para morar</option>
+                            <option value="em-construcao">Em construção</option>
+                            <option value="na-planta">Na planta</option>
+                            <option value="em-reforma">Em reforma</option>
+                            <option value="ocupado">Atualmente ocupado</option>
+                        </select>
                     </div>
                 </div>
 
@@ -123,19 +147,19 @@ export function about_1(residentAmount: number, showAirConditioner: boolean) {
                     </div>
                 </fieldset>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box briefing-air-conditioning-details" hidden>
                     <label>Em qual cômodo desejam instalar o ar-condicionado?</label>
-                    <select class="briefing-input" name="air-conditioning-room">
-                        <option value="" selected disabled>Selecione um cômodo</option>
-                        <option value="sala-de-estar">Sala de estar</option>
-                        <option value="sala-de-jantar">Sala de jantar</option>
-                        <option value="cozinha">Cozinha</option>
-                        <option value="suite">Suíte</option>
-                        <option value="segundo-quarto">Segundo quarto</option>
-                        <option value="escritorio">Escritório</option>
-                        <option value="varanda">Varanda</option>
-                        <option value="outro">Outro</option>
-                    </select>
+                    <small>Selecione um ou mais cômodos.</small>
+                    <div class="briefing-options briefing-air-conditioning-options">
+                        <label><input type="checkbox" name="air-conditioning-room" value="sala-de-estar"> <span>Sala de estar</span></label>
+                        <label><input type="checkbox" name="air-conditioning-room" value="sala-de-jantar"> <span>Sala de jantar</span></label>
+                        <label><input type="checkbox" name="air-conditioning-room" value="cozinha"> <span>Cozinha</span></label>
+                        <label><input type="checkbox" name="air-conditioning-room" value="suite"> <span>Suíte</span></label>
+                        <label><input type="checkbox" name="air-conditioning-room" value="segundo-quarto"> <span>Segundo quarto</span></label>
+                        <label><input type="checkbox" name="air-conditioning-room" value="escritorio"> <span>Escritório</span></label>
+                        <label><input type="checkbox" name="air-conditioning-room" value="varanda"> <span>Varanda</span></label>
+                        <label><input type="checkbox" name="air-conditioning-room" value="outro"> <span>Outro</span></label>
+                    </div>
                 </div>
 
                 <div class="briefing-input-box">
@@ -163,35 +187,35 @@ export function about_1(residentAmount: number, showAirConditioner: boolean) {
                     </div>
                 </fieldset>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box briefing-automation-details" hidden>
                     <label>Quais tipos de automação desejam integrar?</label>
                     <small>Selecione uma ou mais opções.</small>
-                    <select class="briefing-input" name="automation-types" multiple size="8">
-                        <option value="iluminacao">Iluminação e criação de cenas</option>
-                        <option value="climatizacao">Climatização</option>
-                        <option value="cortinas-persianas">Cortinas e persianas</option>
-                        <option value="audio-video">Áudio e vídeo</option>
-                        <option value="seguranca">Segurança e monitoramento</option>
-                        <option value="fechaduras-acesso">Fechaduras e controle de acesso</option>
-                        <option value="irrigacao">Irrigação de plantas</option>
-                        <option value="eletrodomesticos">Eletrodomésticos inteligentes</option>
-                    </select>
+                    <div class="briefing-options briefing-automation-options">
+                        <label><input type="checkbox" name="automation-types" value="iluminacao"> <span>Iluminação e criação de cenas</span></label>
+                        <label><input type="checkbox" name="automation-types" value="climatizacao"> <span>Climatização</span></label>
+                        <label><input type="checkbox" name="automation-types" value="cortinas-persianas"> <span>Cortinas e persianas</span></label>
+                        <label><input type="checkbox" name="automation-types" value="audio-video"> <span>Áudio e vídeo</span></label>
+                        <label><input type="checkbox" name="automation-types" value="seguranca"> <span>Segurança e monitoramento</span></label>
+                        <label><input type="checkbox" name="automation-types" value="fechaduras-acesso"> <span>Fechaduras e controle de acesso</span></label>
+                        <label><input type="checkbox" name="automation-types" value="irrigacao"> <span>Irrigação de plantas</span></label>
+                        <label><input type="checkbox" name="automation-types" value="eletrodomesticos"> <span>Eletrodomésticos inteligentes</span></label>
+                    </div>
                 </div>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box briefing-automation-details" hidden>
                     <label>Em quais cômodos desejam instalar as automações?</label>
                     <small>Selecione um ou mais cômodos.</small>
-                    <select class="briefing-input" name="automation-rooms" multiple size="9">
-                        <option value="sala-de-estar">Sala de estar</option>
-                        <option value="sala-de-jantar">Sala de jantar</option>
-                        <option value="cozinha">Cozinha</option>
-                        <option value="suite">Suíte</option>
-                        <option value="segundo-quarto">Segundo quarto</option>
-                        <option value="banheiro-lavabo">Banheiro / Lavabo</option>
-                        <option value="escritorio">Escritório</option>
-                        <option value="varanda">Varanda</option>
-                        <option value="lavanderia">Lavanderia</option>
-                    </select>
+                    <div class="briefing-options briefing-automation-options">
+                        <label><input type="checkbox" name="automation-rooms" value="sala-de-estar"> <span>Sala de estar</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="sala-de-jantar"> <span>Sala de jantar</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="cozinha"> <span>Cozinha</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="suite"> <span>Suíte</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="segundo-quarto"> <span>Segundo quarto</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="banheiro-lavabo"> <span>Banheiro / Lavabo</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="escritorio"> <span>Escritório</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="varanda"> <span>Varanda</span></label>
+                        <label><input type="checkbox" name="automation-rooms" value="lavanderia"> <span>Lavanderia</span></label>
+                    </div>
                 </div>
 
                 <div class="briefing-input-box">
@@ -231,19 +255,23 @@ export function about_2() {
                     <small>0/500</small>
                 </div>
 
-                <div class="briefing-input-flex-box">
+                <div class="briefing-input-box">
                     <fieldset class="briefing-input-box">
                         <legend>Pets?</legend>
-                        <div class="briefing-checkbox-box">
-                            <input type="radio" name="has-pets" value="sim">
-                            <label>Sim</label>
+                        <div class="briefing-select-box">
+                            <label class="button-option">
+                                <input type="radio" name="has-pets" value="sim">
+                                <span>Sim</span>
+                            </label>
 
-                            <input type="radio" name="has-pets" value="nao">
-                            <label>Não</label>
+                            <label class="button-option">
+                                <input type="radio" name="has-pets" value="nao">
+                                <span>Não</span>
+                            </label>
                         </div>
                     </fieldset>
 
-                    <div class="briefing-input-box">
+                    <div class="briefing-input-box briefing-pet-details" hidden>
                         <label>Conte um pouco sobre eles</label>
                         <textarea
                         
@@ -255,51 +283,53 @@ export function about_2() {
                     </div>
                 </div>
 
-                <fieldset class="briefing-input-row">
+                <fieldset class="briefing-input-box">
                     <legend>Mudanças futuras nos próximos anos</legend>
                     <small>Marque tudo o que se aplica à realidade de vocês.</small>
 
-                    <div class="row-content">
-                        <div class="briefing-input-checkbox">
-                            <input type="checkbox" value="filhos">
-                            <label>Ter filhos</label>
-                        </div>
+                    <div class="briefing-select-box briefing-future-changes">
+                        <label class="button-option">
+                            <input type="checkbox" name="future-changes" value="filhos">
+                            <span>Ter filhos</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
-                            <input type="checkbox" value="novo-pet">
-                            <label>Novo pet</label>
-                        </div>
+                        <label class="button-option">
+                            <input type="checkbox" name="future-changes" value="novo-pet">
+                            <span>Novo pet</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
-                            <input type="checkbox" value="trabalho-remoto">
-                            <label>Trabalho remoto</label>
-                        </div>
+                        <label class="button-option">
+                            <input type="checkbox" name="future-changes" value="trabalho-remoto">
+                            <span>Trabalho remoto</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
-                            <input type="checkbox" value="acessibilidade">
-                            <label>Acessibilidade futura</label>
-                        </div>
+                        <label class="button-option">
+                            <input type="checkbox" name="future-changes" value="acessibilidade">
+                            <span>Acessibilidade futura</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
-                            <input type="checkbox" value="familiar">
-                            <label>Familiar morando junto</label>
-                        </div>
+                        <label class="button-option">
+                            <input type="checkbox" name="future-changes" value="familiar">
+                            <span>Familiar morando junto</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
-                            <input type="checkbox" value="nenhuma">
-                            <label>Nenhuma prevista</label>
-                        </div>
+                        <label class="button-option">
+                            <input type="checkbox" name="future-changes" value="nenhuma">
+                            <span>Nenhuma prevista</span>
+                        </label>
 
-                        <div class="briefing-input-checkbox">
-                            <input type="checkbox" value="outros">
-                            <label>Outros, quais?</label>
-                            <input
-                                type="text"
-                                class="briefing-input"
-                                placeholder="Conte quais mudanças vocês imaginam"
-                            >
-                        </div>
+                        <label class="button-option">
+                            <input type="checkbox" name="future-changes" value="outros">
+                            <span>Outros</span>
+                        </label>
                     </div>
+                    <input
+                        type="text"
+                        class="briefing-input briefing-future-other"
+                        data-briefing-other-for="future-changes"
+                        placeholder="Conte quais outras mudanças vocês imaginam"
+                        hidden
+                    >
                 </fieldset>
 
                 <fieldset class="briefing-input-box">
@@ -307,17 +337,25 @@ export function about_2() {
                     <small>Essa informação nos ajuda a entender suas decisões de hoje e do futuro.</small>
 
                     <div class="briefing-select-box">
-                        <input type="radio" name="residence-time" value="ate-2-anos">
-                        <label class="button-option">Até 2 anos</label>
+                        <label class="button-option">
+                            <input type="radio" name="residence-time" value="ate-2-anos">
+                            <span>Até 2 anos</span>
+                        </label>
 
-                        <input type="radio" name="residence-time" value="2-5-anos">
-                        <label class="button-option">De 2 a 5 anos</label>
+                        <label class="button-option">
+                            <input type="radio" name="residence-time" value="2-5-anos">
+                            <span>De 2 a 5 anos</span>
+                        </label>
 
-                        <input type="radio" name="residence-time" value="mais-5-anos">
-                        <label class="button-option">Mais de 5 anos</label>
+                        <label class="button-option">
+                            <input type="radio" name="residence-time" value="mais-5-anos">
+                            <span>Mais de 5 anos</span>
+                        </label>
 
-                        <input type="radio" name="residence-time" value="incerto">
-                        <label class="button-option">Não tenho certeza</label>
+                        <label class="button-option">
+                            <input type="radio" name="residence-time" value="incerto">
+                            <span>Não tenho certeza</span>
+                        </label>
                     </div>
                 </fieldset>
 

@@ -5,12 +5,17 @@ import type { ClientElementCollection } from "../selectors/collection.js";
 import getTemplates from "../templates/getter.js";
 import type { system, DbView } from "../templates/interface.js";
 import { ClientSystemView, type PageState } from "../views/clientSystem.view.js";
+import ClientBriefingController, {
+    normalizeBriefingData,
+    type ClientBriefingResponse
+} from "./briefing.controller.js";
 
 export default class ClientSystem {
     private view!: ClientSystemView;
     private models: system = {};
     private collection: ClientElementCollection = {};
     private readonly name: string;
+    private briefingController?: ClientBriefingController;
 
     constructor(login: string, password: string, name: string, hasFilledBriefing: boolean) {
         this.name = name;
@@ -26,6 +31,15 @@ export default class ClientSystem {
 
         window.addEventListener("popstate", (event: PopStateEvent) => {
             const state = event.state as PageState | null;
+
+            if (state?.page === "briefing" && Number.isInteger(state.briefingStep)) {
+                if (!this.models.briefing.isConnected) {
+                    this.renderSection("briefing", { pushHistory: false });
+                }
+
+                this.briefingController?.navigateToStep(state.briefingStep!);
+                return;
+            }
 
             if (state?.page && this.models[state.page]) {
                 this.renderSection(state.page, { pushHistory: false });
@@ -46,15 +60,22 @@ export default class ClientSystem {
             return false;
         }
 
-        const data = await response.json() as { view: DbView[] };
+        const data = await response.json() as { view: DbView[] } & ClientBriefingResponse;
         this.models = getTemplates(data.view, this.name);
 
+        const normalizedData = normalizeBriefingData(data, this.name);
+        this.briefingController = new ClientBriefingController(
+            normalizedData.clientObject,
+            normalizedData.briefingObject
+        );
+        this.models.briefing = this.briefingController.getTemplate();
+
         this.view = new ClientSystemView();
-        if (hasFilledBriefing){
+        if (normalizedData.clientObject.hasFilledBriefing || hasFilledBriefing){
             this.renderSection("base")
             this.renderSection("home")
         }else{
-            // this.renderSection("briefing")
+            this.renderSection("briefing")
         }
 
 
@@ -70,6 +91,10 @@ export default class ClientSystem {
                 break
             case "home":
                 this.view.render(this.models.home, ".page-content")
+                break;
+            case "briefing":
+                this.view.render(this.models.briefing, "body")
+                this.briefingController?.initialize();
                 break;
         }
 

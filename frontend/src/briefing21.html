@@ -23,6 +23,7 @@
 
                     <div class="briefing-input-box">
                         <label>Máquina de lavar roupas</label>
+                        <label class="briefing-ignore-option"><input type="checkbox" name="maquina-lavar-nao-considerar" value="nao-considerar"><span>Não considerar</span></label>
                         <select class="briefing-input" required>
                             <option value="" selected disabled>Selecione o tipo</option>
                             <option value="lava-e-seca">Lava e seca</option>
@@ -65,6 +66,7 @@
             </div>
         </div>
     </main>
+    <script type="module" src="/client/utils/briefingIgnoreItems.ts"></script>
 </body>
 
 </html>
