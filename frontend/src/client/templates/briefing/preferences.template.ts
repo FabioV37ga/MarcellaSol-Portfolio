@@ -11,13 +11,14 @@ export function preferences_1(){
                     um projeto com a sua essência.
                 </p>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box" data-max-selections="3">
                     <p>Escolha a atmosfera que mais combina com vocês:</p>
+                    <span>Escolha até 3.</span>
 
                     <div class="briefing-options briefing-style-options">
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="contemporaneo-brasileiro"
                             >
@@ -28,7 +29,7 @@ export function preferences_1(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="moderno"
                             >
@@ -39,7 +40,7 @@ export function preferences_1(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="japandi"
                             >
@@ -50,7 +51,7 @@ export function preferences_1(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="industrial"
                             >
@@ -61,7 +62,7 @@ export function preferences_1(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="rustico"
                             >
@@ -72,7 +73,7 @@ export function preferences_1(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="boho"
                             >
@@ -392,13 +393,14 @@ export function preferences_2(){
                     nossas escolhas com mais precisão.
                 </p>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box" data-max-selections="2">
                     <p>Qual família de cores vocês mais gostam?</p>
+                    <span>Escolha até 2.</span>
 
                     <div class="briefing-options briefing-style-options briefing-material-options">
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="neutros-quentes"
                             >
@@ -409,7 +411,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="neutros-frios"
                             >
@@ -420,7 +422,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="tons-terrosos-naturais"
                             >
@@ -431,7 +433,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="cores-suaves"
                             >
@@ -442,7 +444,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-65"
                                 value="cores-profundas"
                             >
@@ -479,14 +481,14 @@ export function preferences_2(){
                     <small>0/300</small>
                 </div>
 
-                <div class="briefing-input-box">
+                <div class="briefing-input-box" data-max-selections="2">
                     <p>Qual tonalidade de madeira vocês preferem?</p>
-                    <span>Selecione uma preferência geral.</span>
+                    <span>Escolha até 2.</span>
 
                     <div class="briefing-options briefing-style-options briefing-material-options briefing-wood-options">
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-68"
                                 value="madeira-1"
                             >
@@ -495,7 +497,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-68"
                                 value="madeira-2"
                             >
@@ -504,7 +506,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-68"
                                 value="madeira-3"
                             >
@@ -513,7 +515,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-68"
                                 value="madeira-6"
                             >
@@ -522,7 +524,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-68"
                                 value="madeira-7"
                             >
@@ -531,7 +533,7 @@ export function preferences_2(){
 
                         <label>
                             <input
-                                type="radio"
+                                type="checkbox"
                                 name="form-input-68"
                                 value="madeira-8"
                             >
@@ -539,12 +541,12 @@ export function preferences_2(){
                         </label>
 
                         <label>
-                            <input type="radio" name="form-input-68" value="madeira-9">
+                            <input type="checkbox" name="form-input-68" value="madeira-9">
                             <img class="briefing-option-image" src="/images/briefing/woods/madeira-9.png" alt="Amostra da madeira 9">
                         </label>
 
                         <label>
-                            <input type="radio" name="form-input-68" value="madeira-10">
+                            <input type="checkbox" name="form-input-68" value="madeira-10">
                             <img class="briefing-option-image" src="/images/briefing/woods/madeira-10.png" alt="Amostra da madeira 10">
                         </label>
                     </div>

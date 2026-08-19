@@ -39,10 +39,12 @@ export function investment(askFlexibility: boolean) {
                     <label>Valor máximo disponível (opcional)</label>
                     <small>Se preferir, informe um valor aproximado.</small>
                     <input
-                        type="text"
+                        type="number"
                         class="briefing-input"
                         inputmode="decimal"
-                        placeholder="Ex.: R$ 750.000,00"
+                        min="0"
+                        step="0.01"
+                        placeholder="Ex.: 750000"
                     >
                 </div>
 
