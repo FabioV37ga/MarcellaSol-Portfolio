@@ -7,8 +7,10 @@ import getTemplates from "../templates/getter.js";
 import { getBaseElements } from "../selectors/base.selector.js";
 import { getHomeElements } from "../selectors/home.selector.ts.js";
 import { getClientsElements } from "../selectors/clients.selector.js";
-import { getNewClientElements } from "../selectors/newClient/new-client.selector.js";
-import { newClient } from "./newClient/newClient.controller.js";
+import { getNewClientElements } from "../selectors/new-client.selector.js";
+import { client, newClient } from "./newClient/newClient.controller.js";
+import { Briefing, briefingObject } from "./newClient/briefing.controller.js";
+import { finishBriefing } from "../templates/briefing/briefing.template.js";
 
 export default class AdminSystem {
 
@@ -143,6 +145,26 @@ export default class AdminSystem {
                     ".page-content"
                 )
                 break;
+            case "briefing-finish": {
+                const clientObject = this.newClient!.returnClientObject()
+                const clientBriefing = clientObject.briefing
+                const description = clientBriefing.description
+
+                const finishPage = finishBriefing(
+                    clientBriefing.investmentFlexibility ?? false,
+                    clientBriefing.rooms ?? [],
+                    {
+                        clientName: clientObject.name,
+                        projectName: description?.name,
+                        category: description?.category,
+                        propertyType: description?.type,
+                        residentAmount: description?.residentAmount
+                    }
+                )
+
+                this.view.render(finishPage, ".page-content")
+                break;
+            }
         }
 
         this.addUserInteractions(page)
@@ -206,21 +228,66 @@ export default class AdminSystem {
                     (section: string) => { this.renderSection(section) }
                 )
                 break;
+            case "briefing-investment":
+                console.log("b-i admincontroller")
+                this.newClient!.addUserInteractions("investment",
+                    (section: string) => {
+                        this.renderSection(section)
+                    }
+                )
+                break;
             case "briefing-rooms":
                 this.newClient!.addUserInteractions("rooms",
                     (section: string) => { this.renderSection(section) }
                 )
                 break;
-            case "briefing-investment":
-                // console.log("this should add a room item")
-                // this.renderSection(
-                //     ""
-                // )
-                console.log("b-i admincontroller")
-                this.newClient!.addUserInteractions("investment",
-                    (section: string) => { this.renderSection(section) }
+            case "briefing-finish":
+                this.newClient?.addUserInteractions("finish",
+                    () => {
+                        const clientObject = this.newClient!.returnClientObject()
+
+                        console.log("enviar:")
+                        this.commitUser(clientObject)
+                    }
                 )
                 break;
+        }
+    }
+
+    protected async commitUser(object: client) {
+        const finishButton = u("#briefing-finish-confirm").first() as HTMLButtonElement
+
+        if (finishButton) {
+            finishButton.disabled = true
+        }
+
+        try {
+            const response = await fetch(`${config.apiBaseUrl}/admin/user`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    adminLogin: this.adminLogin,
+                    adminPassword: this.adminPassword,
+                    client: object
+                })
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.message ?? "Não foi possível criar o cliente")
+            }
+
+            console.log("Cliente criado com sucesso:", data.client)
+            this.renderSection("clients")
+        } catch (error) {
+            console.error("Erro ao criar cliente:", error)
+
+            if (finishButton) {
+                finishButton.disabled = false
+            }
         }
     }
 
@@ -265,4 +332,5 @@ export default class AdminSystem {
             console.log(this.briefingModels)
         }
     }
+
 }

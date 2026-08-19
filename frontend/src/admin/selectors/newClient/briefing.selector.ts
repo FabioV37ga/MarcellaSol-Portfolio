@@ -4,8 +4,8 @@ interface briefingHome{
     root: HTMLElement[],
     cancel: HTMLElement,
     confirm: HTMLElement,
-    category: HTMLInputElement;
-    type: HTMLInputElement
+    category: HTMLSelectElement;
+    type: HTMLSelectElement
     name: HTMLInputElement,
     peopleAmount: HTMLInputElement
 }
@@ -14,26 +14,30 @@ function getBriefingHome(): briefingHome{
     const root = u(".root-index").nodes as HTMLElement[]
     const cancel = u("#generate-briefing-cancel").first() as HTMLElement
     const confirm = u("#generate-briefing-confirm").first() as HTMLElement
-    const inputs = u(".generate-briefing-form-input").nodes as HTMLInputElement[]
+    const inputs = u(".generate-briefing-form-input").nodes as (
+        HTMLInputElement | HTMLSelectElement
+    )[]
 
     return {
         root,
         cancel,
         confirm,
-        category: inputs[0],
-        type: inputs[1],
-        name: inputs[2],
-        peopleAmount: inputs[3]
+        category: inputs[0] as HTMLSelectElement,
+        type: inputs[1] as HTMLSelectElement,
+        name: inputs[2] as HTMLInputElement,
+        peopleAmount: inputs[3] as HTMLInputElement
     }
 }
 
 interface briefingInvestment{
-    confirm: HTMLElement
+    confirm: HTMLElement,
+    flexibility: HTMLInputElement
 }
 
 function getBriefingInvestment():briefingInvestment{
     return{
-        confirm: u("#briefing-rooms-confirm").first() as HTMLElement
+        confirm: u("#briefing-rooms-confirm").first() as HTMLElement,
+        flexibility: u("#briefing-investment-flexibility").first() as HTMLInputElement
     }
 }
 
@@ -42,15 +46,19 @@ interface briefingRooms{
     addRoom: HTMLElement
     roomContainer: HTMLElement;
     addedRooms?: HTMLElement[]
+    confirm?:HTMLElement
 }
 
 function getBriefingRooms():briefingRooms{
     const addRoom = u(".briefing-room-add").first() as HTMLElement
     const roomContainer = u(".briefing-rooms-list").first() as HTMLElement
+    const confirm = u("#briefing-rooms-confirm").first() as HTMLElement
+
 
     return {
         addRoom,
-        roomContainer
+        roomContainer,
+        confirm
     }
 }
 

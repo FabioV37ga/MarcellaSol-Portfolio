@@ -11,9 +11,9 @@ export interface system{
 
 export interface briefing{
     home?: HTMLElement;
+    investment?: HTMLElement
     rooms: HTMLElement;
     addedRoom?: HTMLElement;
-    investment?: HTMLElement
 }
 
 export interface dbView{

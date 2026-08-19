@@ -100,6 +100,18 @@
     padding: 17px;
     border: 1px solid var(--borderGray);
     border-radius: 10px;
+    cursor: grab;
+    transition: border-color .15s ease, opacity .15s ease, transform .15s ease;
+}
+
+.briefing-room-card:active {
+    cursor: grabbing;
+}
+
+.briefing-room-card-dragging {
+    border-color: var(--orange);
+    opacity: .55;
+    transform: scale(.995);
 }
 
 .briefing-room-card-header {

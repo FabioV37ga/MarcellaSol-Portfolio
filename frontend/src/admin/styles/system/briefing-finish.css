@@ -1,0 +1,258 @@
+.presentation-logo img {
+    width: 50px;
+    object-fit: contain;
+}
+
+.briefing-finish-container {
+    width: calc(100% - 32px);
+    margin: 0 auto;
+    padding-bottom: 32px;
+    font-family: "confort";
+}
+
+.briefing-finish-container .page-index {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 15px 0 20px;
+    font-size: 12px;
+}
+
+.briefing-finish-container .root-index {
+    margin: 0;
+    color: var(--orange);
+}
+
+.briefing-finish-container .page-index p {
+    margin: 0 7px;
+    color: var(--gray);
+}
+
+.briefing-finish-container .page-index span {
+    color: var(--gray);
+}
+
+.briefing-finish-title {
+    margin-bottom: 24px;
+}
+
+.briefing-finish-title h1 {
+    margin-bottom: 9px;
+    font-size: 20px;
+}
+
+.briefing-finish-title p,
+.briefing-finish-empty {
+    color: var(--gray);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.briefing-finish-window {
+    box-sizing: border-box;
+    padding: 20px;
+    border: 1px solid var(--borderGray);
+    border-radius: 12px;
+}
+
+.briefing-finish-client {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--borderGray);
+}
+
+.briefing-finish-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    border-radius: 50%;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 20px;
+}
+
+.briefing-finish-eyebrow {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--orange);
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.briefing-finish-client h2,
+.briefing-finish-section-heading h2 {
+    font-size: 17px;
+}
+
+.briefing-finish-project,
+.briefing-finish-rooms {
+    padding: 22px 0;
+    border-bottom: 1px solid var(--borderGray);
+}
+
+.briefing-finish-section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.briefing-finish-badge {
+    align-self: flex-start;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 11px;
+}
+
+.briefing-finish-project-data {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.briefing-finish-project-data div {
+    padding: 13px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+}
+
+.briefing-finish-project-data dt {
+    margin-bottom: 7px;
+    color: var(--gray);
+    font-size: 10px;
+}
+
+.briefing-finish-project-data dd {
+    font-size: 13px;
+}
+
+.briefing-finish-project-data dd i {
+    margin-right: 4px;
+    color: var(--orange);
+}
+
+.briefing-finish-room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.briefing-finish-room-card {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid var(--borderGray);
+    border-radius: 9px;
+}
+
+.briefing-finish-room-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: white;
+    font-size: 12px;
+}
+
+.briefing-finish-room-card h3 {
+    margin: 5px 0 11px;
+    font-size: 14px;
+}
+
+.briefing-finish-room-card h3 span {
+    margin-left: 5px;
+    color: var(--gray);
+    font-size: 10px;
+    font-weight: normal;
+}
+
+.briefing-finish-option-list {
+    display: grid;
+    gap: 8px;
+}
+
+.briefing-finish-option-list li {
+    position: relative;
+    padding-left: 15px;
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.briefing-finish-option-list li::before {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--orange);
+    content: "";
+}
+
+.briefing-finish-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.briefing-finish-actions button {
+    flex: 1;
+    height: 42px;
+    border: 2px solid var(--orange);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--orange);
+    font-family: "confort";
+    cursor: pointer;
+}
+
+#briefing-finish-confirm {
+    background: var(--orange);
+    color: white;
+}
+
+#briefing-finish-confirm i {
+    margin-right: 7px;
+}
+
+@media (min-width: 700px) {
+    .briefing-finish-section-heading {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .briefing-finish-project-data {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .briefing-finish-option-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-finish-actions {
+        justify-content: flex-end;
+    }
+
+    .briefing-finish-actions button {
+        flex: 0 0 170px;
+    }
+}
+
+@media (min-width: 900px) {
+    .briefing-finish-container {
+        width: calc(100% - 40px);
+    }
+}
