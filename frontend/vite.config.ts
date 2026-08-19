@@ -15,6 +15,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'src/index.html'),
         admin: resolve(__dirname, 'src/admin.html'),
+        cliente: resolve(__dirname, 'src/cliente.html'),
         projects: resolve(__dirname, 'src/projects.html'),
       }
     }
