@@ -22,16 +22,23 @@ router.post("/api/client/briefing", async (req: Request, res: Response) => {
       }
 
       const clientData = client.toObject();
+      const briefingDocument = {
+        clientId: client._id,
+        clientLogin: client.login,
+        briefingDefinition: clientData.briefing,
+        responses: briefing,
+        submittedAt: new Date()
+      };
+
+      console.log(
+        "Briefing recebido para persistência:",
+        JSON.stringify(briefingDocument, null, 2)
+      );
 
       const savedBriefing = await clientBriefings.findOneAndUpdate(
         { clientId: client._id },
         {
-          $set: {
-            clientLogin: client.login,
-            briefingDefinition: clientData.briefing,
-            responses: briefing,
-            submittedAt: new Date()
-          }
+          $set: briefingDocument
         },
         { upsert: true, new: true, runValidators: true }
       );
