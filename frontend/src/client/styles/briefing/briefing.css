@@ -30,6 +30,10 @@
     box-sizing: border-box;
 }
 
+.briefing-app{
+    width: 100%
+}
+
 html {
     min-width: 320px;
     background: var(--briefing-bg);
@@ -76,7 +80,7 @@ header {
 }
 
 header::after {
-    content: "ATELIÊ DE INTERIORES   |   Projetos que acolhem histórias.";
+    content: "DESIGN DE INTERIORES   |   Projetos que acolhem histórias.";
     margin-left: auto;
     color: var(--briefing-accent-dark);
     font-family: "Comfortaa", Arial, sans-serif;
