@@ -17,11 +17,14 @@
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.7.0"
+    "googleapis": "^176.0.0",
+    "mongoose": "^9.7.0",
+    "multer": "^2.2.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.2.0",
     "@types/node": "^25.9.3",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

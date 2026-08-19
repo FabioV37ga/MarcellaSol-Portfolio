@@ -138,7 +138,20 @@ interface BriefingAnswer {
     key: string;
     question: string;
     controlType: string;
-    value: string | number | boolean | string[] | Array<{ name: string; size: number; type: string }>;
+    value: string | number | boolean | string[] | Array<{
+        name: string;
+        size: number;
+        type: string;
+        uploadId: string;
+    }>;
+}
+
+interface BriefingFileManifestEntry {
+    uploadId: string;
+    pageKey: string;
+    answerKey: string;
+    fileIndex: number;
+    originalName: string;
 }
 
 interface BriefingAnswerSection {
@@ -544,7 +557,8 @@ export default class ClientBriefingController {
                     value: Array.from(field.files ?? []).map(file => ({
                         name: file.name,
                         size: file.size,
-                        type: file.type
+                        type: file.type,
+                        uploadId: this.getFileUploadId(page, key, Array.from(field.files ?? []).indexOf(file))
                     }))
                 });
                 return;
@@ -586,19 +600,50 @@ export default class ClientBriefingController {
     }
 
     private async submitBriefing(): Promise<void> {
+        const formData = new FormData();
+        const fileManifest: BriefingFileManifestEntry[] = [];
+
+        this.pages.forEach(page => {
+            const fields = Array.from(page.querySelectorAll<
+                HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+            >("input, select, textarea"));
+            const pageKey = page.dataset.briefingPageKey ?? page.className;
+
+            fields.forEach((field, fieldIndex) => {
+                if (!(field instanceof HTMLInputElement) || field.type !== "file" || this.isLogicallyDisabled(field)) return;
+
+                const answerKey = field.name || field.id || `field-${fieldIndex + 1}`;
+                Array.from(field.files ?? []).forEach((file, fileIndex) => {
+                    const uploadId = this.getFileUploadId(page, answerKey, fileIndex);
+                    fileManifest.push({ uploadId, pageKey, answerKey, fileIndex, originalName: file.name });
+                    formData.append("files", file, file.name);
+                });
+            });
+        });
+
+        formData.append("payload", JSON.stringify({
+            ...this.authentication,
+            briefing: this.buildCompletedBriefing(),
+            fileManifest
+        }));
+
         const response = await fetch(`${config.apiBaseUrl}/client/briefing`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                ...this.authentication,
-                briefing: this.buildCompletedBriefing()
-            })
+            body: formData
         });
 
         if (!response.ok) {
             const result = await response.json().catch(() => ({})) as { message?: string };
             throw new Error(result.message || "Não foi possível enviar o briefing.");
         }
+    }
+
+    private getFileUploadId(page: HTMLElement, answerKey: string, fileIndex: number): string {
+        const pageKey = page.dataset.briefingPageKey ?? page.className;
+        const roomKey = page.dataset.briefingRoomId
+            ? `room-${page.dataset.briefingRoomId}`
+            : "global";
+        return `${roomKey}:${pageKey}:${answerKey}:${fileIndex}`;
     }
 
     private syncAmbientSummary(page: HTMLElement): void {

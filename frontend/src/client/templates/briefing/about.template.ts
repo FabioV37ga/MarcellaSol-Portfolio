@@ -54,7 +54,7 @@ function airConditionerOptions() {
                 <input
                     type="file"
                     class="briefing-input"
-                    accept="image/jpeg,image/png,image/webp"
+                    accept="image/*,.pdf,.doc,.docx,.odt,.txt,.rtf,.xls,.xlsx,.csv,.ppt,.pptx"
                 >
             </div>
     `
@@ -167,7 +167,7 @@ export function about_1(residentAmount: number, showAirConditioner: boolean) {
                     <input
                         type="file"
                         class="briefing-input"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept="image/*,.pdf,.doc,.docx,.odt,.txt,.rtf,.xls,.xlsx,.csv,.ppt,.pptx"
                     >
                 </div>
 
@@ -223,7 +223,7 @@ export function about_1(residentAmount: number, showAirConditioner: boolean) {
                         Plantas estruturais e plantas dos sistemas existentes fornecidas pela construtora
                     </label>
                     <small>Ex.: hidráulica, elétrica e ar-condicionado.</small>
-                    <input type="file" class="briefing-input" multiple>
+                    <input type="file" class="briefing-input" accept="image/*,.pdf,.doc,.docx,.odt,.txt,.rtf,.xls,.xlsx,.csv,.ppt,.pptx" multiple>
                 </div>
 
                 <div class="briefing-navigation">

@@ -5,6 +5,8 @@ export interface ClientBriefingDocument {
     clientLogin: string;
     briefingDefinition: Record<string, unknown>;
     responses: Record<string, unknown>;
+    driveFolderId?: string;
+    attachments: Record<string, unknown>[];
     submittedAt: Date;
 }
 
@@ -19,6 +21,8 @@ const clientBriefingSchema = new mongoose.Schema<ClientBriefingDocument>({
     clientLogin: { type: String, required: true, index: true },
     briefingDefinition: { type: mongoose.Schema.Types.Mixed, required: true },
     responses: { type: mongoose.Schema.Types.Mixed, required: true },
+    driveFolderId: { type: String, required: false },
+    attachments: { type: mongoose.Schema.Types.Mixed, required: true, default: [] },
     submittedAt: { type: Date, required: true, default: Date.now }
 }, {
     collection: "client-briefings",

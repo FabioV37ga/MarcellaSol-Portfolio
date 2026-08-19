@@ -51,9 +51,9 @@ function photoUpload(title: string, description: string) {
             <small>${description}</small>
             <div class="briefing-file-upload">
                 <p>Clique para enviar ou arraste os arquivos aqui.</p>
-                <small>Até 10 imagens JPG, PNG ou WebP, com no máximo 10 MB cada.</small>
-                <input type="file" class="briefing-input" accept="image/jpeg,image/png,image/webp" multiple>
-                <label class="button-option">Adicionar fotos</label>
+                <small>Até 10 imagens ou documentos, com no máximo 100 MB cada.</small>
+                <input type="file" class="briefing-input" accept="image/*,.pdf,.doc,.docx,.odt,.txt,.rtf,.xls,.xlsx,.csv,.ppt,.pptx" multiple>
+                <label class="button-option">Adicionar arquivos</label>
             </div>
         </div>
     `
@@ -244,7 +244,7 @@ function existingFurniture() {
                     <small>0/1500</small>
                 </div>
 
-                ${photoUpload('Coloque as fotos dos móveis', 'Faça upload de até 10 arquivos. O tamanho máximo é de 10 MB por item.')}
+                ${photoUpload('Coloque as fotos dos móveis', 'Faça upload de até 10 arquivos. O tamanho máximo é de 100 MB por item.')}
             </section>
 
             ${navigation()}
