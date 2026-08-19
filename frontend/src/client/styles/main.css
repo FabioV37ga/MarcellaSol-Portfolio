@@ -6,7 +6,8 @@
 
 @font-face {
     font-family: "confort";
-    src: url(/fonts/Comfortaa-Regular.ttf);
+    src: url("/fonts/Comfortaa-Regular.ttf") format("truetype");
+    font-display: swap;
 }
 
 html,
