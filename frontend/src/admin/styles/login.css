@@ -132,6 +132,10 @@
     /* background: pink */
 }
 
+.admin-login-input-box textarea:focus {
+    box-shadow: 0 0 0 transparent !important;
+}
+
 .remember-me {
     display: flex;
     align-items: center;
