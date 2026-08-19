@@ -1,5 +1,6 @@
 import { Readable } from "node:stream";
-import { google, type drive_v3 } from "googleapis";
+import { drive, type drive_v3 } from "@googleapis/drive";
+import { OAuth2Client } from "google-auth-library";
 
 const FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 
@@ -23,7 +24,7 @@ function requiredEnvironment(name: string): string {
 }
 
 function createDriveClient(): drive_v3.Drive {
-    const auth = new google.auth.OAuth2(
+    const auth = new OAuth2Client(
         requiredEnvironment("GOOGLE_OAUTH_CLIENT_ID"),
         requiredEnvironment("GOOGLE_OAUTH_CLIENT_SECRET"),
         process.env.GOOGLE_OAUTH_REDIRECT_URI?.trim()
@@ -33,7 +34,7 @@ function createDriveClient(): drive_v3.Drive {
         refresh_token: requiredEnvironment("GOOGLE_OAUTH_REFRESH_TOKEN")
     });
 
-    return google.drive({ version: "v3", auth });
+    return drive({ version: "v3", auth });
 }
 
 function escapeDriveQuery(value: string): string {
