@@ -1,14 +1,29 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "node:fs";
 import path from "path";
 import connect from "./config/dbConnect.js";
 import routes from "./routes/index.js";
 
 
-dotenv.config({
-  path: path.resolve(process.cwd(), ".env")
+const environmentCandidates = [
+  path.resolve(process.cwd(), "backend", ".env"),
+  path.resolve(process.cwd(), ".env")
+];
+const environmentPath = environmentCandidates.find(candidate => fs.existsSync(candidate));
+
+if (!environmentPath) {
+  throw new Error(`Arquivo .env não encontrado. Caminhos verificados: ${environmentCandidates.join(", ")}`);
+}
+
+const environmentResult = dotenv.config({
+  path: environmentPath,
+  override: true
 });
+
+if (environmentResult.error) throw environmentResult.error;
+console.log(`✓ Variáveis de ambiente carregadas de ${environmentPath}`);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
