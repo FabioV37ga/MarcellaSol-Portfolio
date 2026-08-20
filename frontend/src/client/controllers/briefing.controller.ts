@@ -454,26 +454,37 @@ export default class ClientBriefingController {
             }
 
             const submitButton = control instanceof HTMLButtonElement ? control : undefined;
-            const originalText = submitButton?.textContent ?? "";
 
             try {
                 if (submitButton) {
                     submitButton.disabled = true;
-                    submitButton.textContent = "Enviando...";
                 }
 
+                this.setSubmissionState(page, "loading");
                 await this.submitBriefing();
-                page.querySelector<HTMLElement>(".briefing-success-message")?.removeAttribute("hidden");
+                this.setSubmissionState(page, "success");
             } catch (error) {
                 console.error("Briefing: falha ao enviar respostas.", error);
+                this.setSubmissionState(page, "idle");
                 window.alert(error instanceof Error ? error.message : "Não foi possível enviar o briefing.");
-            } finally {
+
                 if (submitButton) {
                     submitButton.disabled = false;
-                    submitButton.textContent = originalText;
                 }
             }
         });
+    }
+
+    private setSubmissionState(page: HTMLElement, state: "idle" | "loading" | "success"): void {
+        const loadingScreen = page.querySelector<HTMLElement>(".briefing-submission-loading");
+        const successScreen = page.querySelector<HTMLElement>(".briefing-success-message");
+
+        page.classList.toggle("is-submitting", state === "loading");
+        page.classList.toggle("is-submit-success", state === "success");
+        page.setAttribute("aria-busy", String(state === "loading"));
+
+        loadingScreen?.toggleAttribute("hidden", state !== "loading");
+        successScreen?.toggleAttribute("hidden", state !== "success");
     }
 
     public buildCompletedBriefing(): CompletedBriefing {

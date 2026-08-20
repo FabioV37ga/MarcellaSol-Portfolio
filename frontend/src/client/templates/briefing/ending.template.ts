@@ -103,10 +103,16 @@ export function ending(){
                     <button type="submit">Enviar briefing →</button>
                 </div>
 
-                <div class="briefing-success-message" hidden>
+                <div class="briefing-submission-loading" role="status" aria-live="polite" hidden>
+                    <span class="briefing-spinner" aria-hidden="true"></span>
+                    <h2>Enviando seu briefing...</h2>
+                    <p>Aguarde enquanto salvamos suas informações.</p>
+                </div>
+
+                <div class="briefing-success-message" role="status" aria-live="polite" hidden>
                     <img class="briefing-success-icon" src="/images/briefing/summary/sucesso.png" alt="">
                     <div>
-                        <strong>Obrigada por confiar em nós!</strong>
+                        <h2>Envio bem-sucedido!</h2>
                         <p>Seu briefing foi enviado e nossa equipe entrará em contato em breve.</p>
                     </div>
                 </div>
