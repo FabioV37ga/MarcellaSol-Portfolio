@@ -8,7 +8,9 @@ import { ClientSystemView, type PageState } from "../views/clientSystem.view.js"
 import ClientBriefingController, {
     normalizeBriefingData,
     type ClientBriefingResponse
-} from "./briefing.controller.js";
+} from "./briefing.controller.js";``
+
+import html from 'nanohtml'
 
 export default class ClientSystem {
     private view!: ClientSystemView;
@@ -73,8 +75,9 @@ export default class ClientSystem {
 
         this.view = new ClientSystemView();
         if (normalizedData.clientObject.hasFilledBriefing || hasFilledBriefing){
-            this.renderSection("base")
-            this.renderSection("home")
+            // this.renderSection("base")
+            // this.renderSection("home")
+            this.renderSection("wip")
         }else{
             this.renderSection("briefing")
         }
@@ -86,6 +89,10 @@ export default class ClientSystem {
     private renderSection(page: string, options: { pushHistory?: boolean } = {}): void {
 
         switch (page) {
+            case "wip":
+                const workInProgress: HTMLElement = html`<div>Bem vindo à area do cliente. Ainda estamos desenvolvendo sua experiência. Se você chegou até aqui, seu briefing foi preenchido com sucesso. :)</div>`
+                this.view.render(workInProgress, "body")
+                break;
             case "base":
                 this.view.render(this.models.base, "body");
                 this.collection.baseElements = getBaseElements();
