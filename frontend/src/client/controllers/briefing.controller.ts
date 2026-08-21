@@ -177,17 +177,42 @@ export interface CompletedBriefing {
     submittedAt: string;
 }
 
+interface CachedBriefingField {
+    pageKey: string;
+    fieldIndex: number;
+    type: string;
+    value: string | string[];
+    checked?: boolean;
+}
+
+interface CachedBriefingDraft {
+    version: 1;
+    currentPage: number;
+    fields: CachedBriefingField[];
+}
+
+interface CachedBriefingFiles {
+    id: string;
+    files: File[];
+    savedAt: string;
+}
+
 export default class ClientBriefingController {
     private readonly pages: HTMLElement[];
     private readonly template: HTMLElement;
     private currentPage = 0;
     private navigationBound = false;
+    private readonly draftStorageKey: string;
+    private readonly cachedFiles = new Map<string, File[]>();
+    private fileCacheReady: Promise<void> = Promise.resolve();
 
     constructor(
         readonly client: ClientObject,
         readonly briefing: BriefingObject,
         private readonly authentication: { login: string; password: string }
     ) {
+        const ownerKey = briefing.id || client.id || authentication.login;
+        this.draftStorageKey = `client-briefing-draft:v1:${ownerKey}`;
         const generatedPages = this.createPages();
         this.template = briefingTemplate(generatedPages);
         this.pages = Array.from(
@@ -213,10 +238,9 @@ export default class ClientBriefingController {
             this.navigationBound = true;
         }
 
-        // Um reload recria os campos sem suas respostas. Por isso, uma nova
-        // inicialização sempre começa do início, em vez de restaurar apenas o
-        // índice salvo no history e exibir uma etapa posterior vazia.
-        this.showPage(0, { replaceHistory: true });
+        const restoredPage = this.restoreDraft();
+        this.showPage(restoredPage, { replaceHistory: true });
+        this.fileCacheReady = this.restoreFileDrafts();
     }
 
     navigateToStep(index: number): void {
@@ -361,6 +385,7 @@ export default class ClientBriefingController {
             window.history.pushState(historyState, "");
         }
 
+        this.saveDraft();
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -384,8 +409,16 @@ export default class ClientBriefingController {
     }
 
     private bindNavigation(): void {
+        this.template.addEventListener("input", (event: Event) => {
+            if (this.isCacheableField(event.target)) this.saveDraft();
+        });
+
         this.template.addEventListener("change", (event: Event) => {
             const field = event.target as HTMLInputElement;
+
+            if (field instanceof HTMLInputElement && field.type === "file") {
+                void this.saveFileDraft(field);
+            }
 
             if (field.name === "home-automation") {
                 this.syncAutomationFields(this.pages[this.currentPage]);
@@ -418,6 +451,8 @@ export default class ClientBriefingController {
             if (field.closest(".briefing-ignore-option")) {
                 this.syncIgnoredItems(this.pages[this.currentPage]);
             }
+
+            if (this.isCacheableField(field)) this.saveDraft();
         });
 
         this.template.addEventListener("click", async (event: MouseEvent) => {
@@ -462,6 +497,8 @@ export default class ClientBriefingController {
 
                 this.setSubmissionState(page, "loading");
                 await this.submitBriefing();
+                this.clearDraft();
+                await this.clearFileDrafts();
                 this.setSubmissionState(page, "success");
             } catch (error) {
                 console.error("Briefing: falha ao enviar respostas.", error);
@@ -473,6 +510,242 @@ export default class ClientBriefingController {
                 }
             }
         });
+    }
+
+    private isCacheableField(target: EventTarget | null): target is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) {
+            return false;
+        }
+
+        return !(target instanceof HTMLInputElement && (target.type === "file" || target.type === "password"));
+    }
+
+    private saveDraft(): void {
+        const fields: CachedBriefingField[] = [];
+
+        this.pages.forEach(page => {
+            const pageKey = page.dataset.briefingPageKey ?? page.className;
+            page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                "input, select, textarea"
+            ).forEach((field, fieldIndex) => {
+                if (!this.isCacheableField(field)) return;
+
+                const type = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
+                const value = field instanceof HTMLSelectElement && field.multiple
+                    ? Array.from(field.selectedOptions).map(option => option.value)
+                    : field.value;
+                const checked = field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")
+                    ? field.checked
+                    : undefined;
+
+                fields.push({ pageKey, fieldIndex, type, value, checked });
+            });
+        });
+
+        const draft: CachedBriefingDraft = { version: 1, currentPage: this.currentPage, fields };
+        try {
+            localStorage.setItem(this.draftStorageKey, JSON.stringify(draft));
+        } catch (error) {
+            console.warn("Briefing: não foi possível salvar o rascunho local.", error);
+        }
+    }
+
+    private restoreDraft(): number {
+        let draft: CachedBriefingDraft | undefined;
+        try {
+            const serializedDraft = localStorage.getItem(this.draftStorageKey);
+            if (serializedDraft) draft = JSON.parse(serializedDraft) as CachedBriefingDraft;
+        } catch (error) {
+            console.warn("Briefing: o rascunho local não pôde ser restaurado.", error);
+            this.clearDraft();
+        }
+
+        if (!draft || draft.version !== 1 || !Array.isArray(draft.fields)) return 0;
+
+        const pagesByKey = new Map(this.pages.map(page => [page.dataset.briefingPageKey ?? page.className, page]));
+        draft.fields.forEach(cachedField => {
+            const page = pagesByKey.get(cachedField.pageKey);
+            const field = page?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                "input, select, textarea"
+            )[cachedField.fieldIndex];
+            if (!field || !this.isCacheableField(field)) return;
+
+            const currentType = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
+            if (currentType !== cachedField.type) return;
+
+            if (field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")) {
+                field.checked = Boolean(cachedField.checked);
+            } else if (field instanceof HTMLSelectElement && field.multiple && Array.isArray(cachedField.value)) {
+                const selectedValues = new Set(cachedField.value);
+                Array.from(field.options).forEach(option => option.selected = selectedValues.has(option.value));
+            } else if (typeof cachedField.value === "string") {
+                field.value = cachedField.value;
+            }
+        });
+
+        return Number.isInteger(draft.currentPage)
+            ? Math.min(Math.max(draft.currentPage, 0), this.pages.length - 1)
+            : 0;
+    }
+
+    private getFileFieldId(page: HTMLElement, fieldIndex: number): string {
+        const pageKey = page.dataset.briefingPageKey ?? page.className;
+        return `${this.draftStorageKey}:${pageKey}:${fieldIndex}`;
+    }
+
+    private getFilesForField(page: HTMLElement, fieldIndex: number, field: HTMLInputElement): File[] {
+        const selectedFiles = Array.from(field.files ?? []);
+        return selectedFiles.length > 0
+            ? selectedFiles
+            : this.cachedFiles.get(this.getFileFieldId(page, fieldIndex)) ?? [];
+    }
+
+    private async saveFileDraft(field: HTMLInputElement): Promise<void> {
+        const page = this.pages.find(candidate => candidate.contains(field));
+        if (!page) return;
+
+        const fields = Array.from(page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+            "input, select, textarea"
+        ));
+        const fieldIndex = fields.indexOf(field);
+        if (fieldIndex < 0) return;
+
+        const id = this.getFileFieldId(page, fieldIndex);
+        const files = Array.from(field.files ?? []);
+        if (files.length > 0) this.cachedFiles.set(id, files);
+        else this.cachedFiles.delete(id);
+        this.renderCachedFileStatus(field, files);
+
+        const operation = this.fileCacheReady.then(async () => {
+            const database = await this.openFileDatabase();
+            await new Promise<void>((resolve, reject) => {
+                const transaction = database.transaction("files", "readwrite");
+                const store = transaction.objectStore("files");
+                if (files.length > 0) {
+                    const record: CachedBriefingFiles = { id, files, savedAt: new Date().toISOString() };
+                    store.put(record);
+                } else {
+                    store.delete(id);
+                }
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+                transaction.onabort = () => reject(transaction.error);
+            });
+            database.close();
+        }).catch(error => {
+            console.warn("Briefing: não foi possível salvar os arquivos do rascunho.", error);
+        });
+
+        this.fileCacheReady = operation;
+        await operation;
+    }
+
+    private async restoreFileDrafts(): Promise<void> {
+        try {
+            const database = await this.openFileDatabase();
+            const fileFields = this.pages.reduce<Array<{
+                page: HTMLElement;
+                field: HTMLInputElement;
+                fieldIndex: number;
+            }>>((result, page) => {
+                const fields = Array.from(page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                    "input, select, textarea"
+                ));
+                fields.forEach((field, fieldIndex) => {
+                    if (field instanceof HTMLInputElement && field.type === "file") {
+                        result.push({ page, field, fieldIndex });
+                    }
+                });
+                return result;
+            }, []);
+
+            await Promise.all(fileFields.map(({ page, field, fieldIndex }) => new Promise<void>((resolve, reject) => {
+                const id = this.getFileFieldId(page, fieldIndex);
+                const request = database.transaction("files", "readonly")
+                    .objectStore("files")
+                    .get(id);
+                request.onsuccess = () => {
+                    const record = request.result as CachedBriefingFiles | undefined;
+                    if (record?.files?.length) {
+                        this.cachedFiles.set(id, record.files);
+                        this.renderCachedFileStatus(field, record.files);
+                    }
+                    resolve();
+                };
+                request.onerror = () => reject(request.error);
+            })));
+            database.close();
+        } catch (error) {
+            console.warn("Briefing: não foi possível restaurar os arquivos do rascunho.", error);
+        }
+    }
+
+    private renderCachedFileStatus(field: HTMLInputElement, files: File[]): void {
+        const container = field.parentElement ?? field;
+        let status = container.querySelector<HTMLElement>("[data-briefing-file-cache-status]");
+
+        if (files.length === 0) {
+            status?.remove();
+            return;
+        }
+
+        if (!status) {
+            status = document.createElement("small");
+            status.dataset.briefingFileCacheStatus = "true";
+            status.setAttribute("role", "status");
+            field.insertAdjacentElement("afterend", status);
+        }
+
+        const names = files.map(file => file.name).join(", ");
+        status.textContent = `${files.length} arquivo(s) salvo(s) no rascunho: ${names}`;
+    }
+
+    private openFileDatabase(): Promise<IDBDatabase> {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open("marcella-sol-client-drafts", 1);
+            request.onupgradeneeded = () => {
+                if (!request.result.objectStoreNames.contains("files")) {
+                    request.result.createObjectStore("files", { keyPath: "id" });
+                }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+            request.onblocked = () => reject(new Error("O banco local de arquivos está bloqueado."));
+        });
+    }
+
+    private async clearFileDrafts(): Promise<void> {
+        this.cachedFiles.clear();
+        try {
+            await this.fileCacheReady;
+            const database = await this.openFileDatabase();
+            await new Promise<void>((resolve, reject) => {
+                const transaction = database.transaction("files", "readwrite");
+                const store = transaction.objectStore("files");
+                const request = store.getAllKeys();
+                request.onsuccess = () => {
+                    request.result
+                        .filter(key => typeof key === "string" && key.startsWith(`${this.draftStorageKey}:`))
+                        .forEach(key => store.delete(key));
+                };
+                request.onerror = () => reject(request.error);
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+                transaction.onabort = () => reject(transaction.error);
+            });
+            database.close();
+            this.template.querySelectorAll("[data-briefing-file-cache-status]").forEach(status => status.remove());
+        } catch (error) {
+            console.warn("Briefing: não foi possível remover os arquivos do rascunho.", error);
+        }
+    }
+
+    private clearDraft(): void {
+        try {
+            localStorage.removeItem(this.draftStorageKey);
+        } catch (error) {
+            console.warn("Briefing: não foi possível remover o rascunho local.", error);
+        }
     }
 
     private setSubmissionState(page: HTMLElement, state: "idle" | "loading" | "success"): void {
@@ -561,15 +834,16 @@ export default class ClientBriefingController {
             }
 
             if (field instanceof HTMLInputElement && field.type === "file") {
+                const files = this.getFilesForField(page, fieldIndex, field);
                 answers.push({
                     key,
                     question: this.getQuestion(field),
                     controlType: "file",
-                    value: Array.from(field.files ?? []).map(file => ({
+                    value: files.map((file, fileIndex) => ({
                         name: file.name,
                         size: file.size,
                         type: file.type,
-                        uploadId: this.getFileUploadId(page, key, Array.from(field.files ?? []).indexOf(file))
+                        uploadId: this.getFileUploadId(page, key, fileIndex)
                     }))
                 });
                 return;
@@ -611,6 +885,7 @@ export default class ClientBriefingController {
     }
 
     private async submitBriefing(): Promise<void> {
+        await this.fileCacheReady;
         const formData = new FormData();
         const fileManifest: BriefingFileManifestEntry[] = [];
 
@@ -624,7 +899,7 @@ export default class ClientBriefingController {
                 if (!(field instanceof HTMLInputElement) || field.type !== "file" || this.isLogicallyDisabled(field)) return;
 
                 const answerKey = field.name || field.id || `field-${fieldIndex + 1}`;
-                Array.from(field.files ?? []).forEach((file, fileIndex) => {
+                this.getFilesForField(page, fieldIndex, field).forEach((file, fileIndex) => {
                     const uploadId = this.getFileUploadId(page, answerKey, fileIndex);
                     fileManifest.push({ uploadId, pageKey, answerKey, fileIndex, originalName: file.name });
                     formData.append("files", file, file.name);
