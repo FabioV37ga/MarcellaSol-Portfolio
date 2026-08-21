@@ -5,32 +5,10 @@ import getTemplates from "@/admin/templates/getter.js";
 import { briefing } from "@/admin/templates/interface.js";
 import { DbView } from "@/client/templates/interface.js";
 import { config } from "@/utils/connection.js";
+import type { BriefingDefinition } from "@/shared/briefing/briefing.types.js";
 import u from "umbrellajs";
 
-export interface briefingObject {
-    id?: string;
-    user?: {
-        name?: string
-    };
-    description?: {
-        category: string;
-        type: string;
-        name: string;
-        residentAmount: number;
-    };
-    investmentFlexibility?: boolean;
-    rooms?: room[]
-
-}
-
-interface room {
-    id: number;
-    index: number;
-    name: string;
-    type: string;
-    subtype?: string;
-    options?: boolean[]
-}
+export type briefingObject = BriefingDefinition;
 
 export class Briefing {
     private lastRoomId = 0;
@@ -41,7 +19,7 @@ export class Briefing {
     private addedRooms?: roomItem[] = []
     private models!: briefing
     private draggedRoom?: HTMLElement
-    static briefingObject: briefingObject = {
+    private readonly briefingObject: BriefingDefinition = {
         user: { name: "" },
         description: {
             category: "",
@@ -58,22 +36,19 @@ export class Briefing {
         // this.getModels("","")
     }
 
-    async getModels(login: string, password: string, name: string, adminLogin: string, adminPassword: string) {
-        console.log(login, password)
+    async getModels(name: string, sessionToken: string) {
         const response = await fetch(`${config.apiBaseUrl}/view/admin/briefing`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${sessionToken}`
             },
-            body: JSON.stringify({
-                login: adminLogin,
-                password: adminPassword
-            })
+            body: JSON.stringify({})
         })
 
         var data = await response.json()
 
-        Briefing.briefingObject.user = { name }
+        this.briefingObject.user = { name }
 
         const templates = getTemplates("briefing", data.views, name)
         this.models = templates as briefing
@@ -190,7 +165,7 @@ export class Briefing {
     }
 
     private syncHomeFields() {
-        Briefing.briefingObject.description = {
+        this.briefingObject.description = {
             category: this.home.category.value,
             type: this.home.type.value,
             name: this.home.name.value.trim(),
@@ -199,11 +174,11 @@ export class Briefing {
     }
 
     private syncInvestmentFields() {
-        Briefing.briefingObject.investmentFlexibility = this.investment.flexibility.checked
+        this.briefingObject.investmentFlexibility = this.investment.flexibility.checked
     }
 
     public getBriefingObject(): briefingObject {
-        return Briefing.briefingObject
+        return this.briefingObject
     }
 
     createRoomItem() {
@@ -427,7 +402,7 @@ export class Briefing {
     }
 
     private syncBriefingRooms() {
-        Briefing.briefingObject.rooms = (this.addedRooms ?? []).map(room => ({
+        this.briefingObject.rooms = (this.addedRooms ?? []).map(room => ({
             id: room.id ?? 0,
             index: room.index ?? 0,
             name: room.name ?? "",

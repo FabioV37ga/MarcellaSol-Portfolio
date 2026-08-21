@@ -30,7 +30,7 @@ function askBalconyIntegration(){
     `
 }
 
-export function balcony(_askBalcony: boolean){
+export function balcony(askBalcony: boolean){
     return html`
         <div class="form-page-13">
 
@@ -124,7 +124,7 @@ export function balcony(_askBalcony: boolean){
                     </div>
                 </div>
 
-                ${askBalconyIntegration()}
+                ${askBalcony ? askBalconyIntegration() : ""}
 
                 <div class="briefing-input-box">
                     <p>Há alguma necessidade ou desejo especial?</p>

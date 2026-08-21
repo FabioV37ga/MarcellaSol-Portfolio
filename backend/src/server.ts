@@ -23,6 +23,9 @@ const environmentResult = dotenv.config({
 });
 
 if (environmentResult.error) throw environmentResult.error;
+if (!process.env.AUTH_TOKEN_SECRET || process.env.AUTH_TOKEN_SECRET.trim().length < 32) {
+  throw new Error("AUTH_TOKEN_SECRET deve ser configurado no .env com pelo menos 32 caracteres");
+}
 console.log(`✓ Variáveis de ambiente carregadas de ${environmentPath}`);
 
 const app = express();

@@ -70,46 +70,29 @@ function toggleRememberSession() {
     }
 }
 
-function checkSection() {
-    var section = localStorage.getItem("Admin-Section")
-    var currentTimestamp = Number(Date.now())
-    var validPeriod = 604800000
-    // var validPeriod = 60000
+async function checkSection() {
+    const section = localStorage.getItem("Admin-Section");
+    if (!section) return;
 
+    try {
+        const saved = JSON.parse(section) as { token?: string; timestamp?: number };
+        const isCurrent = Date.now() - 604800000 < Number(saved.timestamp);
+        if (!saved.token || !isCurrent) throw new Error("Sessão expirada");
 
-    if (section) {
-
-        var jsonSection = JSON.parse(section)
-
-        if (
-            currentTimestamp - validPeriod < Number(jsonSection.timestamp)
-        ) {
-            submitLogin(
-                jsonSection.login,
-                jsonSection.password
-            )
-        } else {
-
-            localStorage.removeItem("Admin-Section")
-        }
-    } else {
-
+        const response = await fetch(`${config.apiBaseUrl}/admin/session`, {
+            headers: { Authorization: `Bearer ${saved.token}` }
+        });
+        if (!response.ok) throw new Error("Sessão inválida");
+        const admin = await response.json() as { name: string };
+        new AdminSystem(saved.token, admin.name);
+    } catch {
+        localStorage.removeItem("Admin-Section");
     }
 }
-checkSection()
+void checkSection();
 
 
 async function submitLogin(login: string, password: string) {
-
-    if (rememberSection) {
-        var timestamp = Date.now()
-        localStorage.setItem("Admin-Section", JSON.stringify({
-            login,
-            password,
-            timestamp
-        }))
-    }
-
 
     try {
 
@@ -128,10 +111,14 @@ async function submitLogin(login: string, password: string) {
             // Log visual
             logLoginMessage("Login bem-sucedido!");
 
-            var name = await response.json()
-            name = name.name
-
-            new AdminSystem(login, password, name)
+            const admin = await response.json() as { token: string; name: string };
+            if (rememberSection) {
+                localStorage.setItem("Admin-Section", JSON.stringify({
+                    token: admin.token,
+                    timestamp: Date.now()
+                }));
+            }
+            new AdminSystem(admin.token, admin.name)
         } else {
             logLoginMessage("Login ou senha incorretos.");
         }

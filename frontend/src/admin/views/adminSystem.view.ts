@@ -1,12 +1,6 @@
 import u from "umbrellajs";
 
 
-export interface PageState{
-    page: string,
-    id?: number
-}
-
-
 export class AdminSystemView {
     constructor() {
         // console.log("Admin System View initialized.")

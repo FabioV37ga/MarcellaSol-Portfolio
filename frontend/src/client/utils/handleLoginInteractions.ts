@@ -71,47 +71,31 @@ function toggleRememberSession() {
     }
 }
 
-function checkSection() {
-    var section = localStorage.getItem("Client-Section")
-    var currentTimestamp = Number(Date.now())
-    var validPeriod = 604800000
-    // var validPeriod = 60000
+async function checkSection() {
+    const section = localStorage.getItem("Client-Section");
+    if (!section) return;
 
+    try {
+        const saved = JSON.parse(section) as { token?: string; timestamp?: number };
+        const isCurrent = Date.now() - 604800000 < Number(saved.timestamp);
+        if (!saved.token || !isCurrent) throw new Error("Sessão expirada");
 
-    if (section) {
-
-        var jsonSection = JSON.parse(section)
-
-        if (
-            currentTimestamp - validPeriod < Number(jsonSection.timestamp)
-        ) {
-            submitLogin(
-                jsonSection.login,
-                jsonSection.password
-            )
-        } else {
-
-            localStorage.removeItem("Client-Section")
-        }
-    } else {
-
+        const response = await fetch(`${config.apiBaseUrl}/client/session`, {
+            headers: { Authorization: `Bearer ${saved.token}` }
+        });
+        if (!response.ok) throw new Error("Sessão inválida");
+        const client = await response.json() as { name: string; hasFilledBriefing: boolean };
+        new ClientSystem(saved.token, client.name, client.hasFilledBriefing);
+    } catch {
+        localStorage.removeItem("Client-Section");
     }
 }
-checkSection()
+void checkSection();
 
 
 
 async function submitLogin(login: string, password: string) {
     console.log("logging in")
-
-    if (rememberSection) {
-        var timestamp = Date.now()
-        localStorage.setItem("Client-Section", JSON.stringify({
-            login,
-            password,
-            timestamp
-        }))
-    }
 
     try {
 
@@ -130,13 +114,18 @@ async function submitLogin(login: string, password: string) {
             // Log visual
             logLoginMessage("Login bem-sucedido!");
 
-            var client = await response.json()
-            var name = client.name
-            var hasFilledBriefing = client.hasFilledBriefing
-
-            console.log(name)
-            // new AdminSystem(loginValue, passwordValue, name)
-            new ClientSystem(login, password, name, hasFilledBriefing)
+            const client = await response.json() as {
+                token: string;
+                name: string;
+                hasFilledBriefing: boolean;
+            };
+            if (rememberSection) {
+                localStorage.setItem("Client-Section", JSON.stringify({
+                    token: client.token,
+                    timestamp: Date.now()
+                }));
+            }
+            new ClientSystem(client.token, client.name, client.hasFilledBriefing)
         } else {
             logLoginMessage("Login ou senha incorretos.");
         }

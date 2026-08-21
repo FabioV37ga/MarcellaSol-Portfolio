@@ -1,34 +1,26 @@
-import { Briefing, briefingObject } from "./briefing.controller.js";
+import type { BriefingDefinition, NewClientPayload } from "@/shared/briefing/briefing.types.js";
+import { Briefing } from "./briefing.controller.js";
 
-export interface client{
-    _id?: string;
-    login: string;
-    password: string;
-    name: string;
-    hasFilledBriefing: boolean;
-    briefing: briefingObject
-}
+export type client = NewClientPayload;
 
 export class newClient{
-    private adminLogin!:string
-    private adminPassword!:string
+    private sessionToken: string
     private name: string;
     private login: string;
     private password: string;
-    briefing?: briefingObject;
+    briefing?: BriefingDefinition;
     private briefingController!: Briefing
 
-    constructor(name: string, login: string, password: string, adminLogin: string, adminPassword: string){
+    constructor(name: string, login: string, password: string, sessionToken: string){
         this.name = name;
         this.login = login;
         this.password = password
         this.briefingController = new Briefing()
-        this.adminLogin = adminLogin
-        this.adminPassword = adminPassword
+        this.sessionToken = sessionToken
     }
 
     async getModels(){
-        return await this.briefingController.getModels(this.login,this.password, this.name, this.adminLogin, this.adminPassword)!
+        return await this.briefingController.getModels(this.name, this.sessionToken)!
     }
     
     addUserInteractions(page: string, callback: any){
@@ -44,7 +36,7 @@ export class newClient{
             password: this.password,
             name: this.name,
             hasFilledBriefing: false,
-            briefing: Briefing.briefingObject
+            briefing: this.briefingController.getBriefingObject()
         }
     }
 }

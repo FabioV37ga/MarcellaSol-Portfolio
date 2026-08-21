@@ -1,10 +1,5 @@
 import u from "umbrellajs";
 
-export interface PageState {
-    page: string;
-    briefingStep?: number;
-}
-
 export class ClientSystemView {
     constructor() {
         this.dismissLogin();
