@@ -6,7 +6,26 @@ export interface AdminSession {
     token: string;
 }
 
+export interface AdminClientListItem {
+    id: string;
+    name: string;
+    type: string;
+    hasFilledBriefing: boolean;
+}
+
 export class AdminSystemApi {
+    async loadClients(session: AdminSession): Promise<AdminClientListItem[]> {
+        const response = await fetch(`${config.apiBaseUrl}/admin/clients`, {
+            headers: { Authorization: `Bearer ${session.token}` }
+        });
+        const result = await response.json().catch(() => ({})) as {
+            message?: string;
+            clients?: AdminClientListItem[];
+        };
+        if (!response.ok) throw new Error(result.message ?? "Não foi possível listar os clientes");
+        return result.clients ?? [];
+    }
+
     async loadViews(session: AdminSession): Promise<dbView[] | undefined> {
         const response = await fetch(`${config.apiBaseUrl}/view/admin`, {
             method: "POST",

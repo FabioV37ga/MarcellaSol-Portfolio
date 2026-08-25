@@ -7,6 +7,7 @@ const controller = new AdminController();
 
 router.post("/api/admin/login", controller.login);
 router.get("/api/admin/session", requireAuthentication("admin"), controller.session);
+router.get("/api/admin/clients", requireAuthentication("admin"), controller.clients);
 router.post("/api/admin/user", requireAuthentication("admin"), controller.create);
 
 export default router;

@@ -7,6 +7,8 @@ import type { system } from "../templates/interface.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";
 import type { AdminSystemView } from "../views/adminSystem.view.js";
 import type { ClientCreationFlow } from "./client-creation.flow.js";
+import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
+import { clientListItem } from "../templates/client-list-item.template.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
@@ -18,6 +20,8 @@ export class AdminSystemModules {
         private readonly view: AdminSystemView,
         private readonly models: system,
         private readonly clientCreation: ClientCreationFlow,
+        private readonly api: AdminSystemApi,
+        private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute) => void
     ) {}
 
@@ -55,6 +59,24 @@ export class AdminSystemModules {
         this.clients = getClientsElements();
         this.view.styleNavButton(this.base!.desktop_nav_client);
         u(this.clients.new_client).off("click").on("click", () => this.navigate("new-client"));
+        void this.mountClientList();
+    }
+
+    private async mountClientList(): Promise<void> {
+        try {
+            const clients = await this.api.loadClients(this.session);
+            if (!this.clients) return;
+
+            this.clients.list
+                .querySelectorAll(":scope > .client-list-client")
+                .forEach(item => item.remove());
+
+            const items = document.createDocumentFragment();
+            clients.forEach(client => items.append(clientListItem(client)));
+            this.clients.list.append(items);
+        } catch (error) {
+            console.error("Erro ao carregar clientes:", error);
+        }
     }
 
     private mountNewClient(): void {

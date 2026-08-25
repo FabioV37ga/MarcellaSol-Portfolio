@@ -11,6 +11,12 @@ export interface CreateClientData {
 }
 
 export class ClientRepository {
+    findAllForAdmin() {
+        return clients
+            .find({}, { _id: 1, name: 1, hasFilledBriefing: 1 })
+            .lean();
+    }
+
     findByLogin(login: string) {
         return clients.findOne({ login });
     }

@@ -3,12 +3,14 @@ import mongoose from "mongoose";
 import { CreateClientService, type CreateClientCommand } from "../application/create-client.service.js";
 import { ApplicationError } from "../application/errors/application-error.js";
 import { AuthenticateService } from "../application/authenticate.service.js";
+import { ListClientsService } from "../application/list-clients.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
 
 export class AdminController {
     constructor(
         private readonly createClient = new CreateClientService(),
-        private readonly authenticate = new AuthenticateService()
+        private readonly authenticate = new AuthenticateService(),
+        private readonly listClients = new ListClientsService()
     ) {}
 
     login = async (request: Request, response: Response): Promise<Response> => {
@@ -27,6 +29,15 @@ export class AdminController {
     session = async (_request: Request, response: Response): Promise<Response> => {
         const principal = authenticatedPrincipal(response);
         return response.status(200).json({ name: principal.name });
+    };
+
+    clients = async (_request: Request, response: Response): Promise<Response> => {
+        try {
+            return response.status(200).json({ clients: await this.listClients.execute() });
+        } catch (error: unknown) {
+            console.error("Erro ao listar clientes:", error);
+            return response.status(500).json({ message: "Erro interno ao listar clientes" });
+        }
     };
 
     create = async (request: Request, response: Response): Promise<Response> => {

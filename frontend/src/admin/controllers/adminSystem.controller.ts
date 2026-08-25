@@ -26,7 +26,7 @@ export default class AdminSystem {
         this.router = new AdminSystemRouter(route => modules.mount(route));
         const navigate = (route: AdminRoute) => this.router?.navigate(route);
         const clientCreation = new ClientCreationFlow(view, this.api, session, navigate);
-        modules = new AdminSystemModules(view, models, clientCreation, navigate);
+        modules = new AdminSystemModules(view, models, clientCreation, this.api, session, navigate);
         this.router.start();
     }
 }
