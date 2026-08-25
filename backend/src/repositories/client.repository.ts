@@ -17,6 +17,12 @@ export class ClientRepository {
             .lean();
     }
 
+    findByIdForAdmin(id: string) {
+        return clients
+            .findById(id, { _id: 1, name: 1, hasFilledBriefing: 1 })
+            .lean();
+    }
+
     findByLogin(login: string) {
         return clients.findOne({ login });
     }

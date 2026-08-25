@@ -23,8 +23,8 @@ export default class AdminSystem {
         const models = getTemplates("system", databaseViews, this.name);
         const view = new AdminSystemView();
         let modules: AdminSystemModules;
-        this.router = new AdminSystemRouter(route => modules.mount(route));
-        const navigate = (route: AdminRoute) => this.router?.navigate(route);
+        this.router = new AdminSystemRouter((route, id) => modules.mount(route, id));
+        const navigate = (route: AdminRoute, id?: string) => this.router?.navigate(route, { id });
         const clientCreation = new ClientCreationFlow(view, this.api, session, navigate);
         modules = new AdminSystemModules(view, models, clientCreation, this.api, session, navigate);
         this.router.start();

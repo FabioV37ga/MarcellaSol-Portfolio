@@ -36,7 +36,10 @@ export default function getTemplates(templateType: string, elements: dbView[], n
                 base: convertedElements[0],
                 home: convertedElements[1],
                 client: convertedElements[2],
-                newClient: convertedElements[3]
+                newClient: convertedElements[3],
+                clientManagement: convertedElements[
+                    elements.findIndex(element => element.viewName?.trim().toLowerCase() === "client-management")
+                ]
                 // home2: convertedElements[2],
                 // test: convertedElements[2]
             }

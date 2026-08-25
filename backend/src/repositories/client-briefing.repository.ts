@@ -11,6 +11,12 @@ export class ClientBriefingRepository {
             .lean();
     }
 
+    findByClientIdForAdmin(clientId: mongoose.Types.ObjectId) {
+        return clientBriefings
+            .findOne({ clientId }, { clientId: 1, briefingDefinition: 1, driveFolderId: 1 })
+            .lean();
+    }
+
     saveForClient(clientId: mongoose.Types.ObjectId, document: Omit<ClientBriefingDocument, "clientId">) {
         return clientBriefings.findOneAndUpdate(
             { clientId },

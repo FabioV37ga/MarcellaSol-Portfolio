@@ -4,6 +4,7 @@ export interface system{
     base?: HTMLElement;
     home?: HTMLElement;
     client?: HTMLElement;
+    clientManagement?: HTMLElement;
     newClient?: HTMLElement
     // home2: HTMLElement
     // test: HTMLElement

@@ -1,11 +1,17 @@
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ClientRepository } from "../repositories/client.repository.js";
+import mongoose from "mongoose";
+import { ApplicationError } from "./errors/application-error.js";
 
 export interface AdminClientListItem {
     id: string;
     name: string;
     type: string;
     hasFilledBriefing: boolean;
+}
+
+export interface AdminClientDetails extends AdminClientListItem {
+    driveFolderUrl?: string;
 }
 
 export class ListClientsService {
@@ -32,6 +38,26 @@ export class ListClientsService {
             type: typeByClientId.get(client._id.toString()) ?? "Não informado",
             hasFilledBriefing: client.hasFilledBriefing
         }));
+    }
+
+    async executeOne(id: string): Promise<AdminClientDetails> {
+        if (!mongoose.isValidObjectId(id)) throw new ApplicationError("Cliente não encontrado", 404);
+
+        const client = await this.clients.findByIdForAdmin(id);
+        if (!client) throw new ApplicationError("Cliente não encontrado", 404);
+
+        const briefing = await this.briefings.findByClientIdForAdmin(client._id);
+        const driveFolderId = briefing?.driveFolderId?.trim();
+
+        return {
+            id: client._id.toString(),
+            name: client.name,
+            type: briefing ? this.getPropertyType(briefing.briefingDefinition) : "Não informado",
+            hasFilledBriefing: client.hasFilledBriefing,
+            driveFolderUrl: driveFolderId
+                ? `https://drive.google.com/drive/folders/${encodeURIComponent(driveFolderId)}`
+                : undefined
+        };
     }
 
     private getPropertyType(definition: Record<string, unknown>): string {

@@ -13,6 +13,10 @@ export interface AdminClientListItem {
     hasFilledBriefing: boolean;
 }
 
+export interface AdminClientDetails extends AdminClientListItem {
+    driveFolderUrl?: string;
+}
+
 export class AdminSystemApi {
     async loadClients(session: AdminSession): Promise<AdminClientListItem[]> {
         const response = await fetch(`${config.apiBaseUrl}/admin/clients`, {
@@ -24,6 +28,20 @@ export class AdminSystemApi {
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível listar os clientes");
         return result.clients ?? [];
+    }
+
+    async loadClient(session: AdminSession, id: number | string): Promise<AdminClientDetails> {
+        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(id)}`, {
+            headers: { Authorization: `Bearer ${session.token}` }
+        });
+        const result = await response.json().catch(() => ({})) as {
+            message?: string;
+            client?: AdminClientDetails;
+        };
+        if (!response.ok || !result.client) {
+            throw new Error(result.message ?? "Não foi possível carregar o cliente");
+        }
+        return result.client;
     }
 
     async loadViews(session: AdminSession): Promise<dbView[] | undefined> {

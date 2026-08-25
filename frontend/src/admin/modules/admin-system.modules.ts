@@ -9,6 +9,7 @@ import type { AdminSystemView } from "../views/adminSystem.view.js";
 import type { ClientCreationFlow } from "./client-creation.flow.js";
 import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
 import { clientListItem } from "../templates/client-list-item.template.js";
+import { getClientManagementElements } from "../selectors/client-management.selector.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
@@ -22,14 +23,15 @@ export class AdminSystemModules {
         private readonly clientCreation: ClientCreationFlow,
         private readonly api: AdminSystemApi,
         private readonly session: AdminSession,
-        private readonly navigate: (route: AdminRoute) => void
+        private readonly navigate: (route: AdminRoute, id?: string) => void
     ) {}
 
-    mount(route: AdminRoute): void {
+    mount(route: AdminRoute, id?: string): void {
         switch (route) {
             case "base": this.mountBase(); break;
             case "home": this.mountHome(); break;
             case "clients": this.mountClients(); break;
+            case "client-management": void this.mountClientManagement(id); break;
             case "new-client": this.mountNewClient(); break;
             case "briefing-home":
             case "briefing-investment":
@@ -72,10 +74,48 @@ export class AdminSystemModules {
                 .forEach(item => item.remove());
 
             const items = document.createDocumentFragment();
-            clients.forEach(client => items.append(clientListItem(client)));
+            clients.forEach(client => {
+                const item = clientListItem(client);
+                u(item).on("click", () => this.navigate("client-management", client.id));
+                items.append(item);
+            });
             this.clients.list.append(items);
         } catch (error) {
             console.error("Erro ao carregar clientes:", error);
+        }
+    }
+
+    private async mountClientManagement(id?: string): Promise<void> {
+        if (!id || !this.models.clientManagement) {
+            this.navigate("clients");
+            return;
+        }
+
+        this.view.render(this.models.clientManagement, ".page-content");
+        this.view.styleNavButton(this.base!.desktop_nav_client);
+        const elements = getClientManagementElements();
+        u(elements.clientsIndex).off("click").on("click", () => this.navigate("clients"));
+        u(elements.back).off("click").on("click", () => this.navigate("clients"));
+
+        try {
+            const client = await this.api.loadClient(this.session, id);
+            elements.clientName.textContent = client.name;
+            elements.titleName.textContent = client.name;
+
+            if (client.driveFolderUrl) {
+                elements.drive.href = client.driveFolderUrl;
+                elements.drive.target = "_blank";
+                elements.drive.rel = "noopener noreferrer";
+                elements.drive.removeAttribute("aria-disabled");
+                elements.drive.classList.remove("client-management-action-disabled");
+            } else {
+                elements.drive.removeAttribute("href");
+                elements.drive.setAttribute("aria-disabled", "true");
+                elements.drive.classList.add("client-management-action-disabled");
+            }
+        } catch (error) {
+            console.error("Erro ao carregar o cliente:", error);
+            this.navigate("clients");
         }
     }
 

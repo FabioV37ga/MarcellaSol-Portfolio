@@ -40,6 +40,17 @@ export class AdminController {
         }
     };
 
+    client = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;
+            return response.status(200).json({ client: await this.listClients.executeOne(id) });
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            console.error("Erro ao buscar cliente:", error);
+            return response.status(500).json({ message: "Erro interno ao buscar cliente" });
+        }
+    };
+
     create = async (request: Request, response: Response): Promise<Response> => {
         try {
             const command = this.parseCreateCommand(request.body);

@@ -2,6 +2,7 @@ export type AdminRoute =
     | "base"
     | "home"
     | "clients"
+    | "client-management"
     | "new-client"
     | "briefing-home"
     | "briefing-investment"
@@ -10,23 +11,23 @@ export type AdminRoute =
 
 export interface AdminPageState {
     page: AdminRoute;
-    id?: number;
+    id?: string;
 }
 
 interface NavigationOptions {
     pushHistory?: boolean;
-    id?: number;
+    id?: string;
 }
 
 const adminRoutes = new Set<AdminRoute>([
-    "base", "home", "clients", "new-client", "briefing-home",
+    "base", "home", "clients", "client-management", "new-client", "briefing-home",
     "briefing-investment", "briefing-rooms", "briefing-finish"
 ]);
 
 export class AdminSystemRouter {
     private listening = false;
 
-    constructor(private readonly render: (route: AdminRoute, id?: number) => void) {}
+    constructor(private readonly render: (route: AdminRoute, id?: string) => void) {}
 
     start(): void {
         if (!this.listening) {
@@ -50,7 +51,7 @@ export class AdminSystemRouter {
         this.navigate(state.page, { pushHistory: false, id: state.id });
     };
 
-    private shouldPush(route: AdminRoute, id?: number): boolean {
+    private shouldPush(route: AdminRoute, id?: string): boolean {
         const state = window.history.state as AdminPageState | null;
         return state?.page !== route || state.id !== id;
     }

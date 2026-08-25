@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="admin/styles/reset.css">
+    <link rel="stylesheet" href="admin/styles/main.css">
+    <link rel="stylesheet" href="admin/styles/login.css">
+    <link rel="stylesheet" href="admin/styles/system/client.css">
+    <link rel="stylesheet" href="admin/styles/system/client-management.css">
+    <link rel="stylesheet" href="admin/styles/system/navigation.css">
+    <link rel="stylesheet" href="admin/styles/system/welcome.css">
+    <title>Gerenciar cliente | Marcella Sol</title>
+</head>
+
+<body>
+    <section class="app-container">
+        <section class="navigation-container">
+            <div class="navigation-container-content">
+                <div class="presentation">
+                    <div class="presentation-logo"><img src="/ms-logo.svg" width="50" height="50" alt="Marcella Sol"></div>
+                    <div class="presentation-text"><h1>Marcella Sol</h1><p>Área administrativa</p></div>
+                </div>
+                <div class="expand-menu"><i class="fa fa-bars" aria-hidden="true"></i></div>
+                <ul class="desktop-navigation">
+                    <li class="desktop-navigation-item">
+                        <div class="desktop-navigation-item-icon"><i class="fa fa-home" aria-hidden="true"></i></div>
+                        <span class="desktop-navigation-item-label"><span>Início</span></span>
+                    </li>
+                    <li class="desktop-navigation-item">
+                        <div class="desktop-navigation-item-icon"><i class="fa fa-window-maximize" aria-hidden="true"></i></div>
+                        <span class="desktop-navigation-item-label"><span>Portfolio</span></span>
+                    </li>
+                    <li class="desktop-navigation-item desktop-nav-item-selected">
+                        <div class="desktop-navigation-item-icon"><i class="fa fa-users" aria-hidden="true"></i></div>
+                        <span class="desktop-navigation-item-label"><span>Clientes</span></span>
+                    </li>
+                </ul>
+                <div class="logout-desktop"><i class="fa fa-sign-out" aria-hidden="true"></i><span>Sair</span></div>
+            </div>
+        </section>
+
+        <main>
+            <section class="welcome">
+                <div class="welcome-content">
+                    <div class="welcome-text"><h2>Olá, %username% 👋</h2><p>Bem-vindo(a) à sua área administrativa.</p></div>
+                </div>
+            </section>
+
+            <section class="page-content">
+                <div class="client-management-container">
+                    <nav class="page-index" aria-label="Navegação do cliente">
+                        <a id="client-management-clients-index" class="root-index">Clientes</a>
+                        <p>/</p>
+                        <span id="client-management-index-name">Nome do cliente</span>
+                    </nav>
+
+                    <header class="client-management-title">
+                        <span class="client-management-eyebrow">Gerenciamento do cliente</span>
+                        <h1 id="client-management-name">Nome do cliente</h1>
+                        <p>Acesse os documentos e recursos relacionados a este cliente.</p>
+                    </header>
+
+                    <section class="client-management-window">
+                        <div class="client-management-window-heading">
+                            <div class="client-management-icon"><i class="fa fa-folder-open-o" aria-hidden="true"></i></div>
+                            <div><h2>Arquivos do cliente</h2><p>Consulte os documentos armazenados na pasta do Google Drive.</p></div>
+                        </div>
+                        <a id="client-management-drive" class="client-management-drive-action" target="_blank" rel="noopener noreferrer">
+                            <i class="fa fa-external-link" aria-hidden="true"></i>
+                            Arquivos do cliente
+                        </a>
+                    </section>
+
+                    <div class="client-management-actions">
+                        <button id="client-management-back" type="button"><i class="fa fa-arrow-left" aria-hidden="true"></i> Voltar</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </section>
+</body>
+
+</html>
