@@ -100,6 +100,17 @@ export class Briefing {
             case "investment":
                 this.investment = getBriefingInvestment()
 
+                const investmentRoutes = ["clients", "new-client", "briefing-home"]
+                this.investment.root.forEach((root, index) => {
+                    u(root)
+                        .off("click")
+                        .on("click", () => callback(investmentRoutes[index]))
+                })
+
+                u(this.investment.cancel)
+                    .off("click")
+                    .on("click", () => callback("briefing-home"))
+
                 u(this.investment.flexibility)
                     .off("change")
                     .on("change", () => this.syncInvestmentFields())
@@ -114,6 +125,17 @@ export class Briefing {
                 break;
             case "rooms":
                 this.rooms = getBriefingRooms();
+
+                const roomRoutes = ["clients", "new-client", "briefing-home"]
+                this.rooms.root.forEach((root, index) => {
+                    u(root)
+                        .off("click")
+                        .on("click", () => callback(roomRoutes[index]))
+                })
+
+                u(this.rooms.cancel)
+                    .off("click")
+                    .on("click", () => callback("briefing-investment"))
 
                 u(this.rooms.addRoom)
                     .off("click")

@@ -30,12 +30,16 @@ function getBriefingHome(): briefingHome{
 }
 
 interface briefingInvestment{
+    root: HTMLElement[],
+    cancel: HTMLElement,
     confirm: HTMLElement,
     flexibility: HTMLInputElement
 }
 
 function getBriefingInvestment():briefingInvestment{
     return{
+        root: u(".root-index").nodes as HTMLElement[],
+        cancel: u("#briefing-investment-cancel").first() as HTMLElement,
         confirm: u("#briefing-rooms-confirm").first() as HTMLElement,
         flexibility: u("#briefing-investment-flexibility").first() as HTMLInputElement
     }
@@ -43,6 +47,8 @@ function getBriefingInvestment():briefingInvestment{
 
 
 interface briefingRooms{
+    root: HTMLElement[]
+    cancel: HTMLElement
     addRoom: HTMLElement
     roomContainer: HTMLElement;
     addedRooms?: HTMLElement[]
@@ -50,12 +56,16 @@ interface briefingRooms{
 }
 
 function getBriefingRooms():briefingRooms{
+    const root = u(".root-index").nodes as HTMLElement[]
+    const cancel = u("#briefing-rooms-cancel").first() as HTMLElement
     const addRoom = u(".briefing-room-add").first() as HTMLElement
     const roomContainer = u(".briefing-rooms-list").first() as HTMLElement
     const confirm = u("#briefing-rooms-confirm").first() as HTMLElement
 
 
     return {
+        root,
+        cancel,
         addRoom,
         roomContainer,
         confirm

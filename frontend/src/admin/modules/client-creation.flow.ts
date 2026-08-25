@@ -47,7 +47,15 @@ export class ClientCreationFlow {
             case "briefing-rooms":
                 this.view.render(this.models.rooms!, ".page-content");
                 this.client.addUserInteractions("rooms", (next: string) => {
-                    if (next === "briefing-finish") this.navigate(next);
+                    if (
+                        next === "clients" ||
+                        next === "new-client" ||
+                        next === "briefing-home" ||
+                        next === "briefing-investment" ||
+                        next === "briefing-finish"
+                    ) {
+                        this.navigate(next);
+                    }
                 });
                 break;
             case "briefing-finish":
