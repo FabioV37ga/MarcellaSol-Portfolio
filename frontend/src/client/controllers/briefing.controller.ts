@@ -31,6 +31,8 @@ import { preferences_1, preferences_2, preferences_3 } from "../templates/briefi
 import { routine } from "../templates/briefing/routine.template.js";
 import { toilet } from "../templates/briefing/toilet.template.js";
 
+const maxFilesPerField = 10;
+
 const roomLabels: Record<string, string> = {
     "sala-estar": "Sala de estar",
     "sala-jantar": "Sala de jantar",
@@ -445,10 +447,11 @@ export default class ClientBriefingController {
     }
 
     private getFilesForField(page: HTMLElement, fieldIndex: number, field: HTMLInputElement): File[] {
+        const cachedFiles = this.cachedFiles.get(this.getFileFieldId(page, fieldIndex));
+        if (cachedFiles) return cachedFiles;
+
         const selectedFiles = Array.from(field.files ?? []);
-        return selectedFiles.length > 0
-            ? selectedFiles
-            : this.cachedFiles.get(this.getFileFieldId(page, fieldIndex)) ?? [];
+        return selectedFiles;
     }
 
     private async saveFileDraft(field: HTMLInputElement): Promise<void> {
@@ -462,10 +465,17 @@ export default class ClientBriefingController {
         if (fieldIndex < 0) return;
 
         const id = this.getFileFieldId(page, fieldIndex);
-        const files = Array.from(field.files ?? []);
+        const previousFiles = this.cachedFiles.get(id) ?? [];
+        const selectedFiles = Array.from(field.files ?? []);
+        const uniqueFiles = new Map<string, File>();
+        [...previousFiles, ...selectedFiles].forEach(file => {
+            uniqueFiles.set(`${file.name}:${file.size}:${file.lastModified}`, file);
+        });
+        const allFiles = Array.from(uniqueFiles.values());
+        const files = allFiles.slice(0, maxFilesPerField);
         if (files.length > 0) this.cachedFiles.set(id, files);
         else this.cachedFiles.delete(id);
-        this.renderCachedFileStatus(field, files);
+        this.renderCachedFileStatus(field, files, allFiles.length - files.length);
 
         const operation = this.fileCacheReady.then(() => this.fileRepository.save(id, files)).catch(error => {
             console.warn("Briefing: não foi possível salvar os arquivos do rascunho.", error);
@@ -506,7 +516,7 @@ export default class ClientBriefingController {
         }
     }
 
-    private renderCachedFileStatus(field: HTMLInputElement, files: File[]): void {
+    private renderCachedFileStatus(field: HTMLInputElement, files: File[], rejectedCount = 0): void {
         const container = field.parentElement ?? field;
         let status = container.querySelector<HTMLElement>("[data-briefing-file-cache-status]");
 
@@ -523,7 +533,10 @@ export default class ClientBriefingController {
         }
 
         const names = files.map(file => file.name).join(", ");
-        status.textContent = `${files.length} arquivo(s) salvo(s) no rascunho: ${names}`;
+        const rejectedMessage = rejectedCount > 0
+            ? ` ${rejectedCount} arquivo(s) excederam o limite de ${maxFilesPerField} e não foram adicionados.`
+            : "";
+        status.textContent = `${files.length} arquivo(s) salvo(s) no rascunho: ${names}.${rejectedMessage}`;
     }
 
     private async clearFileDrafts(): Promise<void> {

@@ -76,6 +76,12 @@ export class ClientController {
         if (manifest.some(item => !this.isManifestEntry(item))) {
             throw new ApplicationError("Metadados dos anexos inválidos", 400);
         }
+        if (new Set(manifest.map(item => item.uploadId)).size !== manifest.length) {
+            throw new ApplicationError("Os identificadores dos anexos devem ser únicos", 400);
+        }
+        if (manifest.some((item, index) => item.originalName !== files[index]?.originalname)) {
+            throw new ApplicationError("A ordem dos anexos não corresponde aos arquivos enviados", 400);
+        }
         return {
             clientId: principal.subject,
             clientLogin: principal.login,
@@ -98,7 +104,7 @@ export class ClientController {
 
     private isManifestEntry(item: FileManifestEntry): boolean {
         return Boolean(item) && typeof item.uploadId === "string" && typeof item.pageKey === "string"
-            && typeof item.answerKey === "string" && typeof item.fileIndex === "number"
+            && typeof item.answerKey === "string" && Number.isInteger(item.fileIndex) && item.fileIndex >= 0
             && typeof item.originalName === "string";
     }
 }
