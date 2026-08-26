@@ -4,13 +4,15 @@ import { CreateClientService, type CreateClientCommand } from "../application/cr
 import { ApplicationError } from "../application/errors/application-error.js";
 import { AuthenticateService } from "../application/authenticate.service.js";
 import { ListClientsService } from "../application/list-clients.service.js";
+import { ClientBriefingReportService } from "../application/client-briefing-report.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
 
 export class AdminController {
     constructor(
         private readonly createClient = new CreateClientService(),
         private readonly authenticate = new AuthenticateService(),
-        private readonly listClients = new ListClientsService()
+        private readonly listClients = new ListClientsService(),
+        private readonly briefingReports = new ClientBriefingReportService()
     ) {}
 
     login = async (request: Request, response: Response): Promise<Response> => {
@@ -51,6 +53,24 @@ export class AdminController {
         }
     };
 
+    briefingReportStatus = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;
+            return response.status(200).json(await this.briefingReports.status(id));
+        } catch (error: unknown) {
+            return this.reportError(error, response);
+        }
+    };
+
+    generateBriefingReport = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;
+            return response.status(201).json(await this.briefingReports.generate(id));
+        } catch (error: unknown) {
+            return this.reportError(error, response);
+        }
+    };
+
     create = async (request: Request, response: Response): Promise<Response> => {
         try {
             const command = this.parseCreateCommand(request.body);
@@ -86,5 +106,11 @@ export class AdminController {
 
     private errorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
+    }
+
+    private reportError(error: unknown, response: Response): Response {
+        if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+        console.error("Erro ao processar relatório do briefing:", error);
+        return response.status(500).json({ message: "Erro interno ao processar relatório do briefing" });
     }
 }

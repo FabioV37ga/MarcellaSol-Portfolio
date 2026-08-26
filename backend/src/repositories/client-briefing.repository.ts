@@ -17,6 +17,10 @@ export class ClientBriefingRepository {
             .lean();
     }
 
+    findReportSourceByClientId(clientId: mongoose.Types.ObjectId) {
+        return clientBriefings.findOne({ clientId }).lean();
+    }
+
     saveForClient(clientId: mongoose.Types.ObjectId, document: Omit<ClientBriefingDocument, "clientId">) {
         return clientBriefings.findOneAndUpdate(
             { clientId },

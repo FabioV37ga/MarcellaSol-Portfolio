@@ -17,6 +17,11 @@ export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
 }
 
+export interface BriefingReportStatus {
+    exists: boolean;
+    folderUrl?: string;
+}
+
 export class AdminSystemApi {
     async loadClients(session: AdminSession): Promise<AdminClientListItem[]> {
         const response = await fetch(`${config.apiBaseUrl}/admin/clients`, {
@@ -42,6 +47,28 @@ export class AdminSystemApi {
             throw new Error(result.message ?? "Não foi possível carregar o cliente");
         }
         return result.client;
+    }
+
+    async loadBriefingReportStatus(session: AdminSession, id: string): Promise<BriefingReportStatus> {
+        return this.requestBriefingReport(session, id, "GET");
+    }
+
+    async generateBriefingReport(session: AdminSession, id: string): Promise<BriefingReportStatus> {
+        return this.requestBriefingReport(session, id, "POST");
+    }
+
+    private async requestBriefingReport(
+        session: AdminSession,
+        id: string,
+        method: "GET" | "POST"
+    ): Promise<BriefingReportStatus> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(id)}/briefing-report`,
+            { method, headers: { Authorization: `Bearer ${session.token}` } }
+        );
+        const result = await response.json().catch(() => ({})) as BriefingReportStatus & { message?: string };
+        if (!response.ok) throw new Error(result.message ?? "Não foi possível processar o relatório");
+        return result;
     }
 
     async loadViews(session: AdminSession): Promise<dbView[] | undefined> {

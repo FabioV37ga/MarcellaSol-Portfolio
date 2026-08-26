@@ -9,6 +9,8 @@ router.post("/api/admin/login", controller.login);
 router.get("/api/admin/session", requireAuthentication("admin"), controller.session);
 router.get("/api/admin/clients", requireAuthentication("admin"), controller.clients);
 router.get("/api/admin/clients/:id", requireAuthentication("admin"), controller.client);
+router.get("/api/admin/clients/:id/briefing-report", requireAuthentication("admin"), controller.briefingReportStatus);
+router.post("/api/admin/clients/:id/briefing-report", requireAuthentication("admin"), controller.generateBriefingReport);
 router.post("/api/admin/user", requireAuthentication("admin"), controller.create);
 
 export default router;

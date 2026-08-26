@@ -113,10 +113,75 @@ export class AdminSystemModules {
                 elements.drive.setAttribute("aria-disabled", "true");
                 elements.drive.classList.add("client-management-action-disabled");
             }
+
+            if (client.hasFilledBriefing) {
+                await this.mountBriefingReport(id, elements);
+            } else {
+                elements.briefingReport.disabled = true;
+                elements.briefingReport.classList.add("client-management-report-unavailable");
+                elements.briefingReportLabel.textContent = "Cliente ainda não preencheu o briefing";
+            }
         } catch (error) {
             console.error("Erro ao carregar o cliente:", error);
             this.navigate("clients");
         }
+    }
+
+    private async mountBriefingReport(
+        clientId: string,
+        elements: ReturnType<typeof getClientManagementElements>
+    ): Promise<void> {
+        try {
+            const status = await this.api.loadBriefingReportStatus(this.session, clientId);
+            this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl);
+        } catch (error) {
+            console.error("Erro ao verificar relatório do briefing:", error);
+            elements.briefingReport.disabled = false;
+            elements.briefingReportLabel.textContent = "Tentar novamente";
+            u(elements.briefingReport).off("click").on("click", () => {
+                elements.briefingReport.disabled = true;
+                elements.briefingReportLabel.textContent = "Verificando...";
+                void this.mountBriefingReport(clientId, elements);
+            });
+        }
+    }
+
+    private bindBriefingReportAction(
+        clientId: string,
+        elements: ReturnType<typeof getClientManagementElements>,
+        exists: boolean,
+        folderUrl?: string
+    ): void {
+        const button = elements.briefingReport;
+        button.disabled = false;
+        button.classList.remove("client-management-report-loading");
+        button.classList.remove("client-management-report-unavailable");
+        u(button).off("click");
+
+        if (exists && folderUrl) {
+            elements.briefingReportLabel.textContent = "Acessar";
+            u(button).on("click", () => {
+                window.open(folderUrl, "_blank", "noopener,noreferrer");
+            });
+            return;
+        }
+
+        elements.briefingReportLabel.textContent = "Gerar relatório";
+        u(button).on("click", () => {
+            button.disabled = true;
+            button.classList.add("client-management-report-loading");
+            elements.briefingReportLabel.textContent = "Gerando relatório...";
+            void this.api.generateBriefingReport(this.session, clientId)
+                .then(status => {
+                    this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl);
+                })
+                .catch(error => {
+                    console.error("Erro ao gerar relatório do briefing:", error);
+                    button.disabled = false;
+                    button.classList.remove("client-management-report-loading");
+                    elements.briefingReportLabel.textContent = "Tentar novamente";
+                });
+        });
     }
 
     private mountNewClient(): void {

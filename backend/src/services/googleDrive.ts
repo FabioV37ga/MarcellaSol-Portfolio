@@ -17,6 +17,11 @@ export interface DriveUploadResult {
     files: DriveUpload[];
 }
 
+export interface BriefingReportDriveStatus {
+    exists: boolean;
+    folderUrl?: string;
+}
+
 function requiredEnvironment(name: string): string {
     const value = process.env[name]?.trim();
     if (!value) throw new Error(`Integração com Google Drive não configurada: ${name}`);
@@ -83,6 +88,40 @@ async function findOrCreateFolder(
     return created.data.id;
 }
 
+async function findFolder(drive: drive_v3.Drive, parentId: string, name: string): Promise<string | undefined> {
+    const folders = await drive.files.list({
+        q: `'${escapeDriveQuery(parentId)}' in parents and name = '${escapeDriveQuery(name)}' and mimeType = '${FOLDER_MIME_TYPE}' and trashed = false`,
+        fields: "files(id)",
+        spaces: "drive",
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
+        pageSize: 1
+    });
+    return folders.data.files?.[0]?.id ?? undefined;
+}
+
+async function findBriefingReport(drive: drive_v3.Drive, reportsFolderId: string) {
+    const files = await drive.files.list({
+        q: `'${escapeDriveQuery(reportsFolderId)}' in parents and name contains 'relatorio-briefing-' and mimeType = 'application/pdf' and trashed = false`,
+        fields: "files(id,name)",
+        spaces: "drive",
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
+        pageSize: 100
+    });
+    return files.data.files?.find(file => /^relatorio-briefing-.*\.pdf$/i.test(file.name ?? ""));
+}
+
+function reportFileName(clientName: string): string {
+    const slug = clientName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+    return `relatorio-briefing-${slug || "cliente"}.pdf`;
+}
+
 async function findOrCreateClientFolder(drive: drive_v3.Drive, clientLogin: string): Promise<string> {
     const rootFolderId = requiredEnvironment("GOOGLE_DRIVE_ROOT_FOLDER_ID");
     const clientsFolderId = await findOrCreateFolder(drive, rootFolderId, "clientes");
@@ -91,6 +130,52 @@ async function findOrCreateClientFolder(drive: drive_v3.Drive, clientLogin: stri
 
 export async function createClientDriveFolder(clientLogin: string): Promise<string> {
     return findOrCreateClientFolder(createDriveClient(), clientLogin);
+}
+
+export async function getBriefingReportDriveStatus(clientFolderId: string): Promise<BriefingReportDriveStatus> {
+    const drive = createDriveClient();
+    const reportsFolderId = await findFolder(drive, clientFolderId, "relatorios");
+    if (!reportsFolderId) return { exists: false };
+
+    const report = await findBriefingReport(drive, reportsFolderId);
+    return {
+        exists: Boolean(report),
+        folderUrl: report ? `https://drive.google.com/drive/folders/${encodeURIComponent(reportsFolderId)}` : undefined
+    };
+}
+
+export async function uploadBriefingReportPdf(
+    clientFolderId: string,
+    clientName: string,
+    pdf: Buffer
+): Promise<BriefingReportDriveStatus> {
+    const drive = createDriveClient();
+    const reportsFolderId = await findOrCreateFolder(drive, clientFolderId, "relatorios");
+    const existing = await findBriefingReport(drive, reportsFolderId);
+    const name = reportFileName(clientName);
+    const media = { mimeType: "application/pdf", body: Readable.from(pdf) };
+
+    if (existing?.id) {
+        await drive.files.update({
+            fileId: existing.id,
+            requestBody: { name },
+            media,
+            fields: "id",
+            supportsAllDrives: true
+        });
+    } else {
+        await drive.files.create({
+            requestBody: { name, parents: [reportsFolderId] },
+            media,
+            fields: "id",
+            supportsAllDrives: true
+        });
+    }
+
+    return {
+        exists: true,
+        folderUrl: `https://drive.google.com/drive/folders/${encodeURIComponent(reportsFolderId)}`
+    };
 }
 
 export async function uploadBriefingFiles(

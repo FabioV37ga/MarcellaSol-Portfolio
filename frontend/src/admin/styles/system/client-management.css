@@ -9,6 +9,7 @@
 .client-management-title,
 .client-management-window-heading,
 .client-management-drive-action,
+.client-management-report-action,
 #client-management-back {
     font-family: "confort";
 }
@@ -67,6 +68,10 @@
     background: white;
 }
 
+.client-management-window + .client-management-window {
+    margin-top: 12px;
+}
+
 .client-management-window-heading {
     display: flex;
     align-items: center;
@@ -92,6 +97,7 @@
 }
 
 .client-management-drive-action,
+.client-management-report-action,
 #client-management-back {
     display: inline-flex;
     align-items: center;
@@ -108,6 +114,35 @@
     background: var(--orange);
     color: white;
     text-decoration: none;
+}
+
+.client-management-report-action {
+    min-width: 190px;
+    padding: 0 18px;
+    border: 0;
+    background: var(--orange);
+    color: white;
+}
+
+.client-management-report-action:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+
+.client-management-report-action.client-management-report-unavailable {
+    cursor: not-allowed;
+}
+
+.client-management-report-spinner {
+    display: none;
+}
+
+.client-management-report-loading .client-management-report-icon {
+    display: none;
+}
+
+.client-management-report-loading .client-management-report-spinner {
+    display: inline-block;
 }
 
 .client-management-action-disabled {
