@@ -8,3 +8,4 @@ backend/node_modules/
 private-*
 *.gitkeep
 reports/
+backend/.puppeteer-cache/
