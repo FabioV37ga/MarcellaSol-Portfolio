@@ -7,6 +7,7 @@ export interface CreateClientData {
     password: string;
     name: string;
     hasFilledBriefing: boolean;
+    driveFolderId: string;
     briefing: BriefingObject;
 }
 
@@ -19,7 +20,7 @@ export class ClientRepository {
 
     findByIdForAdmin(id: string) {
         return clients
-            .findById(id, { _id: 1, name: 1, hasFilledBriefing: 1 })
+            .findById(id, { _id: 1, name: 1, hasFilledBriefing: 1, driveFolderId: 1 })
             .lean();
     }
 

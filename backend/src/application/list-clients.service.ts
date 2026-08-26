@@ -47,7 +47,7 @@ export class ListClientsService {
         if (!client) throw new ApplicationError("Cliente não encontrado", 404);
 
         const briefing = await this.briefings.findByClientIdForAdmin(client._id);
-        const driveFolderId = briefing?.driveFolderId?.trim();
+        const driveFolderId = client.driveFolderId?.trim();
 
         return {
             id: client._id.toString(),

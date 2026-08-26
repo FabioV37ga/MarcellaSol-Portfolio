@@ -83,6 +83,16 @@ async function findOrCreateFolder(
     return created.data.id;
 }
 
+async function findOrCreateClientFolder(drive: drive_v3.Drive, clientLogin: string): Promise<string> {
+    const rootFolderId = requiredEnvironment("GOOGLE_DRIVE_ROOT_FOLDER_ID");
+    const clientsFolderId = await findOrCreateFolder(drive, rootFolderId, "clientes");
+    return findOrCreateFolder(drive, clientsFolderId, safeFolderName(clientLogin));
+}
+
+export async function createClientDriveFolder(clientLogin: string): Promise<string> {
+    return findOrCreateClientFolder(createDriveClient(), clientLogin);
+}
+
 export async function uploadBriefingFiles(
     clientLogin: string,
     files: Express.Multer.File[]
@@ -90,9 +100,7 @@ export async function uploadBriefingFiles(
     if (files.length === 0) return { folderId: "", files: [] };
 
     const drive = createDriveClient();
-    const rootFolderId = requiredEnvironment("GOOGLE_DRIVE_ROOT_FOLDER_ID");
-    const clientsFolderId = await findOrCreateFolder(drive, rootFolderId, "clientes");
-    const clientFolderId = await findOrCreateFolder(drive, clientsFolderId, safeFolderName(clientLogin));
+    const clientFolderId = await findOrCreateClientFolder(drive, clientLogin);
     const briefingFolderId = await findOrCreateFolder(drive, clientFolderId, "documentos_briefing");
     const uploadedFiles: DriveUpload[] = [];
 

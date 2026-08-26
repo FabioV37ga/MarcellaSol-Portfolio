@@ -7,6 +7,7 @@ export interface ClientObject {
     password: string;
     name: string;
     hasFilledBriefing: boolean;
+    driveFolderId?: string;
     briefing: BriefingObject;
 }
 
@@ -15,6 +16,7 @@ const clientSchema = new mongoose.Schema<ClientObject>({
     password: {type: String, required: true},
     name: {type: String, required: true},
     hasFilledBriefing: {type: Boolean, required: true},
+    driveFolderId: {type: String, required: false},
     briefing: {type: briefingSchema, required: true}
 },{collection: 'clients'}
 )
