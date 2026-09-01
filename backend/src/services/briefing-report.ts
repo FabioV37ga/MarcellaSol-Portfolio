@@ -48,6 +48,7 @@ export interface BriefingReportDocument {
 
 export interface BriefingReportOptions {
     assetBaseUrl?: string;
+    temporaryDirectory?: string;
 }
 
 const visualOptions: Record<string, { label: string; image: string }> = {
@@ -124,7 +125,8 @@ function renderFile(value: Record<string, unknown>): string {
     const name = String(driveFile?.name ?? value.name ?? "Imagem anexada");
     const id = typeof driveFile?.id === "string" ? driveFile.id : undefined;
     const link = typeof driveFile?.webViewLink === "string" ? driveFile.webViewLink : undefined;
-    const preview = id ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1200` : undefined;
+    const localImageUrl = typeof driveFile?.localImageUrl === "string" ? driveFile.localImageUrl : undefined;
+    const preview = localImageUrl;
     if (!preview && !link) return escapeHtml(name);
     return `<figure class="attachment">
         ${preview ? `<img src="${preview}" alt="${escapeHtml(name)}">` : ""}
@@ -348,7 +350,14 @@ export async function generateBriefingReportPdf(
     });
     try {
         const page = await browser.newPage();
-        await page.setContent(buildBriefingReportHtml(document, options), { waitUntil: "domcontentloaded" });
+        const html = buildBriefingReportHtml(document, options);
+        if (options.temporaryDirectory) {
+            const htmlPath = path.join(options.temporaryDirectory, "report.html");
+            fs.writeFileSync(htmlPath, html, "utf8");
+            await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "domcontentloaded" });
+        } else {
+            await page.setContent(html, { waitUntil: "domcontentloaded" });
+        }
         await page.evaluate(async () => {
             const images = Array.from(globalThis.document.images);
             await Promise.race([

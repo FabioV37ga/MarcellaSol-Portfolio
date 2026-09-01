@@ -3,8 +3,10 @@ import {
     getBriefingReportDriveStatus,
     uploadBriefingFiles,
     uploadBriefingReportPdf,
+    downloadDriveImage,
     type BriefingReportDriveStatus,
-    type DriveUploadResult
+    type DriveUploadResult,
+    type DriveImageDownload
 } from "./googleDrive.js";
 import { renameProposalFolder, setProposalFolderTrashed, uploadProposalAttachment, type ProposalDriveUpload } from "./googleDrive.js";
 
@@ -19,6 +21,7 @@ export interface AttachmentStorage {
 export interface BriefingReportStorage {
     getBriefingReportStatus(clientFolderId: string): Promise<BriefingReportDriveStatus>;
     uploadBriefingReport(clientFolderId: string, clientName: string, pdf: Buffer): Promise<BriefingReportDriveStatus>;
+    downloadReportImage(fileId: string): Promise<DriveImageDownload>;
 }
 
 export interface ProposalStorage {
@@ -42,6 +45,10 @@ export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFo
 
     uploadBriefingReport(clientFolderId: string, clientName: string, pdf: Buffer): Promise<BriefingReportDriveStatus> {
         return uploadBriefingReportPdf(clientFolderId, clientName, pdf);
+    }
+
+    downloadReportImage(fileId: string): Promise<DriveImageDownload> {
+        return downloadDriveImage(fileId);
     }
 
     uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[]): Promise<ProposalDriveUpload> {

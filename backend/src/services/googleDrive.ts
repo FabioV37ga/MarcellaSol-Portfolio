@@ -27,6 +27,12 @@ export interface ProposalDriveUpload {
     attachmentUrls: string[];
 }
 
+export interface DriveImageDownload {
+    data: Buffer;
+    mimeType: string;
+    size: number;
+}
+
 function requiredEnvironment(name: string): string {
     const value = process.env[name]?.trim();
     if (!value) throw new Error(`Integração com Google Drive não configurada: ${name}`);
@@ -273,4 +279,24 @@ export async function setProposalFolderTrashed(folderId: string, trashed: boolea
         fields: "id,trashed",
         supportsAllDrives: true
     });
+}
+
+export async function downloadDriveImage(fileId: string): Promise<DriveImageDownload> {
+    const drive = createDriveClient();
+    const metadata = await drive.files.get({
+        fileId,
+        fields: "id,mimeType,size,capabilities(canDownload)",
+        supportsAllDrives: true
+    });
+    const mimeType = metadata.data.mimeType ?? "";
+    const size = Number(metadata.data.size) || 0;
+    if (!mimeType.startsWith("image/")) throw new Error("O anexo não é uma imagem");
+    if (metadata.data.capabilities?.canDownload === false) throw new Error("A imagem não permite download");
+    if (size > 25 * 1024 * 1024) throw new Error("A imagem excede o limite de 25 MB para relatórios");
+
+    const response = await drive.files.get(
+        { fileId, alt: "media", supportsAllDrives: true },
+        { responseType: "arraybuffer" }
+    );
+    return { data: Buffer.from(response.data as ArrayBuffer), mimeType, size };
 }
