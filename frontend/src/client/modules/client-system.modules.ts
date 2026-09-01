@@ -2,6 +2,7 @@ import u from "umbrellajs";
 import ClientBriefingController from "../controllers/briefing.controller.js";
 import type { ClientRoute } from "../navigation/client-system.router.js";
 import { getBaseElements, type baseElements } from "../selectors/base.selector.js";
+import { getHomeElements } from "../selectors/home.selector.js";
 import type { system } from "../templates/interface.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
 
@@ -22,8 +23,7 @@ export class ClientSystemModules {
                 this.mountBase();
                 break;
             case "home":
-                this.view.render(this.models.home, ".page-content");
-                this.view.styleNavButton(this.baseElements?.desktop_nav_home);
+                this.mountHome();
                 break;
             case "briefing":
                 this.mountBriefing(briefingStep);
@@ -31,6 +31,15 @@ export class ClientSystemModules {
             case "clients":
                 break;
         }
+    }
+
+    private mountHome(): void {
+        this.view.render(this.models.home, ".page-content");
+        this.view.styleNavButton(this.baseElements?.desktop_nav_home);
+        const home = getHomeElements();
+        u(home.stagesProcesses)
+            .off("click")
+            .on("click", () => this.navigate("clients"));
     }
 
     private mountBase(): void {

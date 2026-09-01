@@ -205,28 +205,40 @@
     .desktop-navigation-item {
         /* background: red; */
         border-radius: 8px;
-        height: 40px;
+        min-height: 40px;
+        padding: 8px 0;
         width: 100%;
         display: flex;
         align-items: center;
         cursor: pointer;
+        box-sizing: border-box;
     }
 
     .desktop-navigation-item-icon {
         /* background: blue; */
-        height: 100%;
         width: 25%;
+        flex: 0 0 25%;
         display: flex;
         justify-content: center;
         align-items: center;
         color: #9A9A9C
     }
 
+    .desktop-navigation-item-label {
+        min-width: 0;
+        flex: 1;
+        padding-right: 8px;
+    }
+
     .desktop-navigation-item-label span {
+        display: block;
         margin-left: 10px;
         font-family: "confort";
         font-size: 13px;
-        color: #9A9A9C
+        line-height: 1.35;
+        color: #9A9A9C;
+        text-align: left;
+        overflow-wrap: break-word;
     }
 
     .desktop-nav-item-selected {
