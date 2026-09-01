@@ -41,7 +41,7 @@ export default class ClientSystem {
         );
 
         const initialRoute: ClientRoute = normalizedData.clientObject.hasFilledBriefing || hasFilledBriefing
-            ? "wip"
+            ? "base"
             : "briefing";
         this.router.start(initialRoute);
     }

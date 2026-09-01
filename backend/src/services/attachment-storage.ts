@@ -6,6 +6,7 @@ import {
     type BriefingReportDriveStatus,
     type DriveUploadResult
 } from "./googleDrive.js";
+import { renameProposalFolder, setProposalFolderTrashed, uploadProposalAttachment, type ProposalDriveUpload } from "./googleDrive.js";
 
 export interface ClientFolderStorage {
     createClientFolder(clientLogin: string): Promise<string>;
@@ -20,7 +21,13 @@ export interface BriefingReportStorage {
     uploadBriefingReport(clientFolderId: string, clientName: string, pdf: Buffer): Promise<BriefingReportDriveStatus>;
 }
 
-export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFolderStorage, BriefingReportStorage {
+export interface ProposalStorage {
+    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[]): Promise<ProposalDriveUpload>;
+    renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void>;
+    setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void>;
+}
+
+export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFolderStorage, BriefingReportStorage, ProposalStorage {
     createClientFolder(clientLogin: string): Promise<string> {
         return createClientDriveFolder(clientLogin);
     }
@@ -35,5 +42,17 @@ export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFo
 
     uploadBriefingReport(clientFolderId: string, clientName: string, pdf: Buffer): Promise<BriefingReportDriveStatus> {
         return uploadBriefingReportPdf(clientFolderId, clientName, pdf);
+    }
+
+    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[]): Promise<ProposalDriveUpload> {
+        return uploadProposalAttachment(clientFolderId, proposalId, title, files);
+    }
+
+    renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {
+        return renameProposalFolder(folderId, proposalId, title);
+    }
+
+    setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
+        return setProposalFolderTrashed(folderId, trashed);
     }
 }

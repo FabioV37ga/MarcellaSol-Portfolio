@@ -1,4 +1,4 @@
-export type ClientRoute = "wip" | "base" | "home" | "clients" | "briefing";
+export type ClientRoute = "base" | "home" | "clients" | "briefing";
 
 export interface ClientPageState {
     page: ClientRoute;
@@ -10,7 +10,7 @@ interface NavigationOptions {
     briefingStep?: number;
 }
 
-const clientRoutes = new Set<ClientRoute>(["wip", "base", "home", "clients", "briefing"]);
+const clientRoutes = new Set<ClientRoute>(["base", "home", "clients", "briefing"]);
 
 export class ClientSystemRouter {
     private listening = false;
@@ -21,6 +21,11 @@ export class ClientSystemRouter {
         if (!this.listening) {
             window.addEventListener("popstate", this.handlePopState);
             this.listening = true;
+        }
+        if (initialRoute === "base") {
+            this.navigate("base", { pushHistory: false });
+            this.navigate("home");
+            return;
         }
         this.navigate(initialRoute);
     }

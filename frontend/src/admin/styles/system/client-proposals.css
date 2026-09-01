@@ -1,0 +1,109 @@
+.proposals-management-container {
+    width: calc(100% - 24px);
+    margin: 0 auto 32px;
+    color: #1f1f1f;
+    font-family: "confort";
+}
+
+.proposals-management-container .page-index {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 18px;
+    font-size: 12px;
+}
+
+.proposals-management-container .root-index { color: var(--orange); cursor: pointer; }
+.proposals-management-container .page-index p,
+.proposals-management-container .page-index span,
+.proposals-subtitle { color: var(--gray); }
+.proposals-title { margin-bottom: 20px; }
+.proposals-title h1 { margin-bottom: 8px; font-size: 24px; }
+.proposals-subtitle { font-size: 12px; line-height: 1.45; }
+
+.proposals-columns { display: grid; gap: 16px; }
+.proposals-panel {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--borderGray);
+    border-radius: 12px;
+    background: #fff;
+}
+.proposals-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.proposals-panel-heading h2 { font-size: 17px; }
+.proposals-list { display: grid; gap: 12px; }
+.proposals-empty { padding: 28px 12px; color: var(--gray); text-align: center; font-size: 12px; }
+
+#new-proposal,
+.proposal-resend,
+#proposal-save,
+#proposal-cancel,
+#proposal-delete-cancel,
+#proposals-back {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-family: "confort";
+    cursor: pointer;
+}
+#new-proposal,
+.proposal-resend,
+#proposal-save { border: 0; background: var(--orange); color: #fff; }
+#proposal-cancel,
+#proposal-delete-cancel,
+#proposals-back { border: 2px solid var(--orange); background: #fff; color: var(--orange); }
+
+.proposal-card { padding: 16px; border: 1px solid var(--borderGray); border-radius: 10px; background: #fbfafa; }
+.proposal-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.proposal-card h3 { margin-bottom: 8px; font-size: 15px; line-height: 1.35; }
+.proposal-description { margin-bottom: 12px; color: var(--gray); font-size: 12px; line-height: 1.55; white-space: pre-wrap; }
+.proposal-status { padding: 5px 9px; border-radius: 999px; background: #f4e6df; color: var(--orange); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.proposal-status-beated,
+.proposal-status-cancelled { background: #eee; color: #555; }
+.proposal-card-actions { display: flex; gap: 5px; }
+.proposal-edit,
+.proposal-delete { border: 0; background: transparent; color: var(--orange); cursor: pointer; font-size: 16px; }
+.proposal-delete { color: #a12e2e; }
+.proposal-attachment { display: inline-flex; gap: 6px; align-items: center; color: var(--orange); font-size: 12px; }
+.proposal-attachments { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.proposal-comment { margin-top: 14px; padding: 12px; border-radius: 8px; background: #fff1eb; font-size: 11px; }
+.proposal-comment p { margin-top: 6px; line-height: 1.45; }
+.proposal-resend { width: 100%; margin-top: 14px; }
+#proposals-feedback { display: block; min-height: 18px; margin: 12px 0; color: var(--orange); font-size: 12px; }
+
+.proposal-dialog { width: min(520px, calc(100% - 28px)); padding: 0; border: 0; border-radius: 12px; box-shadow: 0 20px 60px #0004; }
+.proposal-dialog::backdrop { background: #0007; }
+.proposal-dialog-form { display: grid; gap: 15px; padding: 22px; }
+.proposal-dialog-form h2 { font-size: 20px; }
+.proposal-field { display: grid; gap: 7px; color: var(--gray); font-size: 12px; }
+.proposal-field input,
+.proposal-field textarea { padding: 11px; border: 1px solid var(--borderGray); border-radius: 8px; font: inherit; color: #1f1f1f; }
+.proposal-field textarea { min-height: 120px; resize: vertical; }
+#proposal-current-attachment { color: var(--gray); font-size: 10px; }
+.proposal-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.proposal-delete-warning { color: var(--gray); font-size: 12px; line-height: 1.55; }
+#proposal-delete-confirm {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #a12e2e;
+    color: #fff;
+    font-family: "confort";
+    cursor: pointer;
+}
+.proposals-actions { margin-top: 16px; }
+#proposals-back { width: 100%; }
+
+@media (min-width: 900px) {
+    .proposals-management-container { width: calc(100% - 60px); }
+    .proposals-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .proposals-panel { padding: 22px; }
+    #proposals-back { width: 170px; }
+}

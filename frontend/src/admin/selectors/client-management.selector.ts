@@ -8,6 +8,7 @@ export interface ClientManagementElements {
     drive: HTMLAnchorElement;
     briefingReport: HTMLButtonElement;
     briefingReportLabel: HTMLElement;
+    proposals: HTMLButtonElement;
 }
 
 export function getClientManagementElements(): ClientManagementElements {
@@ -18,6 +19,7 @@ export function getClientManagementElements(): ClientManagementElements {
         back: u("#client-management-back").first() as HTMLElement,
         drive: u("#client-management-drive").first() as HTMLAnchorElement,
         briefingReport: u("#client-management-briefing-report").first() as HTMLButtonElement,
-        briefingReportLabel: u("#client-management-briefing-report span").first() as HTMLElement
+        briefingReportLabel: u("#client-management-briefing-report span").first() as HTMLElement,
+        proposals: u("#client-management-proposals").first() as HTMLButtonElement
     };
 }

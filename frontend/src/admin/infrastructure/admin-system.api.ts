@@ -22,7 +22,96 @@ export interface BriefingReportStatus {
     folderUrl?: string;
 }
 
+export type ProposalStatus = "sent" | "beated" | "resent" | "Cancelled";
+
+export interface ClientProposal {
+    _id: string;
+    userId: string;
+    title: string;
+    description: string;
+    attachments: string[];
+    attachment?: string;
+    userComment: string;
+    status: ProposalStatus;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ProposalFields {
+    title: string;
+    description: string;
+    attachments?: File[];
+}
+
 export class AdminSystemApi {
+    private authorization(session: AdminSession): HeadersInit {
+        return { Authorization: `Bearer ${session.token}` };
+    }
+
+    private async proposalRequest(
+        response: Response
+    ): Promise<{ proposal?: ClientProposal; proposals?: ClientProposal[]; message?: string }> {
+        const result = await response.json().catch(() => ({})) as {
+            proposal?: ClientProposal; proposals?: ClientProposal[]; message?: string
+        };
+        if (!response.ok) throw new Error(result.message ?? "Não foi possível processar a proposta");
+        return result;
+    }
+
+    async loadProposals(session: AdminSession, userId: string): Promise<ClientProposal[]> {
+        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals`, {
+            headers: this.authorization(session)
+        });
+        return (await this.proposalRequest(response)).proposals ?? [];
+    }
+
+    async createProposal(session: AdminSession, userId: string, fields: ProposalFields): Promise<ClientProposal> {
+        return this.saveProposal(session, userId, fields);
+    }
+
+    async editProposal(
+        session: AdminSession, userId: string, proposalId: string, fields: ProposalFields
+    ): Promise<ClientProposal> {
+        return this.saveProposal(session, userId, fields, proposalId);
+    }
+
+    private async saveProposal(
+        session: AdminSession, userId: string, fields: ProposalFields, proposalId?: string
+    ): Promise<ClientProposal> {
+        const body = new FormData();
+        body.set("title", fields.title);
+        body.set("description", fields.description);
+        fields.attachments?.forEach(file => body.append("attachments", file));
+        const suffix = proposalId ? `/${encodeURIComponent(proposalId)}` : "";
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals${suffix}`,
+            { method: proposalId ? "PUT" : "POST", headers: this.authorization(session), body }
+        );
+        const proposal = (await this.proposalRequest(response)).proposal;
+        if (!proposal) throw new Error("Resposta inválida ao salvar proposta");
+        return proposal;
+    }
+
+    async resendProposal(session: AdminSession, userId: string, proposalId: string): Promise<ClientProposal> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals/${encodeURIComponent(proposalId)}/resend`,
+            { method: "POST", headers: this.authorization(session) }
+        );
+        const proposal = (await this.proposalRequest(response)).proposal;
+        if (!proposal) throw new Error("Resposta inválida ao reenviar proposta");
+        return proposal;
+    }
+
+    async deleteProposal(session: AdminSession, userId: string, proposalId: string): Promise<void> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals/${encodeURIComponent(proposalId)}`,
+            { method: "DELETE", headers: this.authorization(session) }
+        );
+        if (response.ok) return;
+        const result = await response.json().catch(() => ({})) as { message?: string };
+        throw new Error(result.message ?? "Não foi possível remover a proposta");
+    }
+
     async loadClients(session: AdminSession): Promise<AdminClientListItem[]> {
         const response = await fetch(`${config.apiBaseUrl}/admin/clients`, {
             headers: { Authorization: `Bearer ${session.token}` }

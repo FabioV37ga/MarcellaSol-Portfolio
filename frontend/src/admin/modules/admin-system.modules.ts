@@ -7,9 +7,10 @@ import type { system } from "../templates/interface.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";
 import type { AdminSystemView } from "../views/adminSystem.view.js";
 import type { ClientCreationFlow } from "./client-creation.flow.js";
-import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
+import type { AdminSession, AdminSystemApi, ClientProposal } from "../infrastructure/admin-system.api.js";
 import { clientListItem } from "../templates/client-list-item.template.js";
 import { getClientManagementElements } from "../selectors/client-management.selector.js";
+import { clientProposalItem } from "../templates/client-proposal-item.template.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
@@ -32,6 +33,7 @@ export class AdminSystemModules {
             case "home": this.mountHome(); break;
             case "clients": this.mountClients(); break;
             case "client-management": void this.mountClientManagement(id); break;
+            case "client-proposals": void this.mountClientProposals(id); break;
             case "new-client": this.mountNewClient(); break;
             case "briefing-home":
             case "briefing-investment":
@@ -101,6 +103,9 @@ export class AdminSystemModules {
             const client = await this.api.loadClient(this.session, id);
             elements.clientName.textContent = client.name;
             elements.titleName.textContent = client.name;
+            if (elements.proposals) {
+                u(elements.proposals).off("click").on("click", () => this.navigate("client-proposals", id));
+            }
 
             if (client.driveFolderUrl) {
                 elements.drive.href = client.driveFolderUrl;
@@ -125,6 +130,167 @@ export class AdminSystemModules {
             console.error("Erro ao carregar o cliente:", error);
             this.navigate("clients");
         }
+    }
+
+    private async mountClientProposals(clientId?: string): Promise<void> {
+        if (!clientId) {
+            this.navigate("clients");
+            return;
+        }
+
+        let proposalsView = this.models.clientProposals;
+        if (!proposalsView) {
+            const databaseViews = await this.api.loadViews(this.session);
+            const databaseView = databaseViews?.find(
+                item => item.viewName?.trim().toLowerCase() === "client-proposals"
+            );
+            if (databaseView) {
+                proposalsView = u(databaseView.view).first() as HTMLElement;
+                this.models.clientProposals = proposalsView;
+            }
+        }
+
+        if (!proposalsView) {
+            console.error('A view admin "client-proposals" não foi encontrada na resposta de /view/admin.');
+            window.alert('A view "client-proposals" não está cadastrada no MongoDB para a permissão admin.');
+            return;
+        }
+
+        this.view.render(proposalsView, ".page-content");
+        this.view.styleNavButton(this.base!.desktop_nav_client);
+
+        const root = document.querySelector<HTMLElement>(".proposals-management-container");
+        if (!root) return;
+        const openList = root.querySelector<HTMLElement>("#open-proposals-list")!;
+        const closedList = root.querySelector<HTMLElement>("#closed-proposals-list")!;
+        const dialog = root.querySelector<HTMLDialogElement>("#proposal-dialog")!;
+        const deleteDialog = root.querySelector<HTMLDialogElement>("#proposal-delete-dialog")!;
+        const form = root.querySelector<HTMLFormElement>("#proposal-form")!;
+        const feedback = root.querySelector<HTMLElement>("#proposals-feedback")!;
+        const attachmentInput = root.querySelector<HTMLInputElement>("#proposal-attachment")!;
+        // Mantém compatibilidade com uma versão antiga da view já persistida no MongoDB.
+        attachmentInput.multiple = true;
+        attachmentInput.name = "attachments";
+        let proposals: ClientProposal[] = [];
+        let editingId: string | undefined;
+        let deletingProposal: ClientProposal | undefined;
+
+        const render = (): void => {
+            openList.replaceChildren();
+            closedList.replaceChildren();
+            proposals.forEach(proposal => {
+                const item = clientProposalItem(proposal);
+                const target = proposal.status === "sent" || proposal.status === "resent" ? openList : closedList;
+                target.append(item);
+                u(item.querySelector(".proposal-edit") as HTMLElement).on("click", () => openEditor(proposal));
+                u(item.querySelector(".proposal-delete") as HTMLElement).on("click", () => openDeleteDialog(proposal));
+                const resend = item.querySelector<HTMLButtonElement>(".proposal-resend");
+                if (resend) u(resend).on("click", () => void resendProposal(proposal, resend));
+            });
+            this.toggleProposalEmpty(openList, "Nenhuma proposta aberta.");
+            this.toggleProposalEmpty(closedList, "Nenhuma proposta rebatida ou cancelada.");
+        };
+
+        const openDeleteDialog = (proposal: ClientProposal): void => {
+            deletingProposal = proposal;
+            root.querySelector<HTMLElement>("#proposal-delete-name")!.textContent = proposal.title;
+            deleteDialog.showModal();
+        };
+
+        const openEditor = (proposal?: ClientProposal): void => {
+            editingId = proposal?._id;
+            form.reset();
+            root.querySelector<HTMLElement>("#proposal-dialog-title")!.textContent = proposal ? "Editar proposta" : "Nova proposta";
+            root.querySelector<HTMLInputElement>("#proposal-title")!.value = proposal?.title ?? "";
+            root.querySelector<HTMLTextAreaElement>("#proposal-description")!.value = proposal?.description ?? "";
+            attachmentInput.required = !proposal;
+            root.querySelector<HTMLElement>("#proposal-current-attachment")!.textContent = proposal
+                ? "Novos arquivos serão acrescentados aos anexos atuais." : "Selecione ao menos um anexo.";
+            dialog.showModal();
+        };
+
+        const resendProposal = async (proposal: ClientProposal, button: HTMLButtonElement): Promise<void> => {
+            button.disabled = true;
+            try {
+                const updated = await this.api.resendProposal(this.session, clientId, proposal._id);
+                proposals = proposals.map(item => item._id === updated._id ? updated : item);
+                feedback.textContent = "Proposta reenviada com sucesso.";
+                render();
+            } catch (error) {
+                feedback.textContent = error instanceof Error ? error.message : "Não foi possível reenviar a proposta.";
+                button.disabled = false;
+            }
+        };
+
+        u(root.querySelector("#proposals-clients-index") as HTMLElement).on("click", () => this.navigate("clients"));
+        u(root.querySelector("#proposals-client-index") as HTMLElement).on("click", () => this.navigate("client-management", clientId));
+        u(root.querySelector("#proposals-back") as HTMLElement).on("click", () => this.navigate("client-management", clientId));
+        u(root.querySelector("#new-proposal") as HTMLElement).on("click", () => openEditor());
+        u(root.querySelector("#proposal-cancel") as HTMLElement).on("click", () => dialog.close());
+        u(root.querySelector("#proposal-delete-cancel") as HTMLElement).on("click", () => {
+            deletingProposal = undefined;
+            deleteDialog.close();
+        });
+        u(root.querySelector("#proposal-delete-confirm") as HTMLElement).on("click", () => {
+            if (!deletingProposal) return;
+            const proposal = deletingProposal;
+            const button = root.querySelector<HTMLButtonElement>("#proposal-delete-confirm")!;
+            button.disabled = true;
+            feedback.textContent = "Removendo proposta e anexos...";
+            void this.api.deleteProposal(this.session, clientId, proposal._id).then(() => {
+                proposals = proposals.filter(item => item._id !== proposal._id);
+                deletingProposal = undefined;
+                deleteDialog.close();
+                feedback.textContent = "Proposta e anexos removidos com sucesso.";
+                render();
+            }, error => {
+                feedback.textContent = error instanceof Error ? error.message : "Não foi possível remover a proposta.";
+            }).then(() => { button.disabled = false; });
+        });
+        u(form).on("submit", (event: Event) => {
+            event.preventDefault();
+            const submit = root.querySelector<HTMLButtonElement>("#proposal-save")!;
+            submit.disabled = true;
+            feedback.textContent = "Salvando proposta...";
+            const title = root.querySelector<HTMLInputElement>("#proposal-title")!.value;
+            const description = root.querySelector<HTMLTextAreaElement>("#proposal-description")!.value;
+            const attachments = Array.from(attachmentInput.files ?? []);
+            const request = editingId
+                ? this.api.editProposal(this.session, clientId, editingId, { title, description, attachments })
+                : this.api.createProposal(this.session, clientId, { title, description, attachments });
+            void request.then(saved => {
+                const existing = proposals.findIndex(item => item._id === saved._id);
+                if (existing >= 0) proposals[existing] = saved;
+                else proposals.unshift(saved);
+                dialog.close();
+                feedback.textContent = "Proposta salva com sucesso.";
+                render();
+            }, error => {
+                feedback.textContent = error instanceof Error ? error.message : "Não foi possível salvar a proposta.";
+            }).then(() => { submit.disabled = false; });
+        });
+
+        try {
+            const [client, loaded] = await Promise.all([
+                this.api.loadClient(this.session, clientId),
+                this.api.loadProposals(this.session, clientId)
+            ]);
+            root.querySelector<HTMLElement>("#proposals-client-name")!.textContent = client.name;
+            root.querySelector<HTMLElement>("#proposals-title-name")!.textContent = client.name;
+            proposals = loaded;
+            feedback.textContent = "";
+            render();
+        } catch (error) {
+            feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar as propostas.";
+        }
+    }
+
+    private toggleProposalEmpty(list: HTMLElement, message: string): void {
+        if (list.childElementCount > 0) return;
+        const empty = document.createElement("p");
+        empty.className = "proposals-empty";
+        empty.textContent = message;
+        list.append(empty);
     }
 
     private async mountBriefingReport(

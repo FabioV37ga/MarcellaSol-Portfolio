@@ -22,6 +22,11 @@ export interface BriefingReportDriveStatus {
     folderUrl?: string;
 }
 
+export interface ProposalDriveUpload {
+    folderId: string;
+    attachmentUrls: string[];
+}
+
 function requiredEnvironment(name: string): string {
     const value = process.env[name]?.trim();
     if (!value) throw new Error(`Integração com Google Drive não configurada: ${name}`);
@@ -54,6 +59,10 @@ function safeFolderName(value: string): string {
         .replace(/\s+/g, " ");
 
     return safeValue || "cliente-sem-login";
+}
+
+function proposalFolderName(title: string, proposalId: string): string {
+    return `${safeFolderName(title)}-${proposalId}`;
 }
 
 async function findOrCreateFolder(
@@ -214,4 +223,54 @@ export async function uploadBriefingFiles(
     }
 
     return { folderId: briefingFolderId, files: uploadedFiles };
+}
+
+export async function uploadProposalAttachment(
+    clientFolderId: string,
+    proposalId: string,
+    title: string,
+    files: Express.Multer.File[]
+): Promise<ProposalDriveUpload> {
+    const drive = createDriveClient();
+    const proposalsFolderId = await findOrCreateFolder(drive, clientFolderId, "propostas");
+    const folderId = await findOrCreateFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
+    const attachmentUrls: string[] = [];
+    for (const file of files) {
+        const uploaded = await drive.files.create({
+            requestBody: { name: file.originalname, parents: [folderId] },
+            media: {
+                mimeType: file.mimetype || "application/octet-stream",
+                body: Readable.from(file.buffer)
+            },
+            fields: "id,webViewLink",
+            supportsAllDrives: true
+        });
+        if (!uploaded.data.id) throw new Error(`O Google Drive não retornou o ID de ${file.originalname}`);
+        attachmentUrls.push(uploaded.data.webViewLink
+            || `https://drive.google.com/file/d/${encodeURIComponent(uploaded.data.id)}/view`);
+    }
+    return {
+        folderId,
+        attachmentUrls
+    };
+}
+
+export async function renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {
+    const drive = createDriveClient();
+    await drive.files.update({
+        fileId: folderId,
+        requestBody: { name: proposalFolderName(title, proposalId) },
+        fields: "id",
+        supportsAllDrives: true
+    });
+}
+
+export async function setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
+    const drive = createDriveClient();
+    await drive.files.update({
+        fileId: folderId,
+        requestBody: { trashed },
+        fields: "id,trashed",
+        supportsAllDrives: true
+    });
 }

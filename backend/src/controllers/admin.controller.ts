@@ -6,13 +6,15 @@ import { AuthenticateService } from "../application/authenticate.service.js";
 import { ListClientsService } from "../application/list-clients.service.js";
 import { ClientBriefingReportService } from "../application/client-briefing-report.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
+import { ClientProposalService } from "../application/client-proposal.service.js";
 
 export class AdminController {
     constructor(
         private readonly createClient = new CreateClientService(),
         private readonly authenticate = new AuthenticateService(),
         private readonly listClients = new ListClientsService(),
-        private readonly briefingReports = new ClientBriefingReportService()
+        private readonly briefingReports = new ClientBriefingReportService(),
+        private readonly proposals = new ClientProposalService()
     ) {}
 
     login = async (request: Request, response: Response): Promise<Response> => {
@@ -71,6 +73,58 @@ export class AdminController {
         }
     };
 
+    clientProposals = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            return response.status(200).json({ proposals: await this.proposals.list(id) });
+        } catch (error: unknown) {
+            return this.proposalError(error, response);
+        }
+    };
+
+    createClientProposal = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            const proposal = await this.proposals.create(id, request.body, request.files as Express.Multer.File[] | undefined);
+            return response.status(201).json({ proposal });
+        } catch (error: unknown) {
+            return this.proposalError(error, response);
+        }
+    };
+
+    editClientProposal = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            const proposalId = this.routeParameter(request.params.proposalId);
+            const proposal = await this.proposals.edit(id, proposalId, request.body, request.files as Express.Multer.File[] | undefined);
+            return response.status(200).json({ proposal });
+        } catch (error: unknown) {
+            return this.proposalError(error, response);
+        }
+    };
+
+    resendClientProposal = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            const proposalId = this.routeParameter(request.params.proposalId);
+            const proposal = await this.proposals.resend(id, proposalId);
+            return response.status(200).json({ proposal });
+        } catch (error: unknown) {
+            return this.proposalError(error, response);
+        }
+    };
+
+    deleteClientProposal = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            const proposalId = this.routeParameter(request.params.proposalId);
+            await this.proposals.remove(id, proposalId);
+            return response.status(204).send();
+        } catch (error: unknown) {
+            return this.proposalError(error, response);
+        }
+    };
+
     create = async (request: Request, response: Response): Promise<Response> => {
         try {
             const command = this.parseCreateCommand(request.body);
@@ -106,6 +160,19 @@ export class AdminController {
 
     private errorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
+    }
+
+    private routeParameter(value: string | string[]): string {
+        return Array.isArray(value) ? value[0] : value;
+    }
+
+    private proposalError(error: unknown, response: Response): Response {
+        if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+        if (error instanceof mongoose.Error.ValidationError) {
+            return response.status(400).json({ message: "Dados da proposta inválidos", errors: error.errors });
+        }
+        console.error("Erro ao processar proposta:", error);
+        return response.status(500).json({ message: "Erro interno ao processar proposta" });
     }
 
     private reportError(error: unknown, response: Response): Response {
