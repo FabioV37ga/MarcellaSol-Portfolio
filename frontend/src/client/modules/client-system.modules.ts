@@ -35,8 +35,8 @@ export class ClientSystemModules {
 
     private mountBase(): void {
         this.view.render(this.models.base, "body");
-        this.applyClientBaseLabels();
         this.baseElements = getBaseElements();
+        this.mountMobileNavigation();
         this.view.styleNavButton(this.baseElements.desktop_nav_home);
 
         u(this.baseElements.desktop_nav_home)
@@ -47,22 +47,66 @@ export class ClientSystemModules {
             .on("click", () => this.navigate("clients"));
     }
 
-    private applyClientBaseLabels(): void {
-        const areaLabel = document.querySelector<HTMLElement>(".presentation-text p");
-        if (areaLabel) areaLabel.textContent = "Área do cliente";
+    private mountMobileNavigation(): void {
+        const expandButton = this.baseElements?.mobile_expand_button;
+        const desktopNavigation = document.querySelector<HTMLElement>(".desktop-navigation");
+        const menu = document.querySelector<HTMLElement>("#client-mobile-navigation");
+        if (!expandButton || !desktopNavigation || !menu) return;
 
-        const welcomeText = document.querySelector<HTMLElement>(".welcome-text p");
-        if (welcomeText) welcomeText.textContent = "Bem-vindo(a) à sua área do cliente.";
+        const closeMenu = (): void => {
+            menu.classList.remove("mobile-navigation-menu-open");
+            menu.setAttribute("aria-hidden", "true");
+            expandButton.setAttribute("aria-expanded", "false");
+            expandButton.setAttribute("aria-label", "Abrir menu de navegação");
+            expandButton.querySelector("i")?.classList.replace("fa-times", "fa-bars");
+        };
 
-        const navigationItems = document.querySelectorAll<HTMLElement>(".desktop-navigation-item");
-        const clientAreaItem = navigationItems[2];
-        const clientAreaLabel = clientAreaItem?.querySelector<HTMLElement>(".desktop-navigation-item-label span");
-        const clientAreaIcon = clientAreaItem?.querySelector<HTMLElement>(".desktop-navigation-item-icon i");
-        if (clientAreaLabel) clientAreaLabel.textContent = "Meu projeto";
-        if (clientAreaIcon) {
-            clientAreaIcon.classList.remove("fa-users");
-            clientAreaIcon.classList.add("fa-folder-open-o");
-        }
+        const toggleMenu = (): void => {
+            const willOpen = !menu.classList.contains("mobile-navigation-menu-open");
+            menu.classList.toggle("mobile-navigation-menu-open", willOpen);
+            menu.setAttribute("aria-hidden", String(!willOpen));
+            expandButton.setAttribute("aria-expanded", String(willOpen));
+            expandButton.setAttribute("aria-label", willOpen ? "Fechar menu de navegação" : "Abrir menu de navegação");
+            expandButton.querySelector("i")?.classList.replace(
+                willOpen ? "fa-bars" : "fa-times",
+                willOpen ? "fa-times" : "fa-bars"
+            );
+        };
+
+        expandButton.addEventListener("click", toggleMenu);
+        expandButton.addEventListener("keydown", (event: KeyboardEvent) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            toggleMenu();
+        });
+
+        const desktopItems = Array.from(desktopNavigation.querySelectorAll<HTMLElement>(".desktop-navigation-item"));
+        const mobileItems = Array.from(menu.querySelectorAll<HTMLElement>(".mobile-navigation-item"));
+        mobileItems.forEach((item, index) => {
+            item.addEventListener("click", () => {
+                desktopItems[index]?.click();
+                mobileItems.forEach(mobileItem => mobileItem.classList.remove("mobile-nav-item-selected"));
+                item.classList.add("mobile-nav-item-selected");
+                closeMenu();
+            });
+        });
+
+        const desktopLogout = document.querySelector<HTMLElement>(".logout-desktop");
+        menu.querySelector<HTMLElement>(".logout-mobile")?.addEventListener("click", () => {
+            desktopLogout?.click();
+            closeMenu();
+        });
+
+        document.addEventListener("click", (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (!menu.contains(target) && !expandButton.contains(target)) closeMenu();
+        });
+        document.addEventListener("keydown", (event: KeyboardEvent) => {
+            if (event.key === "Escape") closeMenu();
+        });
+        window.addEventListener("resize", () => {
+            if (window.innerWidth >= 900) closeMenu();
+        });
     }
 
     private mountBriefing(step?: number): void {
