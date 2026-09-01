@@ -174,6 +174,7 @@ export class AdminSystemModules {
         let proposals: ClientProposal[] = [];
         let editingId: string | undefined;
         let deletingProposal: ClientProposal | undefined;
+        let savingProposal = false;
 
         const render = (): void => {
             openList.replaceChildren();
@@ -222,16 +223,16 @@ export class AdminSystemModules {
             }
         };
 
-        u(root.querySelector("#proposals-clients-index") as HTMLElement).on("click", () => this.navigate("clients"));
-        u(root.querySelector("#proposals-client-index") as HTMLElement).on("click", () => this.navigate("client-management", clientId));
-        u(root.querySelector("#proposals-back") as HTMLElement).on("click", () => this.navigate("client-management", clientId));
-        u(root.querySelector("#new-proposal") as HTMLElement).on("click", () => openEditor());
-        u(root.querySelector("#proposal-cancel") as HTMLElement).on("click", () => dialog.close());
-        u(root.querySelector("#proposal-delete-cancel") as HTMLElement).on("click", () => {
+        u(root.querySelector("#proposals-clients-index") as HTMLElement).off("click").on("click", () => this.navigate("clients"));
+        u(root.querySelector("#proposals-client-index") as HTMLElement).off("click").on("click", () => this.navigate("client-management", clientId));
+        u(root.querySelector("#proposals-back") as HTMLElement).off("click").on("click", () => this.navigate("client-management", clientId));
+        u(root.querySelector("#new-proposal") as HTMLElement).off("click").on("click", () => openEditor());
+        u(root.querySelector("#proposal-cancel") as HTMLElement).off("click").on("click", () => dialog.close());
+        u(root.querySelector("#proposal-delete-cancel") as HTMLElement).off("click").on("click", () => {
             deletingProposal = undefined;
             deleteDialog.close();
         });
-        u(root.querySelector("#proposal-delete-confirm") as HTMLElement).on("click", () => {
+        u(root.querySelector("#proposal-delete-confirm") as HTMLElement).off("click").on("click", () => {
             if (!deletingProposal) return;
             const proposal = deletingProposal;
             const button = root.querySelector<HTMLButtonElement>("#proposal-delete-confirm")!;
@@ -247,8 +248,10 @@ export class AdminSystemModules {
                 feedback.textContent = error instanceof Error ? error.message : "Não foi possível remover a proposta.";
             }).then(() => { button.disabled = false; });
         });
-        u(form).on("submit", (event: Event) => {
+        u(form).off("submit").on("submit", (event: Event) => {
             event.preventDefault();
+            if (savingProposal) return;
+            savingProposal = true;
             const submit = root.querySelector<HTMLButtonElement>("#proposal-save")!;
             submit.disabled = true;
             feedback.textContent = "Salvando proposta...";
@@ -267,7 +270,10 @@ export class AdminSystemModules {
                 render();
             }, error => {
                 feedback.textContent = error instanceof Error ? error.message : "Não foi possível salvar a proposta.";
-            }).then(() => { submit.disabled = false; });
+            }).then(() => {
+                savingProposal = false;
+                submit.disabled = false;
+            });
         });
 
         try {
