@@ -37,6 +37,8 @@ export default class ClientSystem {
             view,
             models,
             briefing,
+            this.api,
+            this.token,
             (route: ClientRoute) => this.router?.navigate(route)
         );
 

@@ -1,4 +1,4 @@
-export type ClientRoute = "base" | "home" | "clients" | "briefing";
+export type ClientRoute = "base" | "home" | "stages-approvals" | "briefing";
 
 export interface ClientPageState {
     page: ClientRoute;
@@ -10,7 +10,7 @@ interface NavigationOptions {
     briefingStep?: number;
 }
 
-const clientRoutes = new Set<ClientRoute>(["base", "home", "clients", "briefing"]);
+const clientRoutes = new Set<ClientRoute>(["base", "home", "stages-approvals", "briefing"]);
 
 export class ClientSystemRouter {
     private listening = false;

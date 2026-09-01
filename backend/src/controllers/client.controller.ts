@@ -8,12 +8,14 @@ import {
 import { ClientRepository } from "../repositories/client.repository.js";
 import { AuthenticateService } from "../application/authenticate.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
+import { ClientProposalService } from "../application/client-proposal.service.js";
 
 export class ClientController {
     constructor(
         private readonly clients = new ClientRepository(),
         private readonly submitBriefing = new SubmitBriefingService(),
-        private readonly authenticate = new AuthenticateService()
+        private readonly authenticate = new AuthenticateService(),
+        private readonly proposals = new ClientProposalService()
     ) {}
 
     login = async (request: Request, response: Response): Promise<Response> => {
@@ -36,6 +38,31 @@ export class ClientController {
                 message: "Erro ao buscar cliente",
                 error: error instanceof Error ? error.message : String(error)
             });
+        }
+    };
+
+    approvals = async (_request: Request, response: Response): Promise<Response> => {
+        try {
+            const principal = authenticatedPrincipal(response);
+            const proposals = await this.proposals.list(principal.subject);
+            return response.status(200).json({
+                proposals: proposals.map(proposal => ({
+                    _id: proposal._id,
+                    title: proposal.title,
+                    description: proposal.description,
+                    attachments: proposal.attachments?.length
+                        ? proposal.attachments
+                        : proposal.attachment ? [proposal.attachment] : [],
+                    userComment: proposal.userComment,
+                    status: proposal.status,
+                    createdAt: proposal.createdAt,
+                    updatedAt: proposal.updatedAt
+                }))
+            });
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            console.error("Erro ao carregar aprovações do cliente:", error);
+            return response.status(500).json({ message: "Erro ao carregar aprovações." });
         }
     };
 

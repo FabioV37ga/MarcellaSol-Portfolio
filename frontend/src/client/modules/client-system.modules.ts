@@ -5,6 +5,9 @@ import { getBaseElements, type baseElements } from "../selectors/base.selector.j
 import { getHomeElements } from "../selectors/home.selector.js";
 import type { system } from "../templates/interface.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
+import { ClientSystemApi } from "../infrastructure/client-system.api.js";
+import { clientApprovalItem } from "../templates/client-approval-item.template.js";
+import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
 
 export class ClientSystemModules {
     private baseElements?: baseElements;
@@ -13,6 +16,8 @@ export class ClientSystemModules {
         private readonly view: ClientSystemView,
         private readonly models: system,
         private readonly briefing: ClientBriefingController,
+        private readonly api: ClientSystemApi,
+        private readonly token: string,
         private readonly navigate: (route: ClientRoute) => void
     ) {}
 
@@ -28,7 +33,8 @@ export class ClientSystemModules {
             case "briefing":
                 this.mountBriefing(briefingStep);
                 break;
-            case "clients":
+            case "stages-approvals":
+                void this.mountStagesApprovals();
                 break;
         }
     }
@@ -39,7 +45,7 @@ export class ClientSystemModules {
         const home = getHomeElements();
         u(home.stagesProcesses)
             .off("click")
-            .on("click", () => this.navigate("clients"));
+            .on("click", () => this.navigate("stages-approvals"));
     }
 
     private mountBase(): void {
@@ -53,7 +59,43 @@ export class ClientSystemModules {
             .on("click", () => this.navigate("home"));
         u(this.baseElements.desktop_nav_client)
             .off("click")
-            .on("click", () => this.navigate("clients"));
+            .on("click", () => this.navigate("stages-approvals"));
+    }
+
+    private async mountStagesApprovals(): Promise<void> {
+        const model = this.models["stages-approvals"];
+        if (!model) {
+            console.error('A view "stages-approvals" não foi encontrada para o cliente.');
+            return;
+        }
+
+        this.view.render(model, ".page-content");
+        this.view.styleNavButton(this.baseElements?.desktop_nav_client);
+        const elements = getStagesApprovalsElements();
+        u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
+        u(elements.back).off("click").on("click", () => this.navigate("home"));
+
+        try {
+            const proposals = await this.api.loadProposals(this.token);
+            elements.list.replaceChildren();
+            if (proposals.length === 0) {
+                elements.loading.hidden = true;
+                elements.empty.hidden = false;
+                return;
+            }
+            elements.empty.hidden = true;
+            const items = document.createDocumentFragment();
+            proposals.forEach(proposal => items.append(clientApprovalItem(proposal)));
+            elements.list.append(items);
+        } catch (error) {
+            elements.loading.hidden = true;
+            elements.feedback.textContent = error instanceof Error
+                ? error.message
+                : "Não foi possível carregar as aprovações.";
+            return;
+        }
+
+        elements.loading.hidden = true;
     }
 
     private mountMobileNavigation(): void {

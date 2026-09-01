@@ -8,6 +8,7 @@ const controller = new ClientController();
 
 router.post("/api/client/login", controller.login);
 router.get("/api/client/session", requireAuthentication("client"), controller.session);
+router.get("/api/client/proposals", requireAuthentication("client"), controller.approvals);
 router.post("/api/client/briefing", requireAuthentication("client"), receiveBriefingFiles, controller.submit);
 
 export default router;

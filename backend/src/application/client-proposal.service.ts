@@ -14,7 +14,7 @@ export class ClientProposalService {
     ) {}
 
     async list(userId: string) {
-        await this.requireClient(userId);
+        await this.requireClient(userId, false);
         return this.proposals.findByUserId(userId);
     }
 
@@ -94,11 +94,13 @@ export class ClientProposalService {
         }
     }
 
-    private async requireClient(userId: string) {
+    private async requireClient(userId: string, requireDriveFolder = true) {
         this.requireObjectId(userId, "Cliente não encontrado");
         const client = await this.clients.findById(userId);
         if (!client) throw new ApplicationError("Cliente não encontrado", 404);
-        if (!client.driveFolderId) throw new ApplicationError("O cliente não possui pasta configurada no Drive", 409);
+        if (requireDriveFolder && !client.driveFolderId) {
+            throw new ApplicationError("O cliente não possui pasta configurada no Drive", 409);
+        }
         return client;
     }
 
