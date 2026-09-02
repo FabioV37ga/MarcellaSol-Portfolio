@@ -150,10 +150,13 @@ export class ClientController {
         try {
             const principal = authenticatedPrincipal(response);
             const proposalId = String(request.params.proposalId ?? "");
-            const proposal = decision === "approved"
+            const result = decision === "approved"
                 ? await this.proposals.approve(principal.subject, proposalId)
                 : await this.proposals.beat(principal.subject, proposalId, request.body?.comment);
+            const proposal = result.proposal;
             return response.status(200).json({
+                currentStageKey: result.currentStageKey,
+                projectStages: result.projectStages,
                 proposal: {
                     _id: proposal._id,
                     title: proposal.title,

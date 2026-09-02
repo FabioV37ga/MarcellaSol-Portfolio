@@ -15,6 +15,7 @@ export const projectStageStatuses = [
     "changes-requested",
     "in-change",
     "approved",
+    "completed",
     "awaiting-client",
     "awaiting-supplier",
     "internal-review",
@@ -55,4 +56,18 @@ export function normalizedProjectStages(
         key: stage.key,
         status: statusByKey.get(stage.key) ?? stage.status
     }));
+}
+
+export function projectStagesForProposal(
+    stages: ProjectStage[] | undefined,
+    hasFilledBriefing: boolean,
+    stageKey: ProjectStageKey,
+    status: ProjectStageStatus
+): ProjectStage[] {
+    const selectedIndex = projectStageKeys.indexOf(stageKey);
+    return normalizedProjectStages(stages, hasFilledBriefing).map((stage, index) => {
+        if (index < selectedIndex) return { ...stage, status: "completed" };
+        if (stage.key === stageKey) return { ...stage, status };
+        return stage;
+    });
 }

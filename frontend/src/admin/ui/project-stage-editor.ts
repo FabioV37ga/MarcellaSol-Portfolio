@@ -42,6 +42,14 @@ export class ProjectStageEditor {
         this.render();
     }
 
+    replaceState(result: ProjectStageEditorResult): void {
+        this.stages = result.projectStages;
+        this.currentStageKey = result.currentStageKey;
+        this.render();
+        this.closeSelector();
+        this.onSaved(result);
+    }
+
     private requiredElement<T extends HTMLElement = HTMLElement>(selector: string): T {
         const element = this.root.querySelector<T>(selector);
         if (!element) throw new Error(`A view client-proposals está desatualizada: ${selector} não foi encontrado.`);

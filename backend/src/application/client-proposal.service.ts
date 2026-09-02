@@ -3,7 +3,15 @@ import { ApplicationError } from "./errors/application-error.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientProposalRepository } from "../repositories/client-proposal.repository.js";
 import { GoogleDriveAttachmentStorage, type ProposalStorage } from "../services/attachment-storage.js";
-import { projectStageKeys, type ProjectStageKey } from "../models/projectStage.js";
+import {
+    normalizedProjectStages,
+    projectStageKeys,
+    projectStagesForProposal,
+    type ProjectStage,
+    type ProjectStageKey,
+    type ProjectStageStatus
+} from "../models/projectStage.js";
+import type { ProposalStatus } from "../models/clientProposal.js";
 
 interface ProposalInput { title?: unknown; description?: unknown; stageKey?: unknown; }
 const MAX_CLIENT_COMMENT_LENGTH = 2000;
@@ -31,17 +39,27 @@ export class ClientProposalService {
         const upload = await this.storage.uploadProposal(
             client.driveFolderId!, proposalId.toString(), title, files
         );
-        return this.proposals.create({
-            _id: proposalId,
-            userId: client._id,
-            title,
-            description,
-            attachments: upload.attachmentUrls,
-            attachmentFolderId: upload.folderId,
-            userComment: "",
-            status: "sent",
-            stageKey
-        });
+        try {
+            const proposal = await this.proposals.create({
+                _id: proposalId,
+                userId: client._id,
+                title,
+                description,
+                attachments: upload.attachmentUrls,
+                attachmentFolderId: upload.folderId,
+                userComment: "",
+                status: "sent",
+                stageKey
+            });
+            const projectState = await this.synchronizeProjectStage(userId, client, stageKey, "awaiting-approval");
+            return { proposal, ...projectState };
+        } catch (error) {
+            await this.proposals.delete(proposalId.toString(), userId)
+                .catch(rollbackError => console.error("Não foi possível desfazer a criação da proposta:", rollbackError));
+            await this.storage.setProposalFolderTrashed(upload.folderId, true)
+                .catch(rollbackError => console.error("Não foi possível remover os anexos da proposta não criada:", rollbackError));
+            throw error;
+        }
     }
 
     async edit(userId: string, proposalId: string, input: ProposalInput, files: Express.Multer.File[] = []) {
@@ -74,7 +92,25 @@ export class ClientProposalService {
         if (proposal.status !== "beated") {
             throw new ApplicationError("Somente propostas rebatidas podem ser reenviadas", 409);
         }
-        return this.proposals.update(proposalId, userId, { status: "resent" });
+        const client = await this.requireClient(userId, false);
+        const updated = await this.proposals.update(proposalId, userId, { status: "resent" });
+        if (!updated) throw new ApplicationError("Proposta não encontrada", 404);
+
+        try {
+            const projectState = proposal.stageKey
+                ? await this.synchronizeProjectStage(userId, client, proposal.stageKey, "awaiting-approval")
+                : this.currentProjectState(client);
+            return { proposal: updated, ...projectState };
+        } catch (error) {
+            await this.restoreProposalStatus(
+                proposalId,
+                userId,
+                "resent",
+                "beated",
+                proposal.userComment ?? ""
+            );
+            throw error;
+        }
     }
 
     async approve(userId: string, proposalId: string) {
@@ -111,6 +147,38 @@ export class ClientProposalService {
         }
     }
 
+    async removeAttachment(userId: string, proposalId: string, attachmentIndex: unknown) {
+        this.requireObjectId(proposalId, "Proposta não encontrada");
+        await this.requireClient(userId, false);
+        const proposal = await this.proposals.findByIdAndUserId(proposalId, userId);
+        if (!proposal) throw new ApplicationError("Proposta não encontrada", 404);
+
+        const index = typeof attachmentIndex === "string" && /^\d+$/.test(attachmentIndex)
+            ? Number(attachmentIndex) : -1;
+        const attachments = proposal.attachments?.length
+            ? [...proposal.attachments]
+            : proposal.attachment ? [proposal.attachment] : [];
+        if (index < 0 || index >= attachments.length) {
+            throw new ApplicationError("Anexo não encontrado", 404);
+        }
+        if (attachments.length === 1) {
+            throw new ApplicationError("A proposta deve manter ao menos um anexo", 409);
+        }
+
+        const [attachmentUrl] = attachments.splice(index, 1);
+        await this.storage.setProposalAttachmentTrashed(attachmentUrl, true);
+
+        try {
+            const updated = await this.proposals.updateAttachments(proposalId, userId, attachments);
+            if (!updated) throw new ApplicationError("Proposta não encontrada", 404);
+            return updated;
+        } catch (error) {
+            await this.storage.setProposalAttachmentTrashed(attachmentUrl, false)
+                .catch(restoreError => console.error("Não foi possível restaurar o anexo da proposta:", restoreError));
+            throw error;
+        }
+    }
+
     private async requireClient(userId: string, requireDriveFolder = true) {
         this.requireObjectId(userId, "Cliente não encontrado");
         const client = await this.clients.findById(userId);
@@ -129,12 +197,70 @@ export class ClientProposalService {
     ) {
         this.requireObjectId(userId, "Cliente não encontrado");
         this.requireObjectId(proposalId, "Proposta não encontrada");
-        const proposal = await this.proposals.decide(proposalId, userId, status, userComment);
-        if (proposal) return proposal;
-
         const existing = await this.proposals.findByIdAndUserId(proposalId, userId);
         if (!existing) throw new ApplicationError("Proposta não encontrada", 404);
-        throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
+        if (existing.status !== "sent" && existing.status !== "resent") {
+            throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
+        }
+        const client = await this.requireClient(userId, false);
+        const proposal = await this.proposals.decide(proposalId, userId, status, userComment);
+        if (!proposal) throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
+
+        try {
+            const stageStatus = status === "approved" ? "approved" : "changes-requested";
+            const projectState = proposal.stageKey
+                ? await this.synchronizeProjectStage(userId, client, proposal.stageKey, stageStatus)
+                : this.currentProjectState(client);
+            return { proposal, ...projectState };
+        } catch (error) {
+            await this.restoreProposalStatus(
+                proposalId,
+                userId,
+                status,
+                existing.status,
+                existing.userComment ?? ""
+            );
+            throw error;
+        }
+    }
+
+    private async synchronizeProjectStage(
+        userId: string,
+        client: { projectStages?: ProjectStage[]; hasFilledBriefing: boolean },
+        stageKey: ProjectStageKey,
+        status: ProjectStageStatus
+    ) {
+        const projectStages = projectStagesForProposal(
+            client.projectStages,
+            client.hasFilledBriefing,
+            stageKey,
+            status
+        );
+        const updated = await this.clients.updateProjectStageState(userId, stageKey, projectStages);
+        if (!updated) throw new ApplicationError("Cliente não encontrado", 404);
+        return { currentStageKey: stageKey, projectStages };
+    }
+
+    private currentProjectState(client: {
+        currentStageKey?: ProjectStageKey;
+        projectStages?: ProjectStage[];
+        hasFilledBriefing: boolean;
+    }) {
+        return {
+            currentStageKey: client.currentStageKey ?? "briefing" as ProjectStageKey,
+            projectStages: normalizedProjectStages(client.projectStages, client.hasFilledBriefing)
+        };
+    }
+
+    private async restoreProposalStatus(
+        proposalId: string,
+        userId: string,
+        expectedStatus: ProposalStatus,
+        status: ProposalStatus,
+        userComment: string
+    ): Promise<void> {
+        await this.proposals.restoreStatus(proposalId, userId, expectedStatus, status, userComment)
+            .catch(rollbackError => console.error("Não foi possível restaurar o status da proposta:", rollbackError));
     }
 
     private requireObjectId(value: string, message: string): void {

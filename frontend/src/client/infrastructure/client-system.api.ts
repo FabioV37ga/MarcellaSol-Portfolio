@@ -25,6 +25,12 @@ export interface ClientProjectResponse {
     currentStageKey: ProjectStageKey;
 }
 
+export interface ClientProposalDecision {
+    proposal: ClientProposal;
+    projectStages: ProjectStage[];
+    currentStageKey: ProjectStageKey;
+}
+
 export class ClientSystemApi {
     async load(token: string): Promise<ClientSystemResponse | undefined> {
         const response = await fetch(`${config.apiBaseUrl}/view/client`, {
@@ -58,11 +64,11 @@ export class ClientSystemApi {
         };
     }
 
-    approveProposal(token: string, proposalId: string): Promise<ClientProposal> {
+    approveProposal(token: string, proposalId: string): Promise<ClientProposalDecision> {
         return this.decideProposal(token, proposalId, "approve");
     }
 
-    beatProposal(token: string, proposalId: string, comment: string): Promise<ClientProposal> {
+    beatProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {
         return this.decideProposal(token, proposalId, "beat", comment);
     }
 
@@ -71,7 +77,7 @@ export class ClientSystemApi {
         proposalId: string,
         decision: "approve" | "beat",
         comment?: string
-    ): Promise<ClientProposal> {
+    ): Promise<ClientProposalDecision> {
         const response = await fetch(
             `${config.apiBaseUrl}/client/proposals/${encodeURIComponent(proposalId)}/${decision}`,
             {
@@ -85,11 +91,17 @@ export class ClientSystemApi {
         );
         const result = await response.json().catch(() => ({})) as {
             proposal?: ClientProposal;
+            projectStages?: ProjectStage[];
+            currentStageKey?: ProjectStageKey;
             message?: string;
         };
-        if (!response.ok || !result.proposal) {
+        if (!response.ok || !result.proposal || !result.currentStageKey || !Array.isArray(result.projectStages)) {
             throw new Error(result.message ?? "Não foi possível registrar sua decisão.");
         }
-        return result.proposal;
+        return {
+            proposal: result.proposal,
+            projectStages: result.projectStages,
+            currentStageKey: result.currentStageKey
+        };
     }
 }

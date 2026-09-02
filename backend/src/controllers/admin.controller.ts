@@ -115,8 +115,8 @@ export class AdminController {
     createClientProposal = async (request: Request, response: Response): Promise<Response> => {
         try {
             const id = this.routeParameter(request.params.id);
-            const proposal = await this.proposals.create(id, request.body, request.files as Express.Multer.File[] | undefined);
-            return response.status(201).json({ proposal });
+            const result = await this.proposals.create(id, request.body, request.files as Express.Multer.File[] | undefined);
+            return response.status(201).json(result);
         } catch (error: unknown) {
             return this.proposalError(error, response);
         }
@@ -137,8 +137,8 @@ export class AdminController {
         try {
             const id = this.routeParameter(request.params.id);
             const proposalId = this.routeParameter(request.params.proposalId);
-            const proposal = await this.proposals.resend(id, proposalId);
-            return response.status(200).json({ proposal });
+            const result = await this.proposals.resend(id, proposalId);
+            return response.status(200).json(result);
         } catch (error: unknown) {
             return this.proposalError(error, response);
         }
@@ -150,6 +150,18 @@ export class AdminController {
             const proposalId = this.routeParameter(request.params.proposalId);
             await this.proposals.remove(id, proposalId);
             return response.status(204).send();
+        } catch (error: unknown) {
+            return this.proposalError(error, response);
+        }
+    };
+
+    deleteClientProposalAttachment = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            const proposalId = this.routeParameter(request.params.proposalId);
+            const attachmentIndex = this.routeParameter(request.params.attachmentIndex);
+            const proposal = await this.proposals.removeAttachment(id, proposalId, attachmentIndex);
+            return response.status(200).json({ proposal });
         } catch (error: unknown) {
             return this.proposalError(error, response);
         }

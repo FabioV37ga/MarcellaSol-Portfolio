@@ -204,7 +204,8 @@
     --stage-status-color: #943d33;
 }
 
-.project-step[data-status="approved"] {
+.project-step[data-status="approved"],
+.project-step[data-status="completed"] {
     --stage-status-background: #e4f3df;
     --stage-status-border: #9bc48d;
     --stage-status-color: #357125;

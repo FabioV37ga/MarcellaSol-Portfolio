@@ -96,7 +96,9 @@ export class ClientSystemModules {
                 elements.feedback.textContent = "";
                 setCardBusy(card, true);
                 try {
-                    replaceProposal(await this.api.approveProposal(this.token, proposal._id));
+                    const result = await this.api.approveProposal(this.token, proposal._id);
+                    replaceProposal(result.proposal);
+                    renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
                 } catch (error) {
                     elements.feedback.textContent = error instanceof Error
                         ? error.message
@@ -132,8 +134,9 @@ export class ClientSystemModules {
             elements.rejectCancel.disabled = true;
             elements.rejectFeedback.textContent = "";
             try {
-                const proposal = await this.api.beatProposal(this.token, rejectedProposalId, comment);
-                replaceProposal(proposal);
+                const result = await this.api.beatProposal(this.token, rejectedProposalId, comment);
+                replaceProposal(result.proposal);
+                renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
                 elements.rejectDialog.close();
             } catch (error) {
                 elements.rejectFeedback.textContent = error instanceof Error

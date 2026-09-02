@@ -31,9 +31,31 @@ export class ClientProposalRepository {
         return proposals.findOneAndUpdate({ _id: id, userId }, { $set: data }, { new: true });
     }
 
+    updateAttachments(id: string, userId: string, attachments: string[]) {
+        return proposals.findOneAndUpdate(
+            { _id: id, userId },
+            { $set: { attachments }, $unset: { attachment: 1 } },
+            { new: true, runValidators: true }
+        );
+    }
+
     decide(id: string, userId: string, status: "approved" | "beated", userComment: string) {
         return proposals.findOneAndUpdate(
             { _id: id, userId, status: { $in: ["sent", "resent"] } },
+            { $set: { status, userComment } },
+            { new: true, runValidators: true }
+        );
+    }
+
+    restoreStatus(
+        id: string,
+        userId: string,
+        expectedStatus: ProposalStatus,
+        status: ProposalStatus,
+        userComment: string
+    ) {
+        return proposals.findOneAndUpdate(
+            { _id: id, userId, status: expectedStatus },
             { $set: { status, userComment } },
             { new: true, runValidators: true }
         );

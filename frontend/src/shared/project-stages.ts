@@ -15,6 +15,7 @@ export const projectStageStatusLabels = {
     "changes-requested": "Alterações solicitadas",
     "in-change": "Em alteração",
     approved: "Aprovado",
+    completed: "Concluído",
     "awaiting-client": "Aguardando cliente",
     "awaiting-supplier": "Aguardando fornecedor",
     "internal-review": "Em revisão interna",
@@ -63,8 +64,9 @@ export function renderProjectStages(
     const currentIndex = currentStage ? elements.indexOf(currentStage) : -1;
     elements.forEach((element, index) => {
         const isPastStage = currentIndex >= 0 && index < currentIndex;
+        const hasCompletedStatus = element.dataset.status === "completed";
         const isCurrentApproved = index === currentIndex && element.dataset.status === "approved";
-        element.classList.toggle("project-step-completed", isPastStage || isCurrentApproved);
+        element.classList.toggle("project-step-completed", isPastStage || hasCompletedStatus || isCurrentApproved);
     });
     const track = root.querySelector<HTMLElement>(".project-progress-track");
     if (track && currentIndex >= 0) {

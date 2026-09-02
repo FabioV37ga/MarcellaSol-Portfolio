@@ -139,7 +139,8 @@
 .admin-project-progress .project-step[data-status="in-change"] { --stage-status-background:#e4eff7; --stage-status-border:#9ab6cb; --stage-status-color:#315c79; }
 .admin-project-progress .project-step[data-status="awaiting-approval"] { --stage-status-background:#fff2cf; --stage-status-border:#e5bd55; --stage-status-color:#805b08; }
 .admin-project-progress .project-step[data-status="changes-requested"] { --stage-status-background:#fbe2df; --stage-status-border:#dda098; --stage-status-color:#943d33; }
-.admin-project-progress .project-step[data-status="approved"] { --stage-status-background:#e4f3df; --stage-status-border:#9bc48d; --stage-status-color:#357125; }
+.admin-project-progress .project-step[data-status="approved"],
+.admin-project-progress .project-step[data-status="completed"] { --stage-status-background:#e4f3df; --stage-status-border:#9bc48d; --stage-status-color:#357125; }
 .admin-project-progress .project-step[data-status="awaiting-client"] { --stage-status-background:#eee8f5; --stage-status-border:#b9a6cc; --stage-status-color:#654d7b; }
 .admin-project-progress .project-step[data-status="awaiting-supplier"] { --stage-status-background:#fff0df; --stage-status-border:#e1b27c; --stage-status-color:#89551e; }
 .admin-project-progress .project-step[data-status="internal-review"] { --stage-status-background:#e8f0f4; --stage-status-border:#a8bdc8; --stage-status-color:#456574; }
@@ -214,7 +215,8 @@
 .admin-project-progress .project-stage-status-option[data-stage-status="in-change"] { --option-background:#e4eff7; --option-border:#9ab6cb; --option-color:#315c79; }
 .admin-project-progress .project-stage-status-option[data-stage-status="awaiting-approval"] { --option-background:#fff2cf; --option-border:#e5bd55; --option-color:#805b08; }
 .admin-project-progress .project-stage-status-option[data-stage-status="changes-requested"] { --option-background:#fbe2df; --option-border:#dda098; --option-color:#943d33; }
-.admin-project-progress .project-stage-status-option[data-stage-status="approved"] { --option-background:#e4f3df; --option-border:#9bc48d; --option-color:#357125; }
+.admin-project-progress .project-stage-status-option[data-stage-status="approved"],
+.admin-project-progress .project-stage-status-option[data-stage-status="completed"] { --option-background:#e4f3df; --option-border:#9bc48d; --option-color:#357125; }
 .admin-project-progress .project-stage-status-option[data-stage-status="awaiting-client"] { --option-background:#eee8f5; --option-border:#b9a6cc; --option-color:#654d7b; }
 .admin-project-progress .project-stage-status-option[data-stage-status="awaiting-supplier"] { --option-background:#fff0df; --option-border:#e1b27c; --option-color:#89551e; }
 .admin-project-progress .project-stage-status-option[data-stage-status="internal-review"] { --option-background:#e8f0f4; --option-border:#a8bdc8; --option-color:#456574; }
@@ -289,6 +291,41 @@
 .proposal-field select { padding: 11px; border: 1px solid var(--borderGray); border-radius: 8px; background: #fff; font: inherit; color: #1f1f1f; }
 .proposal-field textarea { min-height: 120px; resize: vertical; }
 #proposal-current-attachment { color: var(--gray); font-size: 10px; }
+.proposal-existing-attachments { display: grid; gap: 8px; }
+.proposal-existing-attachments[hidden] { display: none; }
+.proposal-existing-attachments h3 { color: var(--gray); font-size: 12px; }
+.proposal-existing-attachments-list { display: grid; gap: 7px; }
+.proposal-existing-attachment {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 10px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+    background: #fbfafa;
+}
+.proposal-existing-attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    color: var(--orange);
+    font-size: 12px;
+}
+.proposal-attachment-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 7px;
+    border: 0;
+    background: transparent;
+    color: #a12e2e;
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+.proposal-attachment-remove:disabled { color: var(--gray); cursor: not-allowed; opacity: .55; }
 .proposal-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .proposal-delete-warning { color: var(--gray); font-size: 12px; line-height: 1.55; }
 #proposal-delete-confirm {

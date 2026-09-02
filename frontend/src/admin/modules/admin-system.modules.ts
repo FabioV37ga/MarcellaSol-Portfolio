@@ -188,15 +188,73 @@ export class AdminSystemModules {
         const form = root.querySelector<HTMLFormElement>("#proposal-form")!;
         const feedback = root.querySelector<HTMLElement>("#proposals-feedback")!;
         const attachmentInput = root.querySelector<HTMLInputElement>("#proposal-attachment")!;
+        const attachmentHelp = root.querySelector<HTMLElement>("#proposal-current-attachment")!;
+        const existingAttachments = root.querySelector<HTMLElement>("#proposal-existing-attachments");
+        const existingAttachmentsList = root.querySelector<HTMLElement>("#proposal-existing-attachments-list");
+        const attachmentItemTemplate = root.querySelector<HTMLTemplateElement>("#proposal-attachment-item-template");
         const stageSelect = root.querySelector<HTMLSelectElement>("#proposal-stage")!;
         // Mantém compatibilidade com uma versão antiga da view já persistida no MongoDB.
         attachmentInput.multiple = true;
         attachmentInput.name = "attachments";
         let proposals: ClientProposal[] = [];
         let editingId: string | undefined;
+        let editingProposal: ClientProposal | undefined;
         let deletingProposal: ClientProposal | undefined;
         let savingProposal = false;
+        let removingAttachment = false;
         let currentStageKey: ProjectStageKey = "briefing";
+        let projectStageEditor: ProjectStageEditor | undefined;
+
+        const proposalAttachments = (proposal: ClientProposal): string[] => proposal.attachments?.length
+            ? proposal.attachments : proposal.attachment ? [proposal.attachment] : [];
+
+        const renderEditorAttachments = (): void => {
+            if (!existingAttachments || !existingAttachmentsList || !attachmentItemTemplate) return;
+            existingAttachmentsList.replaceChildren();
+            const attachments = editingProposal ? proposalAttachments(editingProposal) : [];
+            existingAttachments.hidden = attachments.length === 0;
+            attachments.forEach((url, index) => {
+                const item = attachmentItemTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+                if (!item) return;
+                const link = item.querySelector<HTMLAnchorElement>(".proposal-existing-attachment-link")!;
+                const label = item.querySelector<HTMLElement>(".proposal-existing-attachment-label")!;
+                const remove = item.querySelector<HTMLButtonElement>(".proposal-attachment-remove")!;
+                link.href = url;
+                label.textContent = `Anexo ${index + 1}`;
+                remove.setAttribute("aria-label", `Remover anexo ${index + 1}`);
+                remove.disabled = attachments.length === 1 || removingAttachment;
+                remove.title = attachments.length === 1
+                    ? "A proposta deve manter ao menos um anexo" : "Remover anexo";
+                remove.addEventListener("click", () => void removeProposalAttachment(index));
+                existingAttachmentsList.append(item);
+            });
+        };
+
+        const removeProposalAttachment = async (attachmentIndex: number): Promise<void> => {
+            if (!editingProposal || removingAttachment) return;
+            removingAttachment = true;
+            attachmentHelp.textContent = "Removendo anexo...";
+            renderEditorAttachments();
+            try {
+                const updated = await this.api.deleteProposalAttachment(
+                    this.session,
+                    clientId,
+                    editingProposal._id,
+                    attachmentIndex
+                );
+                proposals = proposals.map(item => item._id === updated._id ? updated : item);
+                editingProposal = updated;
+                editingId = updated._id;
+                feedback.textContent = "Anexo removido com sucesso.";
+                attachmentHelp.textContent = "Anexo removido. A alteração já foi salva.";
+                render();
+            } catch (error) {
+                attachmentHelp.textContent = error instanceof Error ? error.message : "Não foi possível remover o anexo.";
+            } finally {
+                removingAttachment = false;
+                renderEditorAttachments();
+            }
+        };
 
         const render = (): void => {
             openList.replaceChildren();
@@ -222,22 +280,26 @@ export class AdminSystemModules {
 
         const openEditor = (proposal?: ClientProposal): void => {
             editingId = proposal?._id;
+            editingProposal = proposal;
             form.reset();
             root.querySelector<HTMLElement>("#proposal-dialog-title")!.textContent = proposal ? "Editar proposta" : "Nova proposta";
             root.querySelector<HTMLInputElement>("#proposal-title")!.value = proposal?.title ?? "";
             root.querySelector<HTMLTextAreaElement>("#proposal-description")!.value = proposal?.description ?? "";
             stageSelect.value = proposal?.stageKey ?? currentStageKey;
             attachmentInput.required = !proposal;
-            root.querySelector<HTMLElement>("#proposal-current-attachment")!.textContent = proposal
-                ? "Novos arquivos serão acrescentados aos anexos atuais." : "Selecione ao menos um anexo.";
+            attachmentHelp.textContent = proposal
+                ? "A remoção é salva imediatamente. Novos arquivos serão acrescentados ao salvar."
+                : "Selecione ao menos um anexo.";
+            renderEditorAttachments();
             dialog.showModal();
         };
 
         const resendProposal = async (proposal: ClientProposal, button: HTMLButtonElement): Promise<void> => {
             button.disabled = true;
             try {
-                const updated = await this.api.resendProposal(this.session, clientId, proposal._id);
-                proposals = proposals.map(item => item._id === updated._id ? updated : item);
+                const result = await this.api.resendProposal(this.session, clientId, proposal._id);
+                proposals = proposals.map(item => item._id === result.proposal._id ? result.proposal : item);
+                projectStageEditor?.replaceState(result);
                 feedback.textContent = "Proposta reenviada com sucesso.";
                 render();
             } catch (error) {
@@ -284,11 +346,23 @@ export class AdminSystemModules {
             const attachments = Array.from(attachmentInput.files ?? []);
             const request = editingId
                 ? this.api.editProposal(this.session, clientId, editingId, { title, description, stageKey, attachments })
+                    .then(proposal => ({ proposal }))
                 : this.api.createProposal(this.session, clientId, { title, description, stageKey, attachments });
-            void request.then(saved => {
+            void request.then(result => {
+                const saved = result.proposal;
                 const existing = proposals.findIndex(item => item._id === saved._id);
                 if (existing >= 0) proposals[existing] = saved;
                 else proposals.unshift(saved);
+                if (
+                    "projectStages" in result
+                    && Array.isArray(result.projectStages)
+                    && "currentStageKey" in result
+                ) {
+                    projectStageEditor?.replaceState({
+                        projectStages: result.projectStages,
+                        currentStageKey: result.currentStageKey as ProjectStageKey
+                    });
+                }
                 dialog.close();
                 feedback.textContent = "Proposta salva com sucesso.";
                 render();
@@ -308,7 +382,7 @@ export class AdminSystemModules {
             root.querySelector<HTMLElement>("#proposals-client-name")!.textContent = client.name;
             root.querySelector<HTMLElement>("#proposals-title-name")!.textContent = client.name;
             currentStageKey = client.currentStageKey;
-            new ProjectStageEditor(
+            projectStageEditor = new ProjectStageEditor(
                 root,
                 client.projectStages,
                 client.currentStageKey,

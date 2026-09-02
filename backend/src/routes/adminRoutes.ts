@@ -19,6 +19,7 @@ router.get("/api/admin/clients/:id/proposals", requireAuthentication("admin"), c
 router.post("/api/admin/clients/:id/proposals", requireAuthentication("admin"), receiveProposalAttachment, controller.createClientProposal);
 router.put("/api/admin/clients/:id/proposals/:proposalId", requireAuthentication("admin"), receiveProposalAttachment, controller.editClientProposal);
 router.post("/api/admin/clients/:id/proposals/:proposalId/resend", requireAuthentication("admin"), controller.resendClientProposal);
+router.delete("/api/admin/clients/:id/proposals/:proposalId/attachments/:attachmentIndex", requireAuthentication("admin"), controller.deleteClientProposalAttachment);
 router.delete("/api/admin/clients/:id/proposals/:proposalId", requireAuthentication("admin"), controller.deleteClientProposal);
 router.post("/api/admin/user", requireAuthentication("admin"), controller.create);
 

@@ -11,6 +11,7 @@ import {
 import {
     grantFolderReadAccess,
     renameProposalFolder,
+    setProposalAttachmentTrashed,
     setProposalFolderTrashed,
     uploadProposalAttachment,
     type FolderReadAccessResult,
@@ -34,6 +35,7 @@ export interface BriefingReportStorage {
 export interface ProposalStorage {
     uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[]): Promise<ProposalDriveUpload>;
     renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void>;
+    setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void>;
     setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void>;
 }
 
@@ -68,6 +70,10 @@ export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFo
 
     renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {
         return renameProposalFolder(folderId, proposalId, title);
+    }
+
+    setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void> {
+        return setProposalAttachmentTrashed(attachmentUrl, trashed);
     }
 
     setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {

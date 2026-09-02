@@ -326,6 +326,36 @@ export async function setProposalFolderTrashed(folderId: string, trashed: boolea
     });
 }
 
+function proposalAttachmentFileId(attachmentUrl: string): string {
+    let parsed: URL;
+    try {
+        parsed = new URL(attachmentUrl);
+    } catch {
+        throw new Error("URL do anexo do Google Drive inválida");
+    }
+
+    if (parsed.protocol !== "https:" || parsed.hostname !== "drive.google.com") {
+        throw new Error("O anexo não pertence ao Google Drive");
+    }
+
+    const pathMatch = parsed.pathname.match(/^\/file\/d\/([A-Za-z0-9_-]+)(?:\/|$)/);
+    const fileId = pathMatch?.[1] ?? parsed.searchParams.get("id");
+    if (!fileId || !/^[A-Za-z0-9_-]+$/.test(fileId)) {
+        throw new Error("Não foi possível identificar o arquivo do anexo no Google Drive");
+    }
+    return fileId;
+}
+
+export async function setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void> {
+    const drive = createDriveClient();
+    await drive.files.update({
+        fileId: proposalAttachmentFileId(attachmentUrl),
+        requestBody: { trashed },
+        fields: "id,trashed",
+        supportsAllDrives: true
+    });
+}
+
 export async function downloadDriveImage(fileId: string): Promise<DriveImageDownload> {
     const drive = createDriveClient();
     const metadata = await drive.files.get({

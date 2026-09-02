@@ -25,6 +25,10 @@ export interface UpdatedClientProjectStage {
     projectStages: ProjectStage[];
 }
 
+export interface ProposalStageMutation extends UpdatedClientProjectStage {
+    proposal: ClientProposal;
+}
+
 export interface BriefingReportStatus {
     exists: boolean;
     folderUrl?: string;
@@ -60,9 +64,19 @@ export class AdminSystemApi {
 
     private async proposalRequest(
         response: Response
-    ): Promise<{ proposal?: ClientProposal; proposals?: ClientProposal[]; message?: string }> {
+    ): Promise<{
+        proposal?: ClientProposal;
+        proposals?: ClientProposal[];
+        currentStageKey?: ProjectStageKey;
+        projectStages?: ProjectStage[];
+        message?: string;
+    }> {
         const result = await response.json().catch(() => ({})) as {
-            proposal?: ClientProposal; proposals?: ClientProposal[]; message?: string
+            proposal?: ClientProposal;
+            proposals?: ClientProposal[];
+            currentStageKey?: ProjectStageKey;
+            projectStages?: ProjectStage[];
+            message?: string;
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível processar a proposta");
         return result;
@@ -75,19 +89,29 @@ export class AdminSystemApi {
         return (await this.proposalRequest(response)).proposals ?? [];
     }
 
-    async createProposal(session: AdminSession, userId: string, fields: ProposalFields): Promise<ClientProposal> {
-        return this.saveProposal(session, userId, fields);
+    async createProposal(session: AdminSession, userId: string, fields: ProposalFields): Promise<ProposalStageMutation> {
+        const result = await this.saveProposal(session, userId, fields);
+        if (!result.proposal || !result.currentStageKey || !Array.isArray(result.projectStages)) {
+            throw new Error("Resposta inválida ao criar proposta");
+        }
+        return {
+            proposal: result.proposal,
+            currentStageKey: result.currentStageKey,
+            projectStages: result.projectStages
+        };
     }
 
     async editProposal(
         session: AdminSession, userId: string, proposalId: string, fields: ProposalFields
     ): Promise<ClientProposal> {
-        return this.saveProposal(session, userId, fields, proposalId);
+        const proposal = (await this.saveProposal(session, userId, fields, proposalId)).proposal;
+        if (!proposal) throw new Error("Resposta inválida ao salvar proposta");
+        return proposal;
     }
 
     private async saveProposal(
         session: AdminSession, userId: string, fields: ProposalFields, proposalId?: string
-    ): Promise<ClientProposal> {
+    ): ReturnType<AdminSystemApi["proposalRequest"]> {
         const body = new FormData();
         body.set("title", fields.title);
         body.set("description", fields.description);
@@ -98,19 +122,23 @@ export class AdminSystemApi {
             `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals${suffix}`,
             { method: proposalId ? "PUT" : "POST", headers: this.authorization(session), body }
         );
-        const proposal = (await this.proposalRequest(response)).proposal;
-        if (!proposal) throw new Error("Resposta inválida ao salvar proposta");
-        return proposal;
+        return this.proposalRequest(response);
     }
 
-    async resendProposal(session: AdminSession, userId: string, proposalId: string): Promise<ClientProposal> {
+    async resendProposal(session: AdminSession, userId: string, proposalId: string): Promise<ProposalStageMutation> {
         const response = await fetch(
             `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals/${encodeURIComponent(proposalId)}/resend`,
             { method: "POST", headers: this.authorization(session) }
         );
-        const proposal = (await this.proposalRequest(response)).proposal;
-        if (!proposal) throw new Error("Resposta inválida ao reenviar proposta");
-        return proposal;
+        const result = await this.proposalRequest(response);
+        if (!result.proposal || !result.currentStageKey || !Array.isArray(result.projectStages)) {
+            throw new Error("Resposta inválida ao reenviar proposta");
+        }
+        return {
+            proposal: result.proposal,
+            currentStageKey: result.currentStageKey,
+            projectStages: result.projectStages
+        };
     }
 
     async deleteProposal(session: AdminSession, userId: string, proposalId: string): Promise<void> {
@@ -121,6 +149,21 @@ export class AdminSystemApi {
         if (response.ok) return;
         const result = await response.json().catch(() => ({})) as { message?: string };
         throw new Error(result.message ?? "Não foi possível remover a proposta");
+    }
+
+    async deleteProposalAttachment(
+        session: AdminSession,
+        userId: string,
+        proposalId: string,
+        attachmentIndex: number
+    ): Promise<ClientProposal> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals/${encodeURIComponent(proposalId)}/attachments/${attachmentIndex}`,
+            { method: "DELETE", headers: this.authorization(session) }
+        );
+        const proposal = (await this.proposalRequest(response)).proposal;
+        if (!proposal) throw new Error("Resposta inválida ao remover o anexo");
+        return proposal;
     }
 
     async loadClients(session: AdminSession): Promise<AdminClientListItem[]> {
