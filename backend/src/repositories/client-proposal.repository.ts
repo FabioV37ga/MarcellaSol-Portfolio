@@ -29,6 +29,14 @@ export class ClientProposalRepository {
         return proposals.findOneAndUpdate({ _id: id, userId }, { $set: data }, { new: true });
     }
 
+    decide(id: string, userId: string, status: "approved" | "beated", userComment: string) {
+        return proposals.findOneAndUpdate(
+            { _id: id, userId, status: { $in: ["sent", "resent"] } },
+            { $set: { status, userComment } },
+            { new: true, runValidators: true }
+        );
+    }
+
     delete(id: string, userId: string) {
         return proposals.findOneAndDelete({ _id: id, userId });
     }

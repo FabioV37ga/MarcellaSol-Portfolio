@@ -66,6 +66,7 @@
 .proposal-status { padding: 5px 9px; border-radius: 999px; background: #f4e6df; color: var(--orange); font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .proposal-status-beated,
 .proposal-status-cancelled { background: #eee; color: #555; }
+.proposal-status-approved { background: #e4f3e8; color: #28723b; }
 .proposal-card-actions { display: flex; gap: 5px; }
 .proposal-edit,
 .proposal-delete { border: 0; background: transparent; color: var(--orange); cursor: pointer; font-size: 16px; }

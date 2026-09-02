@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export const proposalStatuses = ["sent", "beated", "resent", "Cancelled"] as const;
+export const proposalStatuses = ["sent", "beated", "resent", "approved", "Cancelled"] as const;
 export type ProposalStatus = typeof proposalStatuses[number];
 
 export interface ClientProposalObject {

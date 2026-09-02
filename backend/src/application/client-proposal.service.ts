@@ -5,6 +5,7 @@ import { ClientProposalRepository } from "../repositories/client-proposal.reposi
 import { GoogleDriveAttachmentStorage, type ProposalStorage } from "../services/attachment-storage.js";
 
 interface ProposalInput { title?: unknown; description?: unknown; }
+const MAX_CLIENT_COMMENT_LENGTH = 2000;
 
 export class ClientProposalService {
     constructor(
@@ -72,6 +73,18 @@ export class ClientProposalService {
         return this.proposals.update(proposalId, userId, { status: "resent" });
     }
 
+    async approve(userId: string, proposalId: string) {
+        return this.decide(userId, proposalId, "approved", "");
+    }
+
+    async beat(userId: string, proposalId: string, comment: unknown) {
+        const userComment = this.requiredText(comment, "Comentário");
+        if (userComment.length > MAX_CLIENT_COMMENT_LENGTH) {
+            throw new ApplicationError(`O comentário deve ter no máximo ${MAX_CLIENT_COMMENT_LENGTH} caracteres`, 400);
+        }
+        return this.decide(userId, proposalId, "beated", userComment);
+    }
+
     async remove(userId: string, proposalId: string): Promise<void> {
         this.requireObjectId(proposalId, "Proposta não encontrada");
         await this.requireClient(userId);
@@ -102,6 +115,22 @@ export class ClientProposalService {
             throw new ApplicationError("O cliente não possui pasta configurada no Drive", 409);
         }
         return client;
+    }
+
+    private async decide(
+        userId: string,
+        proposalId: string,
+        status: "approved" | "beated",
+        userComment: string
+    ) {
+        this.requireObjectId(userId, "Cliente não encontrado");
+        this.requireObjectId(proposalId, "Proposta não encontrada");
+        const proposal = await this.proposals.decide(proposalId, userId, status, userComment);
+        if (proposal) return proposal;
+
+        const existing = await this.proposals.findByIdAndUserId(proposalId, userId);
+        if (!existing) throw new ApplicationError("Proposta não encontrada", 404);
+        throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
     }
 
     private requireObjectId(value: string, message: string): void {

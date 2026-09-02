@@ -4,7 +4,7 @@ import type { DbView } from "../templates/interface.js";
 
 export type ClientSystemResponse = { view: DbView[] } & ClientBriefingResponse;
 
-export type ClientProposalStatus = "sent" | "beated" | "resent" | "Cancelled";
+export type ClientProposalStatus = "sent" | "beated" | "resent" | "approved" | "Cancelled";
 
 export interface ClientProposal {
     _id: string;
@@ -42,5 +42,40 @@ export class ClientSystemApi {
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível carregar as aprovações.");
         return result.proposals ?? [];
+    }
+
+    approveProposal(token: string, proposalId: string): Promise<ClientProposal> {
+        return this.decideProposal(token, proposalId, "approve");
+    }
+
+    beatProposal(token: string, proposalId: string, comment: string): Promise<ClientProposal> {
+        return this.decideProposal(token, proposalId, "beat", comment);
+    }
+
+    private async decideProposal(
+        token: string,
+        proposalId: string,
+        decision: "approve" | "beat",
+        comment?: string
+    ): Promise<ClientProposal> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/client/proposals/${encodeURIComponent(proposalId)}/${decision}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(comment === undefined ? {} : { comment })
+            }
+        );
+        const result = await response.json().catch(() => ({})) as {
+            proposal?: ClientProposal;
+            message?: string;
+        };
+        if (!response.ok || !result.proposal) {
+            throw new Error(result.message ?? "Não foi possível registrar sua decisão.");
+        }
+        return result.proposal;
     }
 }

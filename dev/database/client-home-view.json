@@ -5,5 +5,5 @@
   "viewName": "home",
   "permission": "client",
   "type": "system",
-  "view": "<section class=accesses><div class=accesses-content><h2>Acesso rápido</h2><div class=access-list><button id=client-stages-processes class=access type=button><span class=access-picture><span class=access-picture-icon><i aria-hidden=true class='fa fa-check-square-o'></i></span></span><span class=access-text><h3>Etapas &amp; processos</h3><p>Acompanhe as etapas, aprovações e o andamento do seu projeto.</p></span><span class=access-arrow><i aria-hidden=true class='fa fa-chevron-right'></i></span></button></div></div></section>"
+  "view": "<section class=accesses><div class=accesses-content><h2>Acesso rápido</h2><div class=access-list><button id=client-stages-processes class=access type=button><span class=access-picture><span class=access-picture-icon><i aria-hidden=true class='fa fa-check-square-o'></i></span></span><span class=access-text><h3>Etapas &amp; Aprovações</h3><p>Acompanhe as etapas, aprovações e o andamento do seu projeto.</p></span><span class=access-arrow><i aria-hidden=true class='fa fa-chevron-right'></i></span></button></div></div></section>"
 }

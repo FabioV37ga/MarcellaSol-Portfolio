@@ -8,6 +8,7 @@ import { adminLoginRateLimit } from "../dist/src/middleware/login-rate-limit.mid
 import { securityHeaders } from "../dist/src/middleware/security-headers.middleware.js";
 import { SessionService } from "../dist/src/services/session.service.js";
 import { SessionTokenService } from "../dist/src/services/session-token.service.js";
+import { ClientProposalService } from "../dist/src/application/client-proposal.service.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
 
@@ -136,4 +137,38 @@ test("login administrativo bloqueia a sexta falha e envia Retry-After", async ()
     } finally {
         await close(server);
     }
+});
+
+test("cliente aprova apenas proposta pendente vinculada à sua sessão", async () => {
+    const userId = "507f1f77bcf86cd799439011";
+    const proposalId = "507f1f77bcf86cd799439012";
+    const calls = [];
+    const repository = {
+        async decide(id, ownerId, status, userComment) {
+            calls.push({ id, ownerId, status, userComment });
+            return { _id: id, userId: ownerId, status, userComment };
+        },
+        async findByIdAndUserId() { return null; }
+    };
+    const service = new ClientProposalService({}, repository, {});
+
+    const proposal = await service.approve(userId, proposalId);
+    assert.equal(proposal.status, "approved");
+    assert.deepEqual(calls, [{ id: proposalId, ownerId: userId, status: "approved", userComment: "" }]);
+});
+
+test("rebatida exige comentário e recusa proposta já decidida", async () => {
+    const userId = "507f1f77bcf86cd799439011";
+    const proposalId = "507f1f77bcf86cd799439012";
+    const repository = {
+        async decide() { return null; },
+        async findByIdAndUserId() { return { _id: proposalId, status: "approved" }; }
+    };
+    const service = new ClientProposalService({}, repository, {});
+
+    await assert.rejects(() => service.beat(userId, proposalId, "   "), error => error.status === 400);
+    await assert.rejects(
+        () => service.beat(userId, proposalId, "Precisa de ajustes"),
+        error => error.status === 409
+    );
 });

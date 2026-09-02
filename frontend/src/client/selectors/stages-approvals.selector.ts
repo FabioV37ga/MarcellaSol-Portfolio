@@ -5,6 +5,11 @@ interface StagesApprovalsElements {
     loading: HTMLElement;
     empty: HTMLElement;
     feedback: HTMLElement;
+    rejectDialog: HTMLDialogElement;
+    rejectComment: HTMLTextAreaElement;
+    rejectFeedback: HTMLElement;
+    rejectCancel: HTMLButtonElement;
+    rejectConfirm: HTMLButtonElement;
 }
 
 function requiredElement<T extends HTMLElement>(selector: string): T {
@@ -20,7 +25,12 @@ export function getStagesApprovalsElements(): StagesApprovalsElements {
         list: requiredElement("#client-approvals-list"),
         loading: requiredElement("#client-approvals-loading"),
         empty: requiredElement("#client-approvals-empty"),
-        feedback: requiredElement("#client-approvals-feedback")
+        feedback: requiredElement("#client-approvals-feedback"),
+        rejectDialog: requiredElement("#client-approval-reject-dialog"),
+        rejectComment: requiredElement("#client-approval-reject-comment"),
+        rejectFeedback: requiredElement("#client-approval-reject-feedback"),
+        rejectCancel: requiredElement("#client-approval-reject-cancel"),
+        rejectConfirm: requiredElement("#client-approval-reject-confirm")
     };
 }
 

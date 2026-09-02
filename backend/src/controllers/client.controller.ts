@@ -76,6 +76,14 @@ export class ClientController {
         }
     };
 
+    approveProposal = async (request: Request, response: Response): Promise<Response> => {
+        return this.decideProposal(request, response, "approved");
+    };
+
+    beatProposal = async (request: Request, response: Response): Promise<Response> => {
+        return this.decideProposal(request, response, "beated");
+    };
+
     session = async (_request: Request, response: Response): Promise<Response> => {
         const principal = authenticatedPrincipal(response);
         const client = await this.clients.findById(principal.subject);
@@ -124,6 +132,38 @@ export class ClientController {
             manifest,
             files
         };
+    }
+
+    private async decideProposal(
+        request: Request,
+        response: Response,
+        decision: "approved" | "beated"
+    ): Promise<Response> {
+        try {
+            const principal = authenticatedPrincipal(response);
+            const proposalId = String(request.params.proposalId ?? "");
+            const proposal = decision === "approved"
+                ? await this.proposals.approve(principal.subject, proposalId)
+                : await this.proposals.beat(principal.subject, proposalId, request.body?.comment);
+            return response.status(200).json({
+                proposal: {
+                    _id: proposal._id,
+                    title: proposal.title,
+                    description: proposal.description,
+                    attachments: proposal.attachments?.length
+                        ? proposal.attachments
+                        : proposal.attachment ? [proposal.attachment] : [],
+                    userComment: proposal.userComment,
+                    status: proposal.status,
+                    createdAt: proposal.createdAt,
+                    updatedAt: proposal.updatedAt
+                }
+            });
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            console.error("Erro ao registrar decisão do cliente:", error);
+            return response.status(500).json({ message: "Erro interno ao registrar decisão." });
+        }
     }
 
     private parseMultipartPayload(body: Record<string, unknown>): Record<string, unknown> {

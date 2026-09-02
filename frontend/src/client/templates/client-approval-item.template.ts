@@ -4,6 +4,7 @@ const statusLabels: Record<ClientProposalStatus, string> = {
     sent: "Aguardando aprovação",
     resent: "Atualizada",
     beated: "Alterações solicitadas",
+    approved: "Aprovada",
     Cancelled: "Cancelada"
 };
 
@@ -48,5 +49,31 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
     });
 
     article.append(header, title, description, attachments);
+
+    if (proposal.userComment) {
+        const comment = document.createElement("div");
+        comment.className = "client-approval-comment";
+        const commentTitle = document.createElement("strong");
+        commentTitle.textContent = "Seu comentário";
+        const commentText = document.createElement("p");
+        commentText.textContent = proposal.userComment;
+        comment.append(commentTitle, commentText);
+        article.append(comment);
+    }
+
+    if (proposal.status === "sent" || proposal.status === "resent") {
+        const actions = document.createElement("div");
+        actions.className = "client-approval-actions";
+        const reject = document.createElement("button");
+        reject.className = "client-approval-reject";
+        reject.type = "button";
+        reject.textContent = "Rebater";
+        const approve = document.createElement("button");
+        approve.className = "client-approval-approve";
+        approve.type = "button";
+        approve.textContent = "Aprovar";
+        actions.append(reject, approve);
+        article.append(actions);
+    }
     return article;
 }

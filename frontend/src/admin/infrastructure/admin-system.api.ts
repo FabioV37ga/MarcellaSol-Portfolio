@@ -22,7 +22,7 @@ export interface BriefingReportStatus {
     folderUrl?: string;
 }
 
-export type ProposalStatus = "sent" | "beated" | "resent" | "Cancelled";
+export type ProposalStatus = "sent" | "beated" | "resent" | "approved" | "Cancelled";
 
 export interface ClientProposal {
     _id: string;

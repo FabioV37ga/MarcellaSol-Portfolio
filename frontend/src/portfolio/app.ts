@@ -16,3 +16,4 @@ if (page == "home"){
         await testApi()
     })
 }
+import "font-awesome/css/font-awesome.min.css";

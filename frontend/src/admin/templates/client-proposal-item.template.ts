@@ -1,7 +1,7 @@
 import type { ClientProposal } from "../infrastructure/admin-system.api.js";
 
 function statusLabel(status: ClientProposal["status"]): string {
-    return ({ sent: "Enviada", resent: "Reenviada", beated: "Rebatida", Cancelled: "Cancelada" })[status];
+    return ({ sent: "Enviada", resent: "Reenviada", beated: "Rebatida", approved: "Aprovada", Cancelled: "Cancelada" })[status];
 }
 
 export function clientProposalItem(proposal: ClientProposal): HTMLElement {

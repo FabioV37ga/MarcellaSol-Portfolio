@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "animejs": "^4.4.1",
+    "font-awesome": "^4.7.0",
     "nanohtml": "^1.10.0",
     "typescript": "^6.0.3",
     "umbrellajs": "^3.3.3",
