@@ -107,6 +107,9 @@
 }
 
 .project-step {
+    --stage-status-background: #eee;
+    --stage-status-border: #cfcfcf;
+    --stage-status-color: #555;
     position: relative;
     z-index: 1;
     display: flex;
@@ -138,9 +141,98 @@
 }
 
 .project-step-active .project-step-dot {
-    border-color: var(--orange);
-    background: var(--orange);
+    border-color: var(--stage-status-color);
+    background: var(--stage-status-color);
     box-shadow: inset 0 0 0 5px var(--lightOrange);
+}
+
+.project-step-status {
+    position: relative;
+    display: none;
+    width: max-content;
+    max-width: 118px;
+    margin-top: 2px;
+    padding: 7px 9px;
+    border: 1px solid var(--stage-status-border);
+    border-radius: 6px;
+    box-sizing: border-box;
+    background: var(--stage-status-background);
+    color: var(--stage-status-color);
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.project-step-status::before {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    border-top: 1px solid var(--stage-status-border);
+    border-left: 1px solid var(--stage-status-border);
+    background: var(--stage-status-background);
+    content: "";
+    transform: translate(-50%, 4px) rotate(45deg);
+}
+
+.project-step-active .project-step-status {
+    display: block;
+}
+
+.project-step[data-status="in-progress"],
+.project-step[data-status="in-change"] {
+    --stage-status-background: #e4eff7;
+    --stage-status-border: #9ab6cb;
+    --stage-status-color: #315c79;
+}
+
+.project-step[data-status="awaiting-approval"] {
+    --stage-status-background: #fff2cf;
+    --stage-status-border: #e5bd55;
+    --stage-status-color: #805b08;
+}
+
+.project-step[data-status="changes-requested"] {
+    --stage-status-background: #fbe2df;
+    --stage-status-border: #dda098;
+    --stage-status-color: #943d33;
+}
+
+.project-step[data-status="approved"] {
+    --stage-status-background: #e4f3df;
+    --stage-status-border: #9bc48d;
+    --stage-status-color: #357125;
+}
+
+.project-step[data-status="awaiting-client"] {
+    --stage-status-background: #eee8f5;
+    --stage-status-border: #b9a6cc;
+    --stage-status-color: #654d7b;
+}
+
+.project-step[data-status="awaiting-supplier"] {
+    --stage-status-background: #fff0df;
+    --stage-status-border: #e1b27c;
+    --stage-status-color: #89551e;
+}
+
+.project-step[data-status="internal-review"] {
+    --stage-status-background: #e8f0f4;
+    --stage-status-border: #a8bdc8;
+    --stage-status-color: #456574;
+}
+
+.project-step[data-status="paused"] {
+    --stage-status-background: #f4e7dc;
+    --stage-status-border: #caa88c;
+    --stage-status-color: #77533a;
+}
+
+.project-step[data-status="blocked"] {
+    --stage-status-background: #ddd;
+    --stage-status-border: #999;
+    --stage-status-color: #333;
 }
 
 .client-approvals-list {
@@ -410,6 +502,7 @@
     }
 
     .project-step-label,
+    .project-step-status,
     .client-approval-card-header time,
     .client-approval-status {
         font-size: 10px;

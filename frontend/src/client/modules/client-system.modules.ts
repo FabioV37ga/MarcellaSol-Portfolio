@@ -9,6 +9,7 @@ import { ClientSystemApi, type ClientProposal } from "../infrastructure/client-s
 import { clientApprovalItem } from "../templates/client-approval-item.template.js";
 import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
 import { logoutSession } from "@/shared/session/logout.js";
+import { renderProjectStageStatuses } from "./project-stage-status.js";
 
 export class ClientSystemModules {
     private baseElements?: baseElements;
@@ -76,6 +77,7 @@ export class ClientSystemModules {
         this.view.render(model, ".page-content");
         this.view.styleNavButton(this.baseElements?.desktop_nav_client);
         const elements = getStagesApprovalsElements();
+        renderProjectStageStatuses(document.querySelector(".project-progress") ?? document);
         u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
