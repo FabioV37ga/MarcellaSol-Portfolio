@@ -64,8 +64,8 @@ export class ClientSystemApi {
         };
     }
 
-    approveProposal(token: string, proposalId: string): Promise<ClientProposalDecision> {
-        return this.decideProposal(token, proposalId, "approve");
+    approveProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {
+        return this.decideProposal(token, proposalId, "approve", comment);
     }
 
     beatProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {

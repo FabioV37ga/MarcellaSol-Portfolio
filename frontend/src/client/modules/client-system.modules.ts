@@ -81,10 +81,8 @@ export class ClientSystemModules {
         u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
+        let approvedProposalId = "";
         let rejectedProposalId = "";
-        const setCardBusy = (card: HTMLElement, busy: boolean): void => {
-            card.querySelectorAll<HTMLButtonElement>("button").forEach(button => button.disabled = busy);
-        };
         const replaceProposal = (proposal: ClientProposal): void => {
             const current = elements.list.querySelector<HTMLElement>(`[data-proposal-id="${CSS.escape(proposal._id)}"]`);
             const replacement = renderProposal(proposal);
@@ -92,19 +90,13 @@ export class ClientSystemModules {
         };
         const renderProposal = (proposal: ClientProposal): HTMLElement => {
             const card = clientApprovalItem(proposal);
-            card.querySelector<HTMLButtonElement>(".client-approval-approve")?.addEventListener("click", async () => {
+            card.querySelector<HTMLButtonElement>(".client-approval-approve")?.addEventListener("click", () => {
+                approvedProposalId = proposal._id;
                 elements.feedback.textContent = "";
-                setCardBusy(card, true);
-                try {
-                    const result = await this.api.approveProposal(this.token, proposal._id);
-                    replaceProposal(result.proposal);
-                    renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
-                } catch (error) {
-                    elements.feedback.textContent = error instanceof Error
-                        ? error.message
-                        : "Não foi possível aprovar a proposta.";
-                    setCardBusy(card, false);
-                }
+                elements.approveComment.value = "";
+                elements.approveFeedback.textContent = "";
+                elements.approveDialog.showModal();
+                elements.approveComment.focus();
             });
             card.querySelector<HTMLButtonElement>(".client-approval-reject")?.addEventListener("click", () => {
                 rejectedProposalId = proposal._id;
@@ -115,6 +107,38 @@ export class ClientSystemModules {
             });
             return card;
         };
+
+        elements.approveCancel.addEventListener("click", () => elements.approveDialog.close());
+        elements.approveDialog.addEventListener("close", () => {
+            approvedProposalId = "";
+            elements.approveComment.value = "";
+            elements.approveFeedback.textContent = "";
+        });
+        elements.approveConfirm.addEventListener("click", async () => {
+            const comment = elements.approveComment.value.trim();
+            if (!comment) {
+                elements.approveFeedback.textContent = "Digite um comentário antes de confirmar.";
+                elements.approveComment.focus();
+                return;
+            }
+            if (!approvedProposalId) return;
+            elements.approveConfirm.disabled = true;
+            elements.approveCancel.disabled = true;
+            elements.approveFeedback.textContent = "";
+            try {
+                const result = await this.api.approveProposal(this.token, approvedProposalId, comment);
+                replaceProposal(result.proposal);
+                renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
+                elements.approveDialog.close();
+            } catch (error) {
+                elements.approveFeedback.textContent = error instanceof Error
+                    ? error.message
+                    : "Não foi possível aprovar a proposta.";
+            } finally {
+                elements.approveConfirm.disabled = false;
+                elements.approveCancel.disabled = false;
+            }
+        });
 
         elements.rejectCancel.addEventListener("click", () => elements.rejectDialog.close());
         elements.rejectDialog.addEventListener("close", () => {
@@ -141,7 +165,7 @@ export class ClientSystemModules {
             } catch (error) {
                 elements.rejectFeedback.textContent = error instanceof Error
                     ? error.message
-                    : "Não foi possível rebater a proposta.";
+                    : "Não foi possível solicitar a alteração da proposta.";
             } finally {
                 elements.rejectConfirm.disabled = false;
                 elements.rejectCancel.disabled = false;

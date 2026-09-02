@@ -176,9 +176,19 @@ test("cliente aprova apenas proposta pendente vinculada à sua sessão", async (
     };
     const service = new ClientProposalService(clients, repository, {});
 
-    const result = await service.approve(userId, proposalId);
+    await assert.rejects(
+        () => service.approve(userId, proposalId, "   "),
+        error => error.status === 400
+    );
+    const result = await service.approve(userId, proposalId, "Aprovado conforme apresentado");
     assert.equal(result.proposal.status, "approved");
-    assert.deepEqual(calls, [{ id: proposalId, ownerId: userId, status: "approved", userComment: "" }]);
+    assert.equal(result.proposal.userComment, "Aprovado conforme apresentado");
+    assert.deepEqual(calls, [{
+        id: proposalId,
+        ownerId: userId,
+        status: "approved",
+        userComment: "Aprovado conforme apresentado"
+    }]);
     assert.equal(result.currentStageKey, "survey");
     assert.equal(result.projectStages.find(stage => stage.key === "briefing")?.status, "completed");
     assert.equal(result.projectStages.find(stage => stage.key === "layout")?.status, "completed");
@@ -187,7 +197,7 @@ test("cliente aprova apenas proposta pendente vinculada à sua sessão", async (
     assert.equal(stageUpdates.length, 1);
 });
 
-test("rebatida exige comentário e recusa proposta já decidida", async () => {
+test("solicitação de alteração exige comentário e recusa proposta já decidida", async () => {
     const userId = "507f1f77bcf86cd799439011";
     const proposalId = "507f1f77bcf86cd799439012";
     const repository = {
@@ -257,7 +267,7 @@ test("criação de proposta avança o cliente e conclui todas as etapas anterior
     assert.equal(stageUpdates.length, 1);
 });
 
-test("cliente que rebate proposta coloca a etapa em alterações solicitadas", async () => {
+test("cliente que solicita alteração coloca a etapa em alterações solicitadas", async () => {
     const userId = "507f1f77bcf86cd799439011";
     const proposalId = "507f1f77bcf86cd799439012";
     const clients = {

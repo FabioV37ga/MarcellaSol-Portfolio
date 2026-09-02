@@ -365,12 +365,14 @@
 }
 
 .client-approval-reject,
+#client-approval-approve-cancel,
 #client-approval-reject-cancel {
     background: #fff;
     color: var(--orange);
 }
 
 .client-approval-approve,
+#client-approval-approve-confirm,
 #client-approval-reject-confirm {
     background: var(--orange);
     color: #fff;
@@ -426,6 +428,7 @@
     font-weight: 700;
 }
 
+#client-approval-approve-comment,
 #client-approval-reject-comment {
     width: 100%;
     min-height: 120px;
@@ -439,6 +442,7 @@
     font-size: 11px;
 }
 
+#client-approval-approve-comment:focus,
 #client-approval-reject-comment:focus {
     border-color: var(--orange);
     outline: 2px solid var(--lightOrange);

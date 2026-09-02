@@ -71,7 +71,7 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
         const reject = document.createElement("button");
         reject.className = "client-approval-reject";
         reject.type = "button";
-        reject.textContent = "Rebater";
+        reject.textContent = "Solicitar alteração";
         const approve = document.createElement("button");
         approve.className = "client-approval-approve";
         approve.type = "button";

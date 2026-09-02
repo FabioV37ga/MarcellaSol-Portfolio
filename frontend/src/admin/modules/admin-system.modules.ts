@@ -269,7 +269,7 @@ export class AdminSystemModules {
                 if (resend) u(resend).on("click", () => void resendProposal(proposal, resend));
             });
             this.toggleProposalEmpty(openList, "Nenhuma proposta aberta.");
-            this.toggleProposalEmpty(closedList, "Nenhuma proposta rebatida ou cancelada.");
+            this.toggleProposalEmpty(closedList, "Nenhuma proposta com alterações solicitadas ou cancelada.");
         };
 
         const openDeleteDialog = (proposal: ClientProposal): void => {

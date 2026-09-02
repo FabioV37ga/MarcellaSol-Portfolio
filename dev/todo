@@ -14,3 +14,9 @@ insere campos → continua →
 define itens do briefing → 
 gera usuário e salva no banco
 ---------------------------------
+
+regra de negocio de quantidade de rebatidas permitidas (max 2)
+adicionar termo de "concordo que a rebatida usa uma das chances de rebater"
+
+escopo futuro:
+antes da etapa briefing precisa de contrato.

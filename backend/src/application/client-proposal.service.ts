@@ -90,7 +90,7 @@ export class ClientProposalService {
         const proposal = await this.proposals.findByIdAndUserId(proposalId, userId);
         if (!proposal) throw new ApplicationError("Proposta não encontrada", 404);
         if (proposal.status !== "beated") {
-            throw new ApplicationError("Somente propostas rebatidas podem ser reenviadas", 409);
+            throw new ApplicationError("Somente propostas com alterações solicitadas podem ser reenviadas", 409);
         }
         const client = await this.requireClient(userId, false);
         const updated = await this.proposals.update(proposalId, userId, { status: "resent" });
@@ -113,16 +113,12 @@ export class ClientProposalService {
         }
     }
 
-    async approve(userId: string, proposalId: string) {
-        return this.decide(userId, proposalId, "approved", "");
+    async approve(userId: string, proposalId: string, comment: unknown) {
+        return this.decide(userId, proposalId, "approved", this.requiredProposalComment(comment));
     }
 
     async beat(userId: string, proposalId: string, comment: unknown) {
-        const userComment = this.requiredText(comment, "Comentário");
-        if (userComment.length > MAX_CLIENT_COMMENT_LENGTH) {
-            throw new ApplicationError(`O comentário deve ter no máximo ${MAX_CLIENT_COMMENT_LENGTH} caracteres`, 400);
-        }
-        return this.decide(userId, proposalId, "beated", userComment);
+        return this.decide(userId, proposalId, "beated", this.requiredProposalComment(comment));
     }
 
     async remove(userId: string, proposalId: string): Promise<void> {
@@ -270,6 +266,14 @@ export class ClientProposalService {
     private requiredText(value: unknown, field: string): string {
         if (typeof value !== "string" || !value.trim()) throw new ApplicationError(`${field} é obrigatório`, 400);
         return value.trim();
+    }
+
+    private requiredProposalComment(value: unknown): string {
+        const comment = this.requiredText(value, "Comentário");
+        if (comment.length > MAX_CLIENT_COMMENT_LENGTH) {
+            throw new ApplicationError(`O comentário deve ter no máximo ${MAX_CLIENT_COMMENT_LENGTH} caracteres`, 400);
+        }
+        return comment;
     }
 
     private requiredStageKey(value: unknown): ProjectStageKey {
