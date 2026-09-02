@@ -26,6 +26,14 @@ export type ProjectStageKey = typeof projectStageKeys[number];
 export type ProjectStageStatus = typeof projectStageStatuses[number];
 export interface ProjectStage { key: ProjectStageKey; status: ProjectStageStatus; }
 
+export function isProjectStageKey(value: unknown): value is ProjectStageKey {
+    return typeof value === "string" && (projectStageKeys as readonly string[]).includes(value);
+}
+
+export function isProjectStageStatus(value: unknown): value is ProjectStageStatus {
+    return typeof value === "string" && (projectStageStatuses as readonly string[]).includes(value);
+}
+
 export function initialProjectStages(hasFilledBriefing: boolean): ProjectStage[] {
     return projectStageKeys.map((key, index) => ({
         key,
@@ -37,7 +45,12 @@ export function normalizedProjectStages(
     stages: ProjectStage[] | undefined,
     hasFilledBriefing: boolean
 ): ProjectStage[] {
-    const statusByKey = new Map(stages?.map(stage => [stage.key, stage.status]));
+    const statusByKey = new Map<ProjectStageKey, ProjectStageStatus>();
+    stages?.forEach(stage => {
+        if (isProjectStageKey(stage?.key) && isProjectStageStatus(stage?.status)) {
+            statusByKey.set(stage.key, stage.status);
+        }
+    });
     return initialProjectStages(hasFilledBriefing).map(stage => ({
         key: stage.key,
         status: statusByKey.get(stage.key) ?? stage.status

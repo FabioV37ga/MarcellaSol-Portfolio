@@ -56,4 +56,16 @@ export class ClientRepository {
     updatePassword(id: mongoose.Types.ObjectId, password: string) {
         return clients.updateOne({ _id: id }, { $set: { password } });
     }
+
+    updateProjectStageState(
+        id: string,
+        currentStageKey: ProjectStageKey,
+        projectStages: ProjectStage[]
+    ) {
+        return clients.findByIdAndUpdate(
+            id,
+            { $set: { currentStageKey, projectStages } },
+            { new: true, runValidators: true }
+        ).select({ _id: 1 }).lean();
+    }
 }

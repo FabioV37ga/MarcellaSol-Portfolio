@@ -9,6 +9,7 @@ import { authenticatedPrincipal } from "../middleware/authentication.middleware.
 import { ClientProposalService } from "../application/client-proposal.service.js";
 import { SessionService } from "../services/session.service.js";
 import { loginCredentials } from "./login-credentials.js";
+import { UpdateClientProjectStageService } from "../application/update-client-project-stage.service.js";
 
 export class AdminController {
     constructor(
@@ -17,6 +18,7 @@ export class AdminController {
         private readonly listClients = new ListClientsService(),
         private readonly briefingReports = new ClientBriefingReportService(),
         private readonly proposals = new ClientProposalService(),
+        private readonly projectStages = new UpdateClientProjectStageService(),
         private readonly sessions = new SessionService()
     ) {}
 
@@ -65,6 +67,21 @@ export class AdminController {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
             console.error("Erro ao buscar cliente:", error);
             return response.status(500).json({ message: "Erro interno ao buscar cliente" });
+        }
+    };
+
+    updateClientProjectStage = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            const result = await this.projectStages.execute(id, request.body?.stageKey, request.body?.status);
+            return response.status(200).json(result);
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            if (error instanceof mongoose.Error.ValidationError) {
+                return response.status(400).json({ message: "Etapa ou status inválido" });
+            }
+            console.error("Erro ao atualizar etapa do cliente:", error);
+            return response.status(500).json({ message: "Erro interno ao atualizar etapa do cliente" });
         }
     };
 

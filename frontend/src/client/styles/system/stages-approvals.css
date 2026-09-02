@@ -145,6 +145,11 @@
     background: var(--stage-status-color);
     box-shadow: inset 0 0 0 5px var(--lightOrange);
 }
+.project-step-completed .project-step-dot {
+    border-color: #5f964d;
+    background: #5f964d;
+    box-shadow: inset 0 0 0 5px #e4f3df;
+}
 
 .project-step-status {
     position: relative;

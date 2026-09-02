@@ -12,6 +12,7 @@ import { ClientProposalService } from "../dist/src/application/client-proposal.s
 import { initialProjectStages, normalizedProjectStages } from "../dist/src/models/projectStage.js";
 import { BriefingFolderAccessService } from "../dist/src/application/briefing-folder-access.service.js";
 import { extractResidentEmails } from "../dist/src/services/briefing-emails.js";
+import { UpdateClientProjectStageService } from "../dist/src/application/update-client-project-stage.service.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
 
@@ -229,4 +230,48 @@ test("compartilhamento de briefing continua após falha e identifica permissões
         { folderId: "pasta-1", email: "existente@example.com" },
         { folderId: "pasta-1", email: "falha@example.com" }
     ]);
+});
+
+test("administrador altera etapa atual e status no mesmo documento do cliente", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const updates = [];
+    const repository = {
+        async findByIdForAdmin() {
+            return {
+                _id: clientId,
+                hasFilledBriefing: true,
+                projectStages: [
+                    { key: "briefing", status: "awaiting-approval" },
+                    { key: "survey", status: "not-started" }
+                ]
+            };
+        },
+        async updateProjectStageState(id, currentStageKey, projectStages) {
+            updates.push({ id, currentStageKey, projectStages });
+            return { _id: id };
+        }
+    };
+    const service = new UpdateClientProjectStageService(repository);
+    const result = await service.execute(clientId, "survey", "in-progress");
+
+    assert.equal(result.currentStageKey, "survey");
+    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "in-progress");
+    assert.equal(result.projectStages.find(stage => stage.key === "briefing")?.status, "awaiting-approval");
+    assert.equal(result.projectStages.length, 7);
+    assert.equal(updates.length, 1);
+    assert.equal(updates[0].currentStageKey, "survey");
+});
+
+test("atualização de etapa rejeita chaves e status fora da legenda", async () => {
+    const service = new UpdateClientProjectStageService({});
+    const clientId = "507f1f77bcf86cd799439011";
+
+    await assert.rejects(
+        () => service.execute(clientId, "etapa-inexistente", "in-progress"),
+        error => error.status === 400
+    );
+    await assert.rejects(
+        () => service.execute(clientId, "survey", "status-inexistente"),
+        error => error.status === 400
+    );
 });

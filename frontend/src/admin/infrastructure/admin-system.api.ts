@@ -1,7 +1,7 @@
 import { config } from "@/utils/connection.js";
 import type { NewClientPayload } from "@/shared/briefing/briefing.types.js";
 import type { dbView } from "../templates/interface.js";
-import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
+import type { ProjectStage, ProjectStageKey, ProjectStageStatus } from "@/shared/project-stages.js";
 
 export interface AdminSession {
     token: string;
@@ -16,6 +16,11 @@ export interface AdminClientListItem {
 
 export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
+    currentStageKey: ProjectStageKey;
+    projectStages: ProjectStage[];
+}
+
+export interface UpdatedClientProjectStage {
     currentStageKey: ProjectStageKey;
     projectStages: ProjectStage[];
 }
@@ -142,6 +147,35 @@ export class AdminSystemApi {
             throw new Error(result.message ?? "Não foi possível carregar o cliente");
         }
         return result.client;
+    }
+
+    async updateClientProjectStage(
+        session: AdminSession,
+        clientId: string,
+        stageKey: ProjectStageKey,
+        status: ProjectStageStatus
+    ): Promise<UpdatedClientProjectStage> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/project-stage`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.token}`
+                },
+                body: JSON.stringify({ stageKey, status })
+            }
+        );
+        const result = await response.json().catch(() => ({})) as Partial<UpdatedClientProjectStage> & {
+            message?: string;
+        };
+        if (!response.ok || !result.currentStageKey || !Array.isArray(result.projectStages)) {
+            throw new Error(result.message ?? "Não foi possível atualizar a etapa do projeto");
+        }
+        return {
+            currentStageKey: result.currentStageKey,
+            projectStages: result.projectStages
+        };
     }
 
     async loadBriefingReportStatus(session: AdminSession, id: string): Promise<BriefingReportStatus> {

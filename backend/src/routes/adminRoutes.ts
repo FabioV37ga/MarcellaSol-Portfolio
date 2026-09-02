@@ -12,6 +12,7 @@ router.post("/api/admin/logout", requireAuthentication("admin"), controller.logo
 router.get("/api/admin/session", requireAuthentication("admin"), controller.session);
 router.get("/api/admin/clients", requireAuthentication("admin"), controller.clients);
 router.get("/api/admin/clients/:id", requireAuthentication("admin"), controller.client);
+router.patch("/api/admin/clients/:id/project-stage", requireAuthentication("admin"), controller.updateClientProjectStage);
 router.get("/api/admin/clients/:id/briefing-report", requireAuthentication("admin"), controller.briefingReportStatus);
 router.post("/api/admin/clients/:id/briefing-report", requireAuthentication("admin"), controller.generateBriefingReport);
 router.get("/api/admin/clients/:id/proposals", requireAuthentication("admin"), controller.clientProposals);

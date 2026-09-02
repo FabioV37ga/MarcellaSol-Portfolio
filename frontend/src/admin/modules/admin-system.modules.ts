@@ -12,7 +12,8 @@ import { clientListItem } from "../templates/client-list-item.template.js";
 import { getClientManagementElements } from "../selectors/client-management.selector.js";
 import { clientProposalItem } from "../templates/client-proposal-item.template.js";
 import { logoutSession } from "@/shared/session/logout.js";
-import { renderProjectStages, type ProjectStageKey } from "@/shared/project-stages.js";
+import type { ProjectStageKey } from "@/shared/project-stages.js";
+import { ProjectStageEditor } from "../ui/project-stage-editor.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
@@ -307,7 +308,18 @@ export class AdminSystemModules {
             root.querySelector<HTMLElement>("#proposals-client-name")!.textContent = client.name;
             root.querySelector<HTMLElement>("#proposals-title-name")!.textContent = client.name;
             currentStageKey = client.currentStageKey;
-            renderProjectStages(root, client.projectStages, client.currentStageKey);
+            new ProjectStageEditor(
+                root,
+                client.projectStages,
+                client.currentStageKey,
+                (stageKey, status) => this.api.updateClientProjectStage(
+                    this.session,
+                    clientId,
+                    stageKey,
+                    status
+                ),
+                result => { currentStageKey = result.currentStageKey; }
+            );
             proposals = loaded;
             feedback.textContent = "";
             render();

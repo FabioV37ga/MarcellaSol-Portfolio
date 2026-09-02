@@ -14,12 +14,12 @@ export const projectStageStatusLabels = {
     "awaiting-approval": "Aguardando aprovação",
     "changes-requested": "Alterações solicitadas",
     "in-change": "Em alteração",
-    approved: "Aprovada",
+    approved: "Aprovado",
     "awaiting-client": "Aguardando cliente",
     "awaiting-supplier": "Aguardando fornecedor",
     "internal-review": "Em revisão interna",
-    paused: "Pausada",
-    blocked: "Bloqueada"
+    paused: "Pausado",
+    blocked: "Bloqueado"
 } as const;
 
 export type ProjectStageKey = keyof typeof projectStageLabels;
@@ -61,6 +61,11 @@ export function renderProjectStages(
 
     const currentStage = elements.find(element => element.classList.contains("project-step-active"));
     const currentIndex = currentStage ? elements.indexOf(currentStage) : -1;
+    elements.forEach((element, index) => {
+        const isPastStage = currentIndex >= 0 && index < currentIndex;
+        const isCurrentApproved = index === currentIndex && element.dataset.status === "approved";
+        element.classList.toggle("project-step-completed", isPastStage || isCurrentApproved);
+    });
     const track = root.querySelector<HTMLElement>(".project-progress-track");
     if (track && currentIndex >= 0) {
         track.style.setProperty("--steps", String(elements.length));
