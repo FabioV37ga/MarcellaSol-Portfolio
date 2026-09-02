@@ -4,6 +4,8 @@ import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js"
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
+import { BriefingFolderAccessService } from "./briefing-folder-access.service.js";
+import { maskedEmail } from "../services/briefing-emails.js";
 
 export interface FileManifestEntry {
     uploadId: string;
@@ -27,7 +29,8 @@ export class SubmitBriefingService {
     constructor(
         private readonly clients = new ClientRepository(),
         private readonly briefings = new ClientBriefingRepository(),
-        private readonly attachments: AttachmentStorage = new GoogleDriveAttachmentStorage()
+        private readonly attachments: AttachmentStorage = new GoogleDriveAttachmentStorage(),
+        private readonly folderAccess = new BriefingFolderAccessService()
     ) {}
 
     async execute(command: SubmitBriefingCommand) {
@@ -50,7 +53,24 @@ export class SubmitBriefingService {
         });
         await this.clients.markBriefingFilled(client._id);
 
-        return { briefingId: savedBriefing._id, uploadedFiles: storedAttachments.length };
+        const folderAccess = await this.folderAccess.execute(client.driveFolderId, responses);
+        folderAccess.failures.forEach(failure => {
+            console.error(
+                `Falha ao conceder leitura da pasta do cliente ${client._id} para ${maskedEmail(failure.email)}:`,
+                failure.message
+            );
+        });
+
+        return {
+            briefingId: savedBriefing._id,
+            uploadedFiles: storedAttachments.length,
+            folderSharing: {
+                emailsFound: folderAccess.emailsFound,
+                permissionsCreated: folderAccess.permissionsCreated,
+                permissionsExisting: folderAccess.permissionsExisting,
+                permissionsFailed: folderAccess.failures.length
+            }
+        };
     }
 
     private addAttachmentData(value: unknown, attachments: StoredAttachment[]): unknown {

@@ -10,6 +10,8 @@ import { SessionService } from "../dist/src/services/session.service.js";
 import { SessionTokenService } from "../dist/src/services/session-token.service.js";
 import { ClientProposalService } from "../dist/src/application/client-proposal.service.js";
 import { initialProjectStages, normalizedProjectStages } from "../dist/src/models/projectStage.js";
+import { BriefingFolderAccessService } from "../dist/src/application/briefing-folder-access.service.js";
+import { extractResidentEmails } from "../dist/src/services/briefing-emails.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
 
@@ -183,4 +185,48 @@ test("fluxo inicia no briefing e aguarda aprovação após seu preenchimento", (
     const submitted = normalizedProjectStages(undefined, true);
     assert.equal(submitted[0].status, "awaiting-approval");
     assert.ok(submitted.slice(1).every(stage => stage.status === "not-started"));
+});
+
+test("extrai, normaliza e deduplica somente e-mails dos responsáveis", () => {
+    const briefing = {
+        sections: [{
+            answers: [
+                { key: "resident-1-mail", value: " Cliente@Example.com " },
+                { key: "resident-2-mail", value: "cliente@example.com" },
+                { key: "resident-3-mail", value: "email-invalido" },
+                { key: "contato-secundario", value: "outro@example.com" }
+            ]
+        }]
+    };
+
+    assert.deepEqual(extractResidentEmails(briefing), ["cliente@example.com"]);
+});
+
+test("compartilhamento de briefing continua após falha e identifica permissões existentes", async () => {
+    const calls = [];
+    const storage = {
+        async grantFolderReadAccess(folderId, email) {
+            calls.push({ folderId, email });
+            if (email === "falha@example.com") throw new Error("Drive indisponível");
+            return { email, created: email === "novo@example.com" };
+        }
+    };
+    const service = new BriefingFolderAccessService(storage);
+    const result = await service.execute("pasta-1", {
+        answers: [
+            { key: "resident-1-mail", value: "novo@example.com" },
+            { key: "resident-2-mail", value: "existente@example.com" },
+            { key: "resident-3-mail", value: "falha@example.com" }
+        ]
+    });
+
+    assert.equal(result.emailsFound, 3);
+    assert.equal(result.permissionsCreated, 1);
+    assert.equal(result.permissionsExisting, 1);
+    assert.equal(result.failures.length, 1);
+    assert.deepEqual(calls, [
+        { folderId: "pasta-1", email: "novo@example.com" },
+        { folderId: "pasta-1", email: "existente@example.com" },
+        { folderId: "pasta-1", email: "falha@example.com" }
+    ]);
 });

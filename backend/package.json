@@ -9,6 +9,7 @@
     "dev:back": "tsx --watch src/server.ts",
     "build": "tsc",
     "test": "npm run build && node --test test/security.test.mjs",
+    "drive:share-existing": "npm run build && node dist/src/scripts/share-existing-briefing-emails.js",
     "start": "node dist/src/server.js",
     "prod": "npm run build && npm start"
   },

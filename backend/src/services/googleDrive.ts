@@ -33,6 +33,12 @@ export interface DriveImageDownload {
     size: number;
 }
 
+export interface FolderReadAccessResult {
+    email: string;
+    permissionId?: string;
+    created: boolean;
+}
+
 function requiredEnvironment(name: string): string {
     const value = process.env[name]?.trim();
     if (!value) throw new Error(`Integração com Google Drive não configurada: ${name}`);
@@ -145,6 +151,45 @@ async function findOrCreateClientFolder(drive: drive_v3.Drive, clientLogin: stri
 
 export async function createClientDriveFolder(clientLogin: string): Promise<string> {
     return findOrCreateClientFolder(createDriveClient(), clientLogin);
+}
+
+export async function grantFolderReadAccess(
+    folderId: string,
+    email: string
+): Promise<FolderReadAccessResult> {
+    const drive = createDriveClient();
+    let pageToken: string | undefined;
+
+    do {
+        const listed = await drive.permissions.list({
+            fileId: folderId,
+            fields: "nextPageToken,permissions(id,emailAddress,deleted)",
+            supportsAllDrives: true,
+            pageSize: 100,
+            pageToken
+        });
+        const existing = listed.data.permissions?.find(permission =>
+            !permission.deleted && permission.emailAddress?.trim().toLowerCase() === email
+        );
+        if (existing) {
+            return { email, permissionId: existing.id ?? undefined, created: false };
+        }
+        pageToken = listed.data.nextPageToken ?? undefined;
+    } while (pageToken);
+
+    const created = await drive.permissions.create({
+        fileId: folderId,
+        requestBody: {
+            type: "user",
+            role: "reader",
+            emailAddress: email
+        },
+        sendNotificationEmail: true,
+        supportsAllDrives: true,
+        fields: "id,emailAddress"
+    });
+
+    return { email, permissionId: created.data.id ?? undefined, created: true };
 }
 
 export async function getBriefingReportDriveStatus(clientFolderId: string): Promise<BriefingReportDriveStatus> {
