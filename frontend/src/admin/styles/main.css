@@ -9,12 +9,20 @@
     src: url(/fonts/Comfortaa-Regular.ttf);
 }
 
+html {
+    height: fit-content;
+}
+
 html,
 body,
 main {
     width: 100%;
-    height: 100%;
     margin: 0;
+}
+
+body,
+main {
+    height: 100%;
 }
 
 body {
@@ -31,6 +39,9 @@ body {
 @media (min-width: 900px) {
     .app-container {
         flex-direction: row;
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
     }
 }
 a {
