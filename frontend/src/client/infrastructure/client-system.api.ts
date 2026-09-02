@@ -68,15 +68,21 @@ export class ClientSystemApi {
         return this.decideProposal(token, proposalId, "approve", comment);
     }
 
-    beatProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {
-        return this.decideProposal(token, proposalId, "beat", comment);
+    beatProposal(
+        token: string,
+        proposalId: string,
+        comment: string,
+        confirmRevisionRound: boolean
+    ): Promise<ClientProposalDecision> {
+        return this.decideProposal(token, proposalId, "beat", comment, confirmRevisionRound);
     }
 
     private async decideProposal(
         token: string,
         proposalId: string,
         decision: "approve" | "beat",
-        comment?: string
+        comment?: string,
+        confirmRevisionRound?: boolean
     ): Promise<ClientProposalDecision> {
         const response = await fetch(
             `${config.apiBaseUrl}/client/proposals/${encodeURIComponent(proposalId)}/${decision}`,
@@ -86,7 +92,10 @@ export class ClientSystemApi {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify(comment === undefined ? {} : { comment })
+                body: JSON.stringify({
+                    ...(comment === undefined ? {} : { comment }),
+                    ...(confirmRevisionRound === undefined ? {} : { confirmRevisionRound })
+                })
             }
         );
         const result = await response.json().catch(() => ({})) as {

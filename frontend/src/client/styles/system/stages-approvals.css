@@ -448,6 +448,30 @@
     outline: 2px solid var(--lightOrange);
 }
 
+.client-approval-revision-confirmation {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 13px 0 0 !important;
+    padding: 11px;
+    border: 1px solid var(--borderGray);
+    border-radius: 7px;
+    background: #fbfafa;
+    cursor: pointer;
+}
+
+.client-approval-revision-confirmation input {
+    width: 16px;
+    height: 16px;
+    margin: 1px 0 0;
+    flex: 0 0 16px;
+    accent-color: var(--orange);
+}
+
+.client-approval-revision-confirmation span { display: grid; gap: 3px; }
+.client-approval-revision-confirmation strong { font-size: 11px; }
+.client-approval-revision-confirmation small { color: var(--gray); font-size: 10px; font-weight: 400; }
+
 .client-approval-dialog-feedback {
     min-height: 17px;
     margin-top: 6px;

@@ -12,6 +12,7 @@ interface StagesApprovalsElements {
     approveConfirm: HTMLButtonElement;
     rejectDialog: HTMLDialogElement;
     rejectComment: HTMLTextAreaElement;
+    rejectRevisionConfirmation: HTMLInputElement;
     rejectFeedback: HTMLElement;
     rejectCancel: HTMLButtonElement;
     rejectConfirm: HTMLButtonElement;
@@ -38,6 +39,7 @@ export function getStagesApprovalsElements(): StagesApprovalsElements {
         approveConfirm: requiredElement("#client-approval-approve-confirm"),
         rejectDialog: requiredElement("#client-approval-reject-dialog"),
         rejectComment: requiredElement("#client-approval-reject-comment"),
+        rejectRevisionConfirmation: requiredElement("#client-approval-revision-confirmation"),
         rejectFeedback: requiredElement("#client-approval-reject-feedback"),
         rejectCancel: requiredElement("#client-approval-reject-cancel"),
         rejectConfirm: requiredElement("#client-approval-reject-confirm")

@@ -101,6 +101,7 @@ export class ClientSystemModules {
             card.querySelector<HTMLButtonElement>(".client-approval-reject")?.addEventListener("click", () => {
                 rejectedProposalId = proposal._id;
                 elements.rejectComment.value = "";
+                elements.rejectRevisionConfirmation.checked = false;
                 elements.rejectFeedback.textContent = "";
                 elements.rejectDialog.showModal();
                 elements.rejectComment.focus();
@@ -144,6 +145,7 @@ export class ClientSystemModules {
         elements.rejectDialog.addEventListener("close", () => {
             rejectedProposalId = "";
             elements.rejectComment.value = "";
+            elements.rejectRevisionConfirmation.checked = false;
             elements.rejectFeedback.textContent = "";
         });
         elements.rejectConfirm.addEventListener("click", async () => {
@@ -153,12 +155,22 @@ export class ClientSystemModules {
                 elements.rejectComment.focus();
                 return;
             }
+            if (!elements.rejectRevisionConfirmation.checked) {
+                elements.rejectFeedback.textContent = "Confirme o uso de 1 rodada de alterações.";
+                elements.rejectRevisionConfirmation.focus();
+                return;
+            }
             if (!rejectedProposalId) return;
             elements.rejectConfirm.disabled = true;
             elements.rejectCancel.disabled = true;
             elements.rejectFeedback.textContent = "";
             try {
-                const result = await this.api.beatProposal(this.token, rejectedProposalId, comment);
+                const result = await this.api.beatProposal(
+                    this.token,
+                    rejectedProposalId,
+                    comment,
+                    elements.rejectRevisionConfirmation.checked
+                );
                 replaceProposal(result.proposal);
                 renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
                 elements.rejectDialog.close();

@@ -152,7 +152,12 @@ export class ClientController {
             const proposalId = String(request.params.proposalId ?? "");
             const result = decision === "approved"
                 ? await this.proposals.approve(principal.subject, proposalId, request.body?.comment)
-                : await this.proposals.beat(principal.subject, proposalId, request.body?.comment);
+                : await this.proposals.beat(
+                    principal.subject,
+                    proposalId,
+                    request.body?.comment,
+                    request.body?.confirmRevisionRound
+                );
             const proposal = result.proposal;
             return response.status(200).json({
                 currentStageKey: result.currentStageKey,

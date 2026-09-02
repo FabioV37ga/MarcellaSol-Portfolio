@@ -117,7 +117,10 @@ export class ClientProposalService {
         return this.decide(userId, proposalId, "approved", this.requiredProposalComment(comment));
     }
 
-    async beat(userId: string, proposalId: string, comment: unknown) {
+    async beat(userId: string, proposalId: string, comment: unknown, confirmRevisionRound: unknown) {
+        if (confirmRevisionRound !== true) {
+            throw new ApplicationError("Confirme o uso de 1 rodada de alterações", 400);
+        }
         return this.decide(userId, proposalId, "beated", this.requiredProposalComment(comment));
     }
 

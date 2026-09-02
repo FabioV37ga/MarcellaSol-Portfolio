@@ -206,9 +206,13 @@ test("solicitação de alteração exige comentário e recusa proposta já decid
     };
     const service = new ClientProposalService({}, repository, {});
 
-    await assert.rejects(() => service.beat(userId, proposalId, "   "), error => error.status === 400);
+    await assert.rejects(() => service.beat(userId, proposalId, "   ", true), error => error.status === 400);
     await assert.rejects(
-        () => service.beat(userId, proposalId, "Precisa de ajustes"),
+        () => service.beat(userId, proposalId, "Precisa de ajustes", false),
+        error => error.status === 400
+    );
+    await assert.rejects(
+        () => service.beat(userId, proposalId, "Precisa de ajustes", true),
         error => error.status === 409
     );
 });
@@ -294,7 +298,7 @@ test("cliente que solicita alteração coloca a etapa em alterações solicitada
     };
     const service = new ClientProposalService(clients, proposals, {});
 
-    const result = await service.beat(userId, proposalId, "Ajustar a bancada");
+    const result = await service.beat(userId, proposalId, "Ajustar a bancada", true);
 
     assert.equal(result.proposal.status, "beated");
     assert.equal(result.proposal.userComment, "Ajustar a bancada");
