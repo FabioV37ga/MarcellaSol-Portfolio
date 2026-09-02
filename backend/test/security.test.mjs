@@ -180,8 +180,10 @@ test("cliente aprova apenas proposta pendente vinculada à sua sessão", async (
     assert.equal(result.proposal.status, "approved");
     assert.deepEqual(calls, [{ id: proposalId, ownerId: userId, status: "approved", userComment: "" }]);
     assert.equal(result.currentStageKey, "survey");
-    assert.equal(result.projectStages[0].status, "completed");
-    assert.equal(result.projectStages[1].status, "approved");
+    assert.equal(result.projectStages.find(stage => stage.key === "briefing")?.status, "completed");
+    assert.equal(result.projectStages.find(stage => stage.key === "layout")?.status, "completed");
+    assert.equal(result.projectStages.find(stage => stage.key === "project-development")?.status, "completed");
+    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "approved");
     assert.equal(stageUpdates.length, 1);
 });
 
@@ -240,16 +242,17 @@ test("criação de proposta avança o cliente e conclui todas as etapas anterior
 
     const result = await service.create(
         userId,
-        { title: "Layout v1", description: "Primeira versão", stageKey: "layout" },
-        [{ originalname: "layout.pdf" }]
+        { title: "Levantamento v1", description: "Primeira versão", stageKey: "survey" },
+        [{ originalname: "levantamento.pdf" }]
     );
 
     assert.equal(result.proposal.status, "sent");
-    assert.equal(result.currentStageKey, "layout");
-    assert.deepEqual(result.projectStages.slice(0, 3), [
+    assert.equal(result.currentStageKey, "survey");
+    assert.deepEqual(result.projectStages.slice(0, 4), [
         { key: "briefing", status: "completed" },
-        { key: "survey", status: "completed" },
-        { key: "layout", status: "awaiting-approval" }
+        { key: "layout", status: "completed" },
+        { key: "project-development", status: "completed" },
+        { key: "survey", status: "awaiting-approval" }
     ]);
     assert.equal(stageUpdates.length, 1);
 });
@@ -285,7 +288,7 @@ test("cliente que rebate proposta coloca a etapa em alterações solicitadas", a
 
     assert.equal(result.proposal.status, "beated");
     assert.equal(result.proposal.userComment, "Ajustar a bancada");
-    assert.equal(result.projectStages[1].status, "changes-requested");
+    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "changes-requested");
 });
 
 test("reenvio de proposta devolve a etapa para aguardando aprovação", async () => {
@@ -323,7 +326,7 @@ test("reenvio de proposta devolve a etapa para aguardando aprovação", async ()
     const result = await service.resend(userId, proposalId);
 
     assert.equal(result.proposal.status, "resent");
-    assert.equal(result.projectStages[1].status, "awaiting-approval");
+    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "awaiting-approval");
 });
 
 test("administrador remove um anexo da proposta e atualiza o banco", async () => {
@@ -409,7 +412,15 @@ test("não permite remover o único anexo da proposta", async () => {
 test("fluxo inicia no briefing e aguarda aprovação após seu preenchimento", () => {
     const initial = initialProjectStages(false);
     assert.equal(initial.length, 7);
-    assert.equal(initial[0].key, "briefing");
+    assert.deepEqual(initial.map(stage => stage.key), [
+        "briefing",
+        "layout",
+        "project-development",
+        "survey",
+        "budgets-definitions",
+        "executive-project",
+        "final-delivery"
+    ]);
     assert.equal(initial[0].status, "not-started");
 
     const submitted = normalizedProjectStages(undefined, true);

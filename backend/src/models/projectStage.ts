@@ -1,8 +1,8 @@
 export const projectStageKeys = [
     "briefing",
-    "survey",
     "layout",
     "project-development",
+    "survey",
     "budgets-definitions",
     "executive-project",
     "final-delivery"

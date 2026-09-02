@@ -1,8 +1,8 @@
 export const projectStageLabels = {
     briefing: "Briefing",
-    survey: "Levantamento",
     layout: "Layout",
     "project-development": "Desenvolvimento do projeto",
+    survey: "Levantamento",
     "budgets-definitions": "Orçamentos e definições",
     "executive-project": "Projeto executivo e detalhamentos",
     "final-delivery": "Entrega final"
