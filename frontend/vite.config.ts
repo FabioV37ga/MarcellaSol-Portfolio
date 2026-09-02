@@ -12,7 +12,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
   "font-src 'self' data: https://cdnjs.cloudflare.com",
   "img-src 'self' data: blob:",
-  "connect-src 'self' http://localhost:3000 http://127.0.0.1:3000 http://*:3000 ws://localhost:8080 ws://127.0.0.1:8080 ws://*:8080",
+  "connect-src 'self' https://marcellasol.com.br https://www.marcellasol.com.br http://localhost:3000 http://127.0.0.1:3000 http://*:3000 ws://localhost:8080 ws://127.0.0.1:8080 ws://*:8080",
   "media-src 'self'",
   "worker-src 'self' blob:"
 ].join('; ');
