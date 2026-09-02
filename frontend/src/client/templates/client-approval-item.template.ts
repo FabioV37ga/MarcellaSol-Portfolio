@@ -1,4 +1,5 @@
 import type { ClientProposal, ClientProposalStatus } from "../infrastructure/client-system.api.js";
+import { projectStageLabels } from "@/shared/project-stages.js";
 
 const statusLabels: Record<ClientProposalStatus, string> = {
     sent: "Aguardando aprovação",
@@ -32,6 +33,9 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
 
     const title = document.createElement("h3");
     title.textContent = proposal.title;
+    const stage = document.createElement("p");
+    stage.className = "client-approval-stage";
+    stage.textContent = proposal.stageKey ? projectStageLabels[proposal.stageKey] : "Etapa não vinculada";
     const description = document.createElement("p");
     description.className = "client-approval-description";
     description.textContent = proposal.description;
@@ -48,7 +52,7 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
         attachments.append(link);
     });
 
-    article.append(header, title, description, attachments);
+    article.append(header, title, stage, description, attachments);
 
     if (proposal.userComment) {
         const comment = document.createElement("div");

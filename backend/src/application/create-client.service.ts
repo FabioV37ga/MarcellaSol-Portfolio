@@ -3,6 +3,7 @@ import { ClientRepository } from "../repositories/client.repository.js";
 import { PasswordService } from "../services/password.service.js";
 import { ApplicationError } from "./errors/application-error.js";
 import { GoogleDriveAttachmentStorage, type ClientFolderStorage } from "../services/attachment-storage.js";
+import { initialProjectStages } from "../models/projectStage.js";
 
 export interface CreateClientCommand {
     client: {
@@ -29,13 +30,16 @@ export class CreateClientService {
         const password = await this.passwords.hash(command.client.password);
         const driveFolderId = await this.folders.createClientFolder(command.client.login);
 
+        const hasFilledBriefing = command.client.hasFilledBriefing ?? false;
         return this.clients.create({
             login: command.client.login,
             password,
             name: command.client.name,
-            hasFilledBriefing: command.client.hasFilledBriefing ?? false,
+            hasFilledBriefing,
             driveFolderId,
-            briefing: command.client.briefing
+            briefing: command.client.briefing,
+            currentStageKey: "briefing",
+            projectStages: initialProjectStages(hasFilledBriefing)
         });
     }
 }

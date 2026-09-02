@@ -9,6 +9,7 @@ import { securityHeaders } from "../dist/src/middleware/security-headers.middlew
 import { SessionService } from "../dist/src/services/session.service.js";
 import { SessionTokenService } from "../dist/src/services/session-token.service.js";
 import { ClientProposalService } from "../dist/src/application/client-proposal.service.js";
+import { initialProjectStages, normalizedProjectStages } from "../dist/src/models/projectStage.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
 
@@ -171,4 +172,15 @@ test("rebatida exige comentário e recusa proposta já decidida", async () => {
         () => service.beat(userId, proposalId, "Precisa de ajustes"),
         error => error.status === 409
     );
+});
+
+test("fluxo inicia no briefing e aguarda aprovação após seu preenchimento", () => {
+    const initial = initialProjectStages(false);
+    assert.equal(initial.length, 7);
+    assert.equal(initial[0].key, "briefing");
+    assert.equal(initial[0].status, "not-started");
+
+    const submitted = normalizedProjectStages(undefined, true);
+    assert.equal(submitted[0].status, "awaiting-approval");
+    assert.ok(submitted.slice(1).every(stage => stage.status === "not-started"));
 });

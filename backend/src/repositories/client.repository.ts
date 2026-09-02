@@ -1,6 +1,7 @@
 import clients from "../models/client.js";
 import type { BriefingObject } from "../models/briefing.js";
 import type mongoose from "mongoose";
+import { initialProjectStages, type ProjectStage, type ProjectStageKey } from "../models/projectStage.js";
 
 export interface CreateClientData {
     login: string;
@@ -9,6 +10,8 @@ export interface CreateClientData {
     hasFilledBriefing: boolean;
     driveFolderId: string;
     briefing: BriefingObject;
+    currentStageKey: ProjectStageKey;
+    projectStages: ProjectStage[];
 }
 
 export class ClientRepository {
@@ -20,7 +23,7 @@ export class ClientRepository {
 
     findByIdForAdmin(id: string) {
         return clients
-            .findById(id, { _id: 1, name: 1, hasFilledBriefing: 1, driveFolderId: 1 })
+            .findById(id, { _id: 1, name: 1, hasFilledBriefing: 1, driveFolderId: 1, currentStageKey: 1, projectStages: 1 })
             .lean();
     }
 
@@ -41,7 +44,13 @@ export class ClientRepository {
     }
 
     markBriefingFilled(id: mongoose.Types.ObjectId) {
-        return clients.updateOne({ _id: id }, { $set: { hasFilledBriefing: true } });
+        return clients.updateOne({ _id: id }, {
+            $set: {
+                hasFilledBriefing: true,
+                currentStageKey: "briefing",
+                projectStages: initialProjectStages(true)
+            }
+        });
     }
 
     updatePassword(id: mongoose.Types.ObjectId, password: string) {

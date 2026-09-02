@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import proposals, { type ProposalStatus } from "../models/clientProposal.js";
+import type { ProjectStageKey } from "../models/projectStage.js";
 
 export interface CreateProposalData {
     _id: mongoose.Types.ObjectId;
@@ -10,6 +11,7 @@ export interface CreateProposalData {
     attachmentFolderId: string;
     userComment: string;
     status: ProposalStatus;
+    stageKey: ProjectStageKey;
 }
 
 export class ClientProposalRepository {

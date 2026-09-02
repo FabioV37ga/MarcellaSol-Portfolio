@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { projectStageKeys, type ProjectStageKey } from "./projectStage.js";
 
 export const proposalStatuses = ["sent", "beated", "resent", "approved", "Cancelled"] as const;
 export type ProposalStatus = typeof proposalStatuses[number];
@@ -12,6 +13,7 @@ export interface ClientProposalObject {
     attachment?: string;
     attachmentFolderId?: string;
     userComment: string;
+    stageKey?: ProjectStageKey;
     status: ProposalStatus;
     createdAt: Date;
     updatedAt: Date;
@@ -25,6 +27,7 @@ const clientProposalSchema = new mongoose.Schema<ClientProposalObject>({
     attachment: { type: String, required: false, select: true },
     attachmentFolderId: { type: String, required: false },
     userComment: { type: String, default: "" },
+    stageKey: { type: String, enum: projectStageKeys, required: false, index: true },
     status: { type: String, enum: proposalStatuses, default: "sent", required: true }
 }, { collection: "client-proposals", timestamps: true });
 

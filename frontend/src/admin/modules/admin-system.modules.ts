@@ -12,6 +12,7 @@ import { clientListItem } from "../templates/client-list-item.template.js";
 import { getClientManagementElements } from "../selectors/client-management.selector.js";
 import { clientProposalItem } from "../templates/client-proposal-item.template.js";
 import { logoutSession } from "@/shared/session/logout.js";
+import { renderProjectStages, type ProjectStageKey } from "@/shared/project-stages.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
@@ -186,6 +187,7 @@ export class AdminSystemModules {
         const form = root.querySelector<HTMLFormElement>("#proposal-form")!;
         const feedback = root.querySelector<HTMLElement>("#proposals-feedback")!;
         const attachmentInput = root.querySelector<HTMLInputElement>("#proposal-attachment")!;
+        const stageSelect = root.querySelector<HTMLSelectElement>("#proposal-stage")!;
         // Mantém compatibilidade com uma versão antiga da view já persistida no MongoDB.
         attachmentInput.multiple = true;
         attachmentInput.name = "attachments";
@@ -193,6 +195,7 @@ export class AdminSystemModules {
         let editingId: string | undefined;
         let deletingProposal: ClientProposal | undefined;
         let savingProposal = false;
+        let currentStageKey: ProjectStageKey = "briefing";
 
         const render = (): void => {
             openList.replaceChildren();
@@ -222,6 +225,7 @@ export class AdminSystemModules {
             root.querySelector<HTMLElement>("#proposal-dialog-title")!.textContent = proposal ? "Editar proposta" : "Nova proposta";
             root.querySelector<HTMLInputElement>("#proposal-title")!.value = proposal?.title ?? "";
             root.querySelector<HTMLTextAreaElement>("#proposal-description")!.value = proposal?.description ?? "";
+            stageSelect.value = proposal?.stageKey ?? currentStageKey;
             attachmentInput.required = !proposal;
             root.querySelector<HTMLElement>("#proposal-current-attachment")!.textContent = proposal
                 ? "Novos arquivos serão acrescentados aos anexos atuais." : "Selecione ao menos um anexo.";
@@ -275,10 +279,11 @@ export class AdminSystemModules {
             feedback.textContent = "Salvando proposta...";
             const title = root.querySelector<HTMLInputElement>("#proposal-title")!.value;
             const description = root.querySelector<HTMLTextAreaElement>("#proposal-description")!.value;
+            const stageKey = stageSelect.value as ProjectStageKey;
             const attachments = Array.from(attachmentInput.files ?? []);
             const request = editingId
-                ? this.api.editProposal(this.session, clientId, editingId, { title, description, attachments })
-                : this.api.createProposal(this.session, clientId, { title, description, attachments });
+                ? this.api.editProposal(this.session, clientId, editingId, { title, description, stageKey, attachments })
+                : this.api.createProposal(this.session, clientId, { title, description, stageKey, attachments });
             void request.then(saved => {
                 const existing = proposals.findIndex(item => item._id === saved._id);
                 if (existing >= 0) proposals[existing] = saved;
@@ -301,6 +306,8 @@ export class AdminSystemModules {
             ]);
             root.querySelector<HTMLElement>("#proposals-client-name")!.textContent = client.name;
             root.querySelector<HTMLElement>("#proposals-title-name")!.textContent = client.name;
+            currentStageKey = client.currentStageKey;
+            renderProjectStages(root, client.projectStages, client.currentStageKey);
             proposals = loaded;
             feedback.textContent = "";
             render();

@@ -1,6 +1,7 @@
 import { config } from "@/utils/connection.js";
 import type { ClientBriefingResponse } from "@/shared/briefing/briefing.types.js";
 import type { DbView } from "../templates/interface.js";
+import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
 
 export type ClientSystemResponse = { view: DbView[] } & ClientBriefingResponse;
 
@@ -12,9 +13,16 @@ export interface ClientProposal {
     description: string;
     attachments: string[];
     userComment: string;
+    stageKey?: ProjectStageKey;
     status: ClientProposalStatus;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface ClientProjectResponse {
+    proposals: ClientProposal[];
+    projectStages: ProjectStage[];
+    currentStageKey: ProjectStageKey;
 }
 
 export class ClientSystemApi {
@@ -32,16 +40,22 @@ export class ClientSystemApi {
         return response.json() as Promise<ClientSystemResponse>;
     }
 
-    async loadProposals(token: string): Promise<ClientProposal[]> {
+    async loadProposals(token: string): Promise<ClientProjectResponse> {
         const response = await fetch(`${config.apiBaseUrl}/client/proposals`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const result = await response.json().catch(() => ({})) as {
             proposals?: ClientProposal[];
+            projectStages?: ProjectStage[];
+            currentStageKey?: ProjectStageKey;
             message?: string;
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível carregar as aprovações.");
-        return result.proposals ?? [];
+        return {
+            proposals: result.proposals ?? [],
+            projectStages: result.projectStages ?? [],
+            currentStageKey: result.currentStageKey ?? "briefing"
+        };
     }
 
     approveProposal(token: string, proposalId: string): Promise<ClientProposal> {

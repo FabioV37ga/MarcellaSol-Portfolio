@@ -1,6 +1,7 @@
 import { config } from "@/utils/connection.js";
 import type { NewClientPayload } from "@/shared/briefing/briefing.types.js";
 import type { dbView } from "../templates/interface.js";
+import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
 
 export interface AdminSession {
     token: string;
@@ -15,6 +16,8 @@ export interface AdminClientListItem {
 
 export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
+    currentStageKey: ProjectStageKey;
+    projectStages: ProjectStage[];
 }
 
 export interface BriefingReportStatus {
@@ -32,6 +35,7 @@ export interface ClientProposal {
     attachments: string[];
     attachment?: string;
     userComment: string;
+    stageKey?: ProjectStageKey;
     status: ProposalStatus;
     createdAt: string;
     updatedAt: string;
@@ -40,6 +44,7 @@ export interface ClientProposal {
 export interface ProposalFields {
     title: string;
     description: string;
+    stageKey: ProjectStageKey;
     attachments?: File[];
 }
 
@@ -81,6 +86,7 @@ export class AdminSystemApi {
         const body = new FormData();
         body.set("title", fields.title);
         body.set("description", fields.description);
+        body.set("stageKey", fields.stageKey);
         fields.attachments?.forEach(file => body.append("attachments", file));
         const suffix = proposalId ? `/${encodeURIComponent(proposalId)}` : "";
         const response = await fetch(

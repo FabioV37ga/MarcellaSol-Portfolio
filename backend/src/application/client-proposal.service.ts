@@ -3,8 +3,9 @@ import { ApplicationError } from "./errors/application-error.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientProposalRepository } from "../repositories/client-proposal.repository.js";
 import { GoogleDriveAttachmentStorage, type ProposalStorage } from "../services/attachment-storage.js";
+import { projectStageKeys, type ProjectStageKey } from "../models/projectStage.js";
 
-interface ProposalInput { title?: unknown; description?: unknown; }
+interface ProposalInput { title?: unknown; description?: unknown; stageKey?: unknown; }
 const MAX_CLIENT_COMMENT_LENGTH = 2000;
 
 export class ClientProposalService {
@@ -23,6 +24,7 @@ export class ClientProposalService {
         const client = await this.requireClient(userId);
         const title = this.requiredText(input.title, "Título");
         const description = this.requiredText(input.description, "Descrição");
+        const stageKey = this.requiredStageKey(input.stageKey);
         if (files.length === 0) throw new ApplicationError("Ao menos um anexo da proposta é obrigatório", 400);
 
         const proposalId = new mongoose.Types.ObjectId();
@@ -37,7 +39,8 @@ export class ClientProposalService {
             attachments: upload.attachmentUrls,
             attachmentFolderId: upload.folderId,
             userComment: "",
-            status: "sent"
+            status: "sent",
+            stageKey
         });
     }
 
@@ -49,7 +52,8 @@ export class ClientProposalService {
 
         const title = this.requiredText(input.title, "Título");
         const description = this.requiredText(input.description, "Descrição");
-        const update: Record<string, unknown> = { title, description };
+        const stageKey = this.requiredStageKey(input.stageKey);
+        const update: Record<string, unknown> = { title, description, stageKey };
         if (files.length > 0) {
             const upload = await this.storage.uploadProposal(client.driveFolderId!, proposalId, title, files);
             const currentAttachments = proposal.attachments?.length
@@ -140,5 +144,12 @@ export class ClientProposalService {
     private requiredText(value: unknown, field: string): string {
         if (typeof value !== "string" || !value.trim()) throw new ApplicationError(`${field} é obrigatório`, 400);
         return value.trim();
+    }
+
+    private requiredStageKey(value: unknown): ProjectStageKey {
+        if (typeof value !== "string" || !projectStageKeys.includes(value as ProjectStageKey)) {
+            throw new ApplicationError("Etapa da proposta inválida", 400);
+        }
+        return value as ProjectStageKey;
     }
 }

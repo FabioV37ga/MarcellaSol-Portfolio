@@ -2,6 +2,7 @@ import { ClientBriefingRepository } from "../repositories/client-briefing.reposi
 import { ClientRepository } from "../repositories/client.repository.js";
 import mongoose from "mongoose";
 import { ApplicationError } from "./errors/application-error.js";
+import { normalizedProjectStages, type ProjectStage, type ProjectStageKey } from "../models/projectStage.js";
 
 export interface AdminClientListItem {
     id: string;
@@ -12,6 +13,8 @@ export interface AdminClientListItem {
 
 export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
+    currentStageKey: ProjectStageKey;
+    projectStages: ProjectStage[];
 }
 
 export class ListClientsService {
@@ -54,6 +57,8 @@ export class ListClientsService {
             name: client.name,
             type: briefing ? this.getPropertyType(briefing.briefingDefinition) : "Não informado",
             hasFilledBriefing: client.hasFilledBriefing,
+            currentStageKey: client.currentStageKey ?? "briefing",
+            projectStages: normalizedProjectStages(client.projectStages, client.hasFilledBriefing),
             driveFolderUrl: driveFolderId
                 ? `https://drive.google.com/drive/folders/${encodeURIComponent(driveFolderId)}`
                 : undefined

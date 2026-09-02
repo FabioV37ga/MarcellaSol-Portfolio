@@ -11,6 +11,7 @@ import { authenticatedPrincipal } from "../middleware/authentication.middleware.
 import { ClientProposalService } from "../application/client-proposal.service.js";
 import { SessionService } from "../services/session.service.js";
 import { loginCredentials } from "./login-credentials.js";
+import { normalizedProjectStages } from "../models/projectStage.js";
 
 export class ClientController {
     constructor(
@@ -54,8 +55,14 @@ export class ClientController {
     approvals = async (_request: Request, response: Response): Promise<Response> => {
         try {
             const principal = authenticatedPrincipal(response);
-            const proposals = await this.proposals.list(principal.subject);
+            const [proposals, client] = await Promise.all([
+                this.proposals.list(principal.subject),
+                this.clients.findById(principal.subject)
+            ]);
+            if (!client) throw new ApplicationError("Cliente não encontrado", 404);
             return response.status(200).json({
+                currentStageKey: client.currentStageKey ?? "briefing",
+                projectStages: normalizedProjectStages(client.projectStages, client.hasFilledBriefing),
                 proposals: proposals.map(proposal => ({
                     _id: proposal._id,
                     title: proposal.title,
@@ -64,6 +71,7 @@ export class ClientController {
                         ? proposal.attachments
                         : proposal.attachment ? [proposal.attachment] : [],
                     userComment: proposal.userComment,
+                    stageKey: proposal.stageKey,
                     status: proposal.status,
                     createdAt: proposal.createdAt,
                     updatedAt: proposal.updatedAt
@@ -154,6 +162,7 @@ export class ClientController {
                         ? proposal.attachments
                         : proposal.attachment ? [proposal.attachment] : [],
                     userComment: proposal.userComment,
+                    stageKey: proposal.stageKey,
                     status: proposal.status,
                     createdAt: proposal.createdAt,
                     updatedAt: proposal.updatedAt
