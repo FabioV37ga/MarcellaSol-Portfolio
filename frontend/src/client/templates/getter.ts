@@ -1,19 +1,17 @@
 import u from "umbrellajs";
-import { system, DbView } from "./interface.js";
+import type { system, DbView } from "./interface.js";
 
 export default function getTemplates(elements: DbView[], name: string) {
     const views: system = {};
 
-    elements.forEach((dbView, index) => {
+    elements.forEach(dbView => {
         const element = u(dbView.view.split("%username%").join(name)).first() as HTMLElement | undefined;
         if (!element) return;
 
         const viewName = dbView.viewName?.trim().toLowerCase();
-        if (viewName) views[viewName] = element;
-
-        // Compatibilidade com os registros antigos, anteriores ao uso de viewName.
-        if (index === 0 && !views.base) views.base = element;
-        if (index === 1 && !views.home) views.home = element;
+        if (!viewName) throw new Error("Foi recebida uma view de cliente sem viewName.");
+        if (views[viewName]) throw new Error(`A view de cliente "${dbView.viewName}" está duplicada.`);
+        views[viewName] = element;
     });
 
     return views;

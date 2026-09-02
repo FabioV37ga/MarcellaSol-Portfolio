@@ -1,61 +1,52 @@
 import u from "umbrellajs";
-import { system, dbView, briefing } from "./interface.js";
+import type { system, dbView, briefing } from "./interface.js";
 
-export default function getTemplates(templateType: string, elements: dbView[], name: string) {
+type TemplateType = "system" | "briefing";
 
-    var elementStringArray: string[] = []
+const systemViewNames: Record<string, keyof system> = {
+    base: "base",
+    home: "home",
+    client: "client",
+    "new-client": "newClient",
+    "client-management": "clientManagement",
+    "client-proposals": "clientProposals"
+};
 
-    elements.forEach(string => {
-        
-        
-            let elementString =
-                string.view
-                    .replace("%username%", name)
-    
-            elementStringArray.push(
-                elementString
-            )
-        
-    })
+const briefingViewNames: Record<string, keyof briefing> = {
+    "briefing-home": "home",
+    "briefing-rooms": "rooms",
+    "briefing-added-room": "addedRoom",
+    "briefing-investment": "investment"
+};
 
+export default function getTemplates(
+    templateType: "system",
+    elements: dbView[],
+    name: string
+): system;
+export default function getTemplates(
+    templateType: "briefing",
+    elements: dbView[],
+    name: string
+): briefing;
+export default function getTemplates(
+    templateType: TemplateType,
+    elements: dbView[],
+    name: string
+): system | briefing {
+    const viewNames = templateType === "system" ? systemViewNames : briefingViewNames;
+    const templates: Record<string, HTMLElement> = {};
 
-    var convertedElements: HTMLElement[] = [];
+    elements.forEach(databaseView => {
+        const viewName = databaseView.viewName?.trim().toLowerCase();
+        const templateKey = viewNames[viewName];
+        if (!templateKey) return;
 
-    elementStringArray.forEach(string => {
-
-        let element = u(string).first() as HTMLElement
-
-        convertedElements.push(element)
-
+        const element = u(databaseView.view.split("%username%").join(name)).first() as HTMLElement | undefined;
+        if (!element) throw new Error(`A view "${databaseView.viewName}" possui HTML inválido.`);
+        if (templates[templateKey]) throw new Error(`A view "${databaseView.viewName}" está duplicada.`);
+        templates[templateKey] = element;
     });
 
-    var views!: system | briefing;
-    switch (templateType){
-        case "system":
-            views = {
-                base: convertedElements[0],
-                home: convertedElements[1],
-                client: convertedElements[2],
-                newClient: convertedElements[3],
-                clientManagement: convertedElements[
-                    elements.findIndex(element => element.viewName?.trim().toLowerCase() === "client-management")
-                ],
-                clientProposals: convertedElements[
-                    elements.findIndex(element => element.viewName?.trim().toLowerCase() === "client-proposals")
-                ]
-                // home2: convertedElements[2],
-                // test: convertedElements[2]
-            }
-            break;
-        case "briefing":{
-            views = {
-                home: convertedElements[0],
-                rooms: convertedElements[1],
-                addedRoom: convertedElements[2],
-                investment: convertedElements[3]
-            }
-        }
-    }
-
-    return views;
+    return templates as system | briefing;
 }

@@ -18,6 +18,7 @@ export class AdminSystemModules {
     private home?: homeElements;
     private clients?: clientsElements;
     private newClient?: newClientElements;
+    private clientManagementRequestId = 0;
 
     constructor(
         private readonly view: AdminSystemView,
@@ -98,13 +99,24 @@ export class AdminSystemModules {
         }
 
         this.view.render(this.models.clientManagement, ".page-content");
+        const requestId = ++this.clientManagementRequestId;
         this.view.styleNavButton(this.base!.desktop_nav_client);
         const elements = getClientManagementElements();
+        elements.drive.removeAttribute("href");
+        elements.drive.setAttribute("aria-disabled", "true");
+        elements.drive.classList.add("client-management-action-disabled");
+        elements.briefingReport.disabled = true;
+        elements.briefingReport.classList.add("client-management-report-loading");
+        elements.briefingReport.classList.remove("client-management-report-unavailable");
+        elements.briefingReportLabel.textContent = "Verificando...";
+        u(elements.briefingReport).off("click");
+        elements.briefingReport.onclick = null;
         u(elements.clientsIndex).off("click").on("click", () => this.navigate("clients"));
         u(elements.back).off("click").on("click", () => this.navigate("clients"));
 
         try {
             const client = await this.api.loadClient(this.session, id);
+            if (requestId !== this.clientManagementRequestId) return;
             elements.clientName.textContent = client.name;
             elements.titleName.textContent = client.name;
             if (elements.proposals) {
@@ -124,13 +136,15 @@ export class AdminSystemModules {
             }
 
             if (client.hasFilledBriefing) {
-                await this.mountBriefingReport(id, elements);
+                await this.mountBriefingReport(id, elements, requestId);
             } else {
                 elements.briefingReport.disabled = true;
+                elements.briefingReport.classList.remove("client-management-report-loading");
                 elements.briefingReport.classList.add("client-management-report-unavailable");
                 elements.briefingReportLabel.textContent = "Cliente ainda não preencheu o briefing";
             }
         } catch (error) {
+            if (requestId !== this.clientManagementRequestId) return;
             console.error("Erro ao carregar o cliente:", error);
             this.navigate("clients");
         }
@@ -305,20 +319,25 @@ export class AdminSystemModules {
 
     private async mountBriefingReport(
         clientId: string,
-        elements: ReturnType<typeof getClientManagementElements>
+        elements: ReturnType<typeof getClientManagementElements>,
+        requestId: number
     ): Promise<void> {
         try {
             const status = await this.api.loadBriefingReportStatus(this.session, clientId);
-            this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl);
+            if (requestId !== this.clientManagementRequestId) return;
+            this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl, requestId);
         } catch (error) {
+            if (requestId !== this.clientManagementRequestId) return;
             console.error("Erro ao verificar relatório do briefing:", error);
+            elements.briefingReport.classList.remove("client-management-report-loading");
             elements.briefingReport.disabled = false;
             elements.briefingReportLabel.textContent = "Tentar novamente";
-            u(elements.briefingReport).off("click").on("click", () => {
+            elements.briefingReport.onclick = () => {
                 elements.briefingReport.disabled = true;
+                elements.briefingReport.classList.add("client-management-report-loading");
                 elements.briefingReportLabel.textContent = "Verificando...";
-                void this.mountBriefingReport(clientId, elements);
-            });
+                void this.mountBriefingReport(clientId, elements, requestId);
+            };
         }
     }
 
@@ -326,38 +345,42 @@ export class AdminSystemModules {
         clientId: string,
         elements: ReturnType<typeof getClientManagementElements>,
         exists: boolean,
-        folderUrl?: string
+        folderUrl: string | undefined,
+        requestId: number
     ): void {
         const button = elements.briefingReport;
         button.disabled = false;
         button.classList.remove("client-management-report-loading");
         button.classList.remove("client-management-report-unavailable");
         u(button).off("click");
+        button.onclick = null;
 
         if (exists && folderUrl) {
             elements.briefingReportLabel.textContent = "Acessar";
-            u(button).on("click", () => {
+            button.onclick = () => {
                 window.open(folderUrl, "_blank", "noopener,noreferrer");
-            });
+            };
             return;
         }
 
         elements.briefingReportLabel.textContent = "Gerar relatório";
-        u(button).on("click", () => {
+        button.onclick = () => {
             button.disabled = true;
             button.classList.add("client-management-report-loading");
             elements.briefingReportLabel.textContent = "Gerando relatório...";
             void this.api.generateBriefingReport(this.session, clientId)
                 .then(status => {
-                    this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl);
+                    if (requestId !== this.clientManagementRequestId) return;
+                    this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl, requestId);
                 })
                 .catch(error => {
+                    if (requestId !== this.clientManagementRequestId) return;
                     console.error("Erro ao gerar relatório do briefing:", error);
                     button.disabled = false;
                     button.classList.remove("client-management-report-loading");
                     elements.briefingReportLabel.textContent = "Tentar novamente";
                 });
-        });
+        };
     }
 
     private mountNewClient(): void {

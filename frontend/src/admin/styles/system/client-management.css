@@ -133,7 +133,7 @@
     cursor: not-allowed;
 }
 
-.client-management-report-spinner {
+.client-management-report-action .client-management-report-spinner {
     display: none;
 }
 
@@ -141,7 +141,7 @@
     display: none;
 }
 
-.client-management-report-loading .client-management-report-spinner {
+.client-management-report-action.client-management-report-loading .client-management-report-spinner {
     display: inline-block;
 }
 
