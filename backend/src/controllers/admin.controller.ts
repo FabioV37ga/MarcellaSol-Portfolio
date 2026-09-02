@@ -7,6 +7,8 @@ import { ListClientsService } from "../application/list-clients.service.js";
 import { ClientBriefingReportService } from "../application/client-briefing-report.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
 import { ClientProposalService } from "../application/client-proposal.service.js";
+import { SessionService } from "../services/session.service.js";
+import { loginCredentials } from "./login-credentials.js";
 
 export class AdminController {
     constructor(
@@ -14,19 +16,30 @@ export class AdminController {
         private readonly authenticate = new AuthenticateService(),
         private readonly listClients = new ListClientsService(),
         private readonly briefingReports = new ClientBriefingReportService(),
-        private readonly proposals = new ClientProposalService()
+        private readonly proposals = new ClientProposalService(),
+        private readonly sessions = new SessionService()
     ) {}
 
     login = async (request: Request, response: Response): Promise<Response> => {
         try {
-            const { login, password } = request.body;
-            if (!login || !password) return response.status(400).json({ message: "Login e senha são obrigatórios" });
+            const { login, password } = loginCredentials(request.body);
 
             const { account, token } = await this.authenticate.execute("admin", login, password);
             return response.status(200).json({ message: "Login bem-sucedido", name: account.name, token });
         } catch (error: unknown) {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            return response.status(500).json({ message: "Erro ao buscar admin", error: this.errorMessage(error) });
+            console.error("Erro ao autenticar administrador:", error);
+            return response.status(500).json({ message: "Erro interno ao autenticar administrador" });
+        }
+    };
+
+    logout = async (_request: Request, response: Response): Promise<Response> => {
+        try {
+            await this.sessions.revoke(authenticatedPrincipal(response));
+            return response.status(204).send();
+        } catch (error: unknown) {
+            console.error("Erro ao revogar sessão administrativa:", error);
+            return response.status(500).json({ message: "Erro interno ao encerrar sessão" });
         }
     };
 
@@ -142,7 +155,7 @@ export class AdminController {
         } catch (error: unknown) {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
             if (error instanceof mongoose.Error.ValidationError) {
-                return response.status(400).json({ message: "Dados do cliente ou briefing inválidos", errors: error.errors });
+                return response.status(400).json({ message: "Dados do cliente ou briefing inválidos" });
             }
             console.error("Erro ao criar cliente:", error);
             return response.status(500).json({ message: "Erro interno ao criar cliente" });
@@ -158,10 +171,6 @@ export class AdminController {
         return { client };
     }
 
-    private errorMessage(error: unknown): string {
-        return error instanceof Error ? error.message : String(error);
-    }
-
     private routeParameter(value: string | string[]): string {
         return Array.isArray(value) ? value[0] : value;
     }
@@ -169,7 +178,7 @@ export class AdminController {
     private proposalError(error: unknown, response: Response): Response {
         if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
         if (error instanceof mongoose.Error.ValidationError) {
-            return response.status(400).json({ message: "Dados da proposta inválidos", errors: error.errors });
+            return response.status(400).json({ message: "Dados da proposta inválidos" });
         }
         console.error("Erro ao processar proposta:", error);
         return response.status(500).json({ message: "Erro interno ao processar proposta" });

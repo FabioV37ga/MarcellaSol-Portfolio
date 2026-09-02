@@ -1,19 +1,24 @@
 import type { NextFunction, Request, Response } from "express";
-import { SessionTokenService, type AccountRole, type SessionPrincipal } from "../services/session-token.service.js";
+import type { AccountRole, SessionPrincipal } from "../services/session-token.service.js";
+import { SessionService } from "../services/session.service.js";
 
-const tokens = new SessionTokenService();
+const sessions = new SessionService();
 
 export function requireAuthentication(role: AccountRole) {
-    return (request: Request, response: Response, next: NextFunction): void => {
-        const authorization = request.header("Authorization");
-        const token = authorization?.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
-        const principal = token ? tokens.verify(token) : undefined;
-        if (!principal || principal.role !== role) {
-            response.status(401).json({ message: "Sessão inválida ou expirada." });
-            return;
+    return async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authorization = request.header("Authorization");
+            const token = authorization?.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+            const principal = token ? await sessions.authenticate(token) : undefined;
+            if (!principal || principal.role !== role) {
+                response.status(401).json({ message: "Sessão inválida, revogada ou expirada." });
+                return;
+            }
+            response.locals.auth = principal;
+            next();
+        } catch (error) {
+            next(error);
         }
-        response.locals.auth = principal;
-        next();
     };
 }
 

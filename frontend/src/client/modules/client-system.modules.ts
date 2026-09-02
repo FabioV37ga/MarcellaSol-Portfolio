@@ -8,6 +8,7 @@ import { ClientSystemView } from "../views/clientSystem.view.js";
 import { ClientSystemApi } from "../infrastructure/client-system.api.js";
 import { clientApprovalItem } from "../templates/client-approval-item.template.js";
 import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
+import { logoutSession } from "@/shared/session/logout.js";
 
 export class ClientSystemModules {
     private baseElements?: baseElements;
@@ -53,6 +54,9 @@ export class ClientSystemModules {
         this.baseElements = getBaseElements();
         this.mountMobileNavigation();
         this.view.styleNavButton(this.baseElements.desktop_nav_home);
+        u(this.baseElements.desktop_logout).off("click").on("click", () => {
+            void logoutSession("client", this.token);
+        });
 
         u(this.baseElements.desktop_nav_home)
             .off("click")

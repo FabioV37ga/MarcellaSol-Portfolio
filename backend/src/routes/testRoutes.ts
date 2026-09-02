@@ -24,7 +24,8 @@ router.get("/api/test", async (req, res) => {
     }
     res.json(projeto);
   } catch (error: any) {
-    return res.status(500).json({ message: "Erro ao buscar projeto", error: error.message });
+    console.error("Erro ao buscar projeto:", error);
+    return res.status(500).json({ message: "Erro interno ao buscar projeto" });
   }
 });
 

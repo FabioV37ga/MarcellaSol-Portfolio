@@ -120,10 +120,12 @@ async function submitLogin(login: string, password: string) {
             }
             new AdminSystem(admin.token, admin.name)
         } else {
-            logLoginMessage("Login ou senha incorretos.");
+            const failure = await response.json().catch(() => ({})) as { message?: string };
+            logLoginMessage(failure.message ?? "Login ou senha incorretos.");
         }
     } catch (error) {
-
+        console.error("Erro ao fazer login:", error);
+        logLoginMessage("Não foi possível conectar ao servidor.");
     }
 }
 

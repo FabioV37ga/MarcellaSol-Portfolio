@@ -9,19 +9,21 @@ import { ClientRepository } from "../repositories/client.repository.js";
 import { AuthenticateService } from "../application/authenticate.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
 import { ClientProposalService } from "../application/client-proposal.service.js";
+import { SessionService } from "../services/session.service.js";
+import { loginCredentials } from "./login-credentials.js";
 
 export class ClientController {
     constructor(
         private readonly clients = new ClientRepository(),
         private readonly submitBriefing = new SubmitBriefingService(),
         private readonly authenticate = new AuthenticateService(),
-        private readonly proposals = new ClientProposalService()
+        private readonly proposals = new ClientProposalService(),
+        private readonly sessions = new SessionService()
     ) {}
 
     login = async (request: Request, response: Response): Promise<Response> => {
         try {
-            const { login, password } = request.body;
-            if (!login || !password) return response.status(400).json({ message: "Login e senha são obrigatórios" });
+            const { login, password } = loginCredentials(request.body);
 
             const { account: client, token } = await this.authenticate.execute("client", login, password);
             return response.status(200).json({
@@ -34,10 +36,18 @@ export class ClientController {
             });
         } catch (error: unknown) {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            return response.status(500).json({
-                message: "Erro ao buscar cliente",
-                error: error instanceof Error ? error.message : String(error)
-            });
+            console.error("Erro ao autenticar cliente:", error);
+            return response.status(500).json({ message: "Erro interno ao autenticar cliente" });
+        }
+    };
+
+    logout = async (_request: Request, response: Response): Promise<Response> => {
+        try {
+            await this.sessions.revoke(authenticatedPrincipal(response));
+            return response.status(204).send();
+        } catch (error: unknown) {
+            console.error("Erro ao revogar sessão de cliente:", error);
+            return response.status(500).json({ message: "Erro interno ao encerrar sessão" });
         }
     };
 
@@ -81,9 +91,7 @@ export class ClientController {
         } catch (error: unknown) {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
             console.error("Erro ao salvar briefing do cliente:", error);
-            const message = error instanceof Error && error.message.startsWith("Integração com Google Drive não configurada")
-                ? error.message : "Erro ao salvar briefing";
-            return response.status(500).json({ message });
+            return response.status(500).json({ message: "Erro interno ao salvar briefing" });
         }
     };
 

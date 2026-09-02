@@ -1,6 +1,32 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self'",
+  "script-src-attr 'none'",
+  "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+  "font-src 'self' data: https://cdnjs.cloudflare.com",
+  "img-src 'self' data: blob:",
+  "connect-src 'self' http://localhost:3000 http://127.0.0.1:3000 http://*:3000 ws://localhost:8080 ws://127.0.0.1:8080 ws://*:8080",
+  "media-src 'self'",
+  "worker-src 'self' blob:"
+].join('; ');
+
+const securityHeaders = {
+  'Content-Security-Policy': contentSecurityPolicy,
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+  'Permissions-Policy': 'camera=(), geolocation=(), microphone=()',
+  'Referrer-Policy': 'no-referrer',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY'
+};
+
 export default defineConfig({
   root: 'src',
   resolve: {
@@ -23,9 +49,11 @@ export default defineConfig({
   server: {
     port: 8080,
     open: true,
+    headers: securityHeaders,
   },
   preview: {
     // Allow Render's host so `vite preview` accepts requests to that hostname, also, localhost for local testing
     allowedHosts: ['localhost'],
+    headers: securityHeaders,
   },
 });

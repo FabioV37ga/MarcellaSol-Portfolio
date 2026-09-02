@@ -11,6 +11,7 @@ import type { AdminSession, AdminSystemApi, ClientProposal } from "../infrastruc
 import { clientListItem } from "../templates/client-list-item.template.js";
 import { getClientManagementElements } from "../selectors/client-management.selector.js";
 import { clientProposalItem } from "../templates/client-proposal-item.template.js";
+import { logoutSession } from "@/shared/session/logout.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
@@ -49,6 +50,9 @@ export class AdminSystemModules {
         this.base = getBaseElements();
         u(this.base.desktop_nav_home).off("click").on("click", () => this.navigate("home"));
         u(this.base.desktop_nav_client).off("click").on("click", () => this.navigate("clients"));
+        u(this.base.desktop_logout).off("click").on("click", () => {
+            void logoutSession("admin", this.session.token);
+        });
     }
 
     private mountHome(): void {

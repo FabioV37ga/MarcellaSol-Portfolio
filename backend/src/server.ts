@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "path";
 import connect from "./config/dbConnect.js";
 import routes from "./routes/index.js";
+import { securityHeaders } from "./middleware/security-headers.middleware.js";
 
 
 const environmentCandidates = [
@@ -30,6 +31,16 @@ console.log(`✓ Variáveis de ambiente carregadas de ${environmentPath}`);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === "production";
+const trustProxyHops = Number(process.env.TRUST_PROXY_HOPS ?? 0);
+
+if (!Number.isInteger(trustProxyHops) || trustProxyHops < 0 || trustProxyHops > 10) {
+  throw new Error("TRUST_PROXY_HOPS deve ser um número inteiro entre 0 e 10");
+}
+if (trustProxyHops > 0) app.set("trust proxy", trustProxyHops);
+
+app.disable("x-powered-by");
+app.use(...securityHeaders(isProduction));
 
 // TODO: On-prod remover localhost e IPs privados da lista de origens permitidas no CORS
 // Configuração de CORS
