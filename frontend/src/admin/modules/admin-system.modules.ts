@@ -244,10 +244,15 @@ export class AdminSystemModules {
             return;
         }
 
-        this.view.render(proposalsView, ".page-content");
+        // A view cadastrada é um template compartilhado. Cada cliente precisa de uma árvore
+        // própria para não reaproveitar ordem visual nem listeners que salvam usando outro ID.
+        const mountedProposalsView = proposalsView.cloneNode(true) as HTMLElement;
+        this.view.render(mountedProposalsView, ".page-content");
         this.view.styleNavButton(this.base!.desktop_nav_client);
 
-        const root = document.querySelector<HTMLElement>(".proposals-management-container");
+        const root = mountedProposalsView.matches(".proposals-management-container")
+            ? mountedProposalsView
+            : mountedProposalsView.querySelector<HTMLElement>(".proposals-management-container");
         if (!root) return;
         const openList = root.querySelector<HTMLElement>("#open-proposals-list")!;
         const closedList = root.querySelector<HTMLElement>("#closed-proposals-list")!;
