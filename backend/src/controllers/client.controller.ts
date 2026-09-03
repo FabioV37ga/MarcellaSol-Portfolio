@@ -12,6 +12,7 @@ import { ClientProposalService } from "../application/client-proposal.service.js
 import { SessionService } from "../services/session.service.js";
 import { loginCredentials } from "./login-credentials.js";
 import { normalizedProjectStages } from "../models/projectStage.js";
+import { ClientPaymentService } from "../application/client-payment.service.js";
 
 export class ClientController {
     constructor(
@@ -19,6 +20,7 @@ export class ClientController {
         private readonly submitBriefing = new SubmitBriefingService(),
         private readonly authenticate = new AuthenticateService(),
         private readonly proposals = new ClientProposalService(),
+        private readonly paymentService = new ClientPaymentService(),
         private readonly sessions = new SessionService()
     ) {}
 
@@ -81,6 +83,17 @@ export class ClientController {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
             console.error("Erro ao carregar aprovações do cliente:", error);
             return response.status(500).json({ message: "Erro ao carregar aprovações." });
+        }
+    };
+
+    payments = async (_request: Request, response: Response): Promise<Response> => {
+        try {
+            const principal = authenticatedPrincipal(response);
+            return response.status(200).json({ payments: await this.paymentService.list(principal.subject) });
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            console.error("Erro ao carregar pagamentos do cliente:", error);
+            return response.status(500).json({ message: "Erro ao carregar pagamentos." });
         }
     };
 

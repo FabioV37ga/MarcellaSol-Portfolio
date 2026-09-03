@@ -21,7 +21,7 @@ import { extractResidentEmails } from "../dist/src/services/briefing-emails.js";
 import { UpdateClientProjectStageService } from "../dist/src/application/update-client-project-stage.service.js";
 import { DeleteClientService } from "../dist/src/application/delete-client.service.js";
 import { ListClientsService } from "../dist/src/application/list-clients.service.js";
-import { calculatePaymentSchedule } from "../dist/src/application/client-payment.service.js";
+import { calculatePaymentSchedule, ClientPaymentService, monthlyDueDate } from "../dist/src/application/client-payment.service.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
 
@@ -29,6 +29,7 @@ test("cálculo financeiro distribui centavos sem perder valor", () => {
     const schedule = calculatePaymentSchedule({
         totalAmount: "1000.00",
         installmentCount: 3,
+        firstDueDate: "2026-08-18",
         downPaymentPercentage: "10",
         discountPercentage: "5",
         interestPercentage: "12"
@@ -40,6 +41,8 @@ test("cálculo financeiro distribui centavos sem perder valor", () => {
     assert.equal(schedule.interestAmountCents, 10260);
     assert.equal(schedule.finalAmountCents, 105260);
     assert.deepEqual(schedule.installments.map(item => item.amountCents), [31920, 31920, 31920]);
+    assert.equal(schedule.downPayment.dueDate, "2026-08-18");
+    assert.deepEqual(schedule.installments.map(item => item.dueDate), ["2026-09-18", "2026-10-18", "2026-11-18"]);
     assert.equal(
         schedule.downPayment.amountCents + schedule.installments.reduce((sum, item) => sum + item.amountCents, 0),
         schedule.finalAmountCents
@@ -54,19 +57,65 @@ test("edição financeira preserva ou substitui os estados pagos explicitamente"
             { number: 2, amountCents: 3000, isPaid: false }
         ]
     };
-    const preserved = calculatePaymentSchedule({ totalAmount: 100, installmentCount: 2, downPaymentPercentage: 10 }, previous);
+    const preserved = calculatePaymentSchedule({ totalAmount: 100, installmentCount: 2, firstDueDate: "2026-08-18", downPaymentPercentage: 10 }, previous);
     assert.equal(preserved.downPayment.isPaid, true);
     assert.deepEqual(preserved.installments.map(item => item.isPaid), [true, false]);
 
     const replaced = calculatePaymentSchedule({
         totalAmount: 100,
         installmentCount: 2,
+        firstDueDate: "2026-08-18",
         downPaymentPercentage: 10,
         downPaymentIsPaid: false,
         paidInstallmentNumbers: [2]
     }, previous);
     assert.equal(replaced.downPayment.isPaid, false);
     assert.deepEqual(replaced.installments.map(item => item.isPaid), [false, true]);
+});
+
+test("vencimentos mensais preservam o dia e usam o último dia quando necessário", () => {
+    assert.equal(monthlyDueDate("2026-01-31", 1), "2026-02-28");
+    assert.equal(monthlyDueDate("2026-01-31", 2), "2026-03-31");
+});
+
+test("consulta financeira usa exclusivamente o cliente recebido da sessão", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const queriedIds = [];
+    const service = new ClientPaymentService(
+        { async findById(id) { assert.equal(id, clientId); return { _id: id }; } },
+        {
+            async findByClientId(id) {
+                queriedIds.push(id);
+                return [{
+                    _id: { toString: () => "507f1f77bcf86cd799439012" },
+                    clientId: { toString: () => clientId },
+                    title: "Projeto completo",
+                    totalAmountCents: 100000,
+                    installmentCount: 2,
+                    downPaymentPercentage: 10,
+                    discountPercentage: 0,
+                    interestPercentage: 0,
+                    discountAmountCents: 0,
+                    downPayment: { amountCents: 10000, isPaid: true },
+                    financedAmountCents: 90000,
+                    interestAmountCents: 0,
+                    installmentTotalCents: 90000,
+                    finalAmountCents: 100000,
+                    installments: [
+                        { number: 1, amountCents: 45000, isPaid: true },
+                        { number: 2, amountCents: 45000, isPaid: false }
+                    ],
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }];
+            }
+        }
+    );
+
+    const result = await service.list(clientId);
+    assert.deepEqual(queriedIds, [clientId]);
+    assert.equal(result[0].paidAmountCents, 55000);
+    assert.equal(result[0].remainingAmountCents, 45000);
 });
 
 class MemorySessionStore {

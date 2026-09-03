@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 export interface PaymentPart {
     amountCents: number;
     isPaid: boolean;
+    dueDate: string;
 }
 
 export interface PaymentInstallment extends PaymentPart {
@@ -15,6 +16,7 @@ export interface ClientPaymentObject {
     title: string;
     totalAmountCents: number;
     installmentCount: number;
+    firstDueDate: string;
     downPaymentPercentage: number;
     discountPercentage: number;
     interestPercentage: number;
@@ -31,13 +33,15 @@ export interface ClientPaymentObject {
 
 const paymentPartSchema = new mongoose.Schema<PaymentPart>({
     amountCents: { type: Number, required: true, min: 0, validate: Number.isInteger },
-    isPaid: { type: Boolean, required: true, default: false }
+    isPaid: { type: Boolean, required: true, default: false },
+    dueDate: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ }
 }, { _id: false });
 
 const installmentSchema = new mongoose.Schema<PaymentInstallment>({
     number: { type: Number, required: true, min: 1, validate: Number.isInteger },
     amountCents: { type: Number, required: true, min: 0, validate: Number.isInteger },
-    isPaid: { type: Boolean, required: true, default: false }
+    isPaid: { type: Boolean, required: true, default: false },
+    dueDate: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ }
 }, { _id: false });
 
 const clientPaymentSchema = new mongoose.Schema<ClientPaymentObject>({
@@ -45,6 +49,7 @@ const clientPaymentSchema = new mongoose.Schema<ClientPaymentObject>({
     title: { type: String, required: true, trim: true, maxlength: 160 },
     totalAmountCents: { type: Number, required: true, min: 1, validate: Number.isInteger },
     installmentCount: { type: Number, required: true, min: 1, max: 120, validate: Number.isInteger },
+    firstDueDate: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
     downPaymentPercentage: { type: Number, required: true, min: 0, max: 100 },
     discountPercentage: { type: Number, required: true, min: 0, max: 100 },
     interestPercentage: { type: Number, required: true, min: 0, max: 100 },

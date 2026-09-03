@@ -227,6 +227,7 @@ button:disabled { cursor: wait; opacity: .6; }
 .financial-switch input:focus-visible + span { outline: 2px solid var(--orange); outline-offset: 2px; }
 .financial-switch input:disabled + span { opacity: .45; }
 .financial-switch em { color: var(--gray); font-size: 9px; font-style: normal; }
+.financial-switch em.is-overdue { color: #a93226; font-weight: 700; }
 
 .financial-payment-dialog {
     width: min(640px, calc(100% - 32px));

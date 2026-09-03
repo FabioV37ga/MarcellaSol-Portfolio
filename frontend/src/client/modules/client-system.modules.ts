@@ -10,9 +10,12 @@ import { clientApprovalItem } from "../templates/client-approval-item.template.j
 import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
 import { logoutSession } from "@/shared/session/logout.js";
 import { renderProjectStages } from "@/shared/project-stages.js";
+import { getClientFinancialElements } from "../selectors/financial.selector.js";
+import { clientPaymentHighlight, clientPaymentItem } from "../templates/client-payment-item.template.js";
 
 export class ClientSystemModules {
     private baseElements?: baseElements;
+    private financialRequestId = 0;
 
     constructor(
         private readonly view: ClientSystemView,
@@ -38,6 +41,9 @@ export class ClientSystemModules {
             case "stages-approvals":
                 void this.mountStagesApprovals();
                 break;
+            case "financial":
+                void this.mountFinancial();
+                break;
         }
     }
 
@@ -48,6 +54,9 @@ export class ClientSystemModules {
         u(home.stagesProcesses)
             .off("click")
             .on("click", () => this.navigate("stages-approvals"));
+        u(home.financial)
+            .off("click")
+            .on("click", () => this.navigate("financial"));
     }
 
     private mountBase(): void {
@@ -65,6 +74,47 @@ export class ClientSystemModules {
         u(this.baseElements.desktop_nav_client)
             .off("click")
             .on("click", () => this.navigate("stages-approvals"));
+        u(this.baseElements.desktop_nav_financial)
+            .off("click")
+            .on("click", () => this.navigate("financial"));
+    }
+
+    private async mountFinancial(): Promise<void> {
+        const model = this.models.financial;
+        if (!model) {
+            console.error('A view "financial" não foi encontrada para o cliente.');
+            return;
+        }
+
+        this.view.render(model, ".page-content");
+        this.view.styleNavButton(this.baseElements?.desktop_nav_financial);
+        const elements = getClientFinancialElements();
+        const requestId = ++this.financialRequestId;
+        u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
+        u(elements.back).off("click").on("click", () => this.navigate("home"));
+
+        try {
+            const payments = await this.api.loadPayments(this.token);
+            if (requestId !== this.financialRequestId) return;
+            elements.loading.hidden = true;
+            elements.highlight.replaceChildren(clientPaymentHighlight(payments));
+            elements.list.replaceChildren();
+            if (payments.length === 0) {
+                elements.empty.hidden = false;
+                return;
+            }
+            elements.empty.hidden = true;
+            const items = document.createDocumentFragment();
+            payments.forEach(payment => items.append(clientPaymentItem(payment)));
+            elements.list.append(items);
+        } catch (error) {
+            if (requestId !== this.financialRequestId) return;
+            elements.loading.hidden = true;
+            elements.highlight.textContent = "Não foi possível identificar o pagamento em destaque.";
+            elements.feedback.textContent = error instanceof Error
+                ? error.message
+                : "Não foi possível carregar os pagamentos.";
+        }
     }
 
     private async mountStagesApprovals(): Promise<void> {

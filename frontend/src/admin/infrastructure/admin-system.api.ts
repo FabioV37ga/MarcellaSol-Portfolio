@@ -62,6 +62,7 @@ export interface ProposalFields {
 export interface PaymentPart {
     amountCents: number;
     isPaid: boolean;
+    dueDate?: string;
 }
 
 export interface PaymentInstallment extends PaymentPart {
@@ -74,6 +75,7 @@ export interface ClientPayment {
     title: string;
     totalAmountCents: number;
     installmentCount: number;
+    firstDueDate?: string;
     downPaymentPercentage: number;
     discountPercentage: number;
     interestPercentage: number;
@@ -94,6 +96,7 @@ export interface PaymentFields {
     title: string;
     totalAmount: string;
     installmentCount: number;
+    firstDueDate: string;
     downPaymentPercentage?: string;
     discountPercentage?: string;
     interestPercentage?: string;

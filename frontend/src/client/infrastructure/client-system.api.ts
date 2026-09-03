@@ -31,6 +31,35 @@ export interface ClientProposalDecision {
     currentStageKey: ProjectStageKey;
 }
 
+export interface ClientPaymentPart {
+    amountCents: number;
+    isPaid: boolean;
+    dueDate?: string;
+}
+
+export interface ClientPaymentInstallment extends ClientPaymentPart {
+    number: number;
+}
+
+export interface ClientPayment {
+    id: string;
+    title: string;
+    totalAmountCents: number;
+    installmentCount: number;
+    firstDueDate?: string;
+    downPaymentPercentage: number;
+    discountPercentage: number;
+    interestPercentage: number;
+    discountAmountCents: number;
+    downPayment: ClientPaymentPart;
+    finalAmountCents: number;
+    paidAmountCents: number;
+    remainingAmountCents: number;
+    installments: ClientPaymentInstallment[];
+    createdAt: string;
+    updatedAt: string;
+}
+
 export class ClientSystemApi {
     async load(token: string): Promise<ClientSystemResponse | undefined> {
         const response = await fetch(`${config.apiBaseUrl}/view/client`, {
@@ -62,6 +91,18 @@ export class ClientSystemApi {
             projectStages: result.projectStages ?? [],
             currentStageKey: result.currentStageKey ?? "briefing"
         };
+    }
+
+    async loadPayments(token: string): Promise<ClientPayment[]> {
+        const response = await fetch(`${config.apiBaseUrl}/client/payments`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await response.json().catch(() => ({})) as {
+            payments?: ClientPayment[];
+            message?: string;
+        };
+        if (!response.ok) throw new Error(result.message ?? "Não foi possível carregar os pagamentos.");
+        return result.payments ?? [];
     }
 
     approveProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {

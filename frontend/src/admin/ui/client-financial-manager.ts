@@ -8,7 +8,8 @@ import type { ClientFinancialElements } from "../selectors/client-financial.sele
 
 interface PreviewSchedule {
     downPaymentCents: number;
-    installments: number[];
+    firstDueDate: string;
+    installments: Array<{ amountCents: number; dueDate: string }>;
     finalAmountCents: number;
 }
 
@@ -21,6 +22,7 @@ export class ClientFinancialManager {
     private readonly title: HTMLInputElement;
     private readonly total: HTMLInputElement;
     private readonly count: HTMLInputElement;
+    private readonly firstDueDate: HTMLInputElement;
     private readonly down: HTMLInputElement;
     private readonly discount: HTMLInputElement;
     private readonly interest: HTMLInputElement;
@@ -43,6 +45,7 @@ export class ClientFinancialManager {
         this.title = required<HTMLInputElement>(root, "#financial-payment-title");
         this.total = required<HTMLInputElement>(root, "#financial-payment-total");
         this.count = required<HTMLInputElement>(root, "#financial-payment-count");
+        this.firstDueDate = required<HTMLInputElement>(root, "#financial-payment-first-due-date");
         this.down = required<HTMLInputElement>(root, "#financial-payment-down");
         this.discount = required<HTMLInputElement>(root, "#financial-payment-discount");
         this.interest = required<HTMLInputElement>(root, "#financial-payment-interest");
@@ -60,7 +63,7 @@ export class ClientFinancialManager {
         this.elements.newPayment.addEventListener("click", () => this.openEditor());
         required<HTMLButtonElement>(this.elements.root, "#financial-payment-cancel")
             .addEventListener("click", () => this.elements.dialog.close());
-        [this.total, this.count, this.down, this.discount, this.interest]
+        [this.total, this.count, this.firstDueDate, this.down, this.discount, this.interest]
             .forEach(input => input.addEventListener("input", () => this.renderPreview()));
         this.partsEditor.addEventListener("change", () => this.renderPreview());
         this.elements.form.addEventListener("submit", event => {
@@ -129,10 +132,11 @@ export class ClientFinancialManager {
             payment.downPayment.amountCents,
             payment.downPayment.isPaid,
             undefined,
-            payment.downPayment.amountCents === 0
+            payment.downPayment.amountCents === 0,
+            payment.downPayment.dueDate ?? payment.firstDueDate
         ));
         payment.installments.forEach(item => parts.append(
-            this.partRow(payment, `Parcela ${item.number}`, item.amountCents, item.isPaid, item.number)
+            this.partRow(payment, `Parcela ${item.number}`, item.amountCents, item.isPaid, item.number, false, item.dueDate)
         ));
         card.append(header, summary, progress, parts);
         return card;
@@ -144,18 +148,21 @@ export class ClientFinancialManager {
         amountCents: number,
         isPaid: boolean,
         installmentNumber?: number,
-        disabled = false
+        disabled = false,
+        dueDate?: string
     ): HTMLElement {
         const row = document.createElement("div");
         row.className = "financial-part-row";
         const description = document.createElement("span");
         description.className = "financial-part-description";
         const name = document.createElement("strong");
-        name.textContent = label;
+        name.textContent = dueDate ? `${label} | ${formatDate(dueDate)}` : label;
         const amount = document.createElement("small");
-        amount.textContent = disabled ? "Sem entrada" : formatCents(amountCents);
+        amount.textContent = disabled
+            ? "Sem entrada"
+            : `${formatCents(amountCents)} · ${dueDateLabel(dueDate, isPaid)}`;
         description.append(name, amount);
-        const control = switchControl(label, isPaid, disabled);
+        const control = switchControl(label, isPaid, disabled, dueDate);
         const input = control.querySelector<HTMLInputElement>("input")!;
         input.addEventListener("change", () => void this.togglePart(payment, input, installmentNumber));
         row.append(description, control);
@@ -196,6 +203,7 @@ export class ClientFinancialManager {
         this.title.value = payment?.title ?? "";
         this.total.value = payment ? centsInput(payment.totalAmountCents) : "";
         this.count.value = payment?.installmentCount.toString() ?? "";
+        this.firstDueDate.value = payment?.firstDueDate ?? payment?.installments[0]?.dueDate ?? todayDateOnly();
         this.down.value = optionalPercentage(payment?.downPaymentPercentage);
         this.discount.value = optionalPercentage(payment?.discountPercentage);
         this.interest.value = optionalPercentage(payment?.interestPercentage);
@@ -206,7 +214,14 @@ export class ClientFinancialManager {
     }
 
     private renderPreview(): void {
-        const schedule = previewSchedule(this.total.value, this.count.value, this.down.value, this.discount.value, this.interest.value);
+        const schedule = previewSchedule(
+            this.total.value,
+            this.count.value,
+            this.firstDueDate.value,
+            this.down.value,
+            this.discount.value,
+            this.interest.value
+        );
         if (!schedule) {
             this.preview.hidden = true;
             this.partsEditor.replaceChildren();
@@ -219,13 +234,23 @@ export class ClientFinancialManager {
             schedule.downPaymentCents,
             checked.down,
             "down",
-            schedule.downPaymentCents === 0
+            schedule.downPaymentCents === 0,
+            schedule.firstDueDate
         ));
-        schedule.installments.forEach((amount, index) => this.partsEditor.append(
-            editorPartRow(`Parcela ${index + 1}`, amount, checked.installments.has(index + 1), String(index + 1))
+        schedule.installments.forEach((installment, index) => this.partsEditor.append(
+            editorPartRow(
+                `Parcela ${index + 1}`,
+                installment.amountCents,
+                checked.installments.has(index + 1),
+                String(index + 1),
+                false,
+                installment.dueDate
+            )
         ));
         const paid = (checked.down && schedule.downPaymentCents > 0 ? schedule.downPaymentCents : 0)
-            + schedule.installments.reduce((sum, amount, index) => sum + (checked.installments.has(index + 1) ? amount : 0), 0);
+            + schedule.installments.reduce((sum, installment, index) => (
+                sum + (checked.installments.has(index + 1) ? installment.amountCents : 0)
+            ), 0);
         this.previewFinal.textContent = formatCents(schedule.finalAmountCents);
         this.previewRemaining.textContent = formatCents(Math.max(0, schedule.finalAmountCents - paid));
         this.preview.hidden = false;
@@ -254,6 +279,7 @@ export class ClientFinancialManager {
             title: this.title.value,
             totalAmount: this.total.value,
             installmentCount: Number(this.count.value),
+            firstDueDate: this.firstDueDate.value,
             downPaymentPercentage: this.down.value,
             discountPercentage: this.discount.value,
             interestPercentage: this.interest.value,
@@ -300,7 +326,7 @@ function required<T extends HTMLElement = HTMLElement>(root: HTMLElement, select
     return element;
 }
 
-function switchControl(label: string, checked: boolean, disabled = false): HTMLLabelElement {
+function switchControl(label: string, checked: boolean, disabled = false, dueDate?: string): HTMLLabelElement {
     const control = document.createElement("label");
     control.className = "financial-switch";
     const input = document.createElement("input");
@@ -311,23 +337,34 @@ function switchControl(label: string, checked: boolean, disabled = false): HTMLL
     const track = document.createElement("span");
     track.setAttribute("aria-hidden", "true");
     const state = document.createElement("em");
-    state.textContent = checked ? "Pago" : "Não pago";
-    input.addEventListener("change", () => { state.textContent = input.checked ? "Pago" : "Não pago"; });
+    state.textContent = paymentStateLabel(checked, dueDate);
+    state.classList.toggle("is-overdue", !checked && isOverdue(dueDate));
+    input.addEventListener("change", () => {
+        state.textContent = paymentStateLabel(input.checked, dueDate);
+        state.classList.toggle("is-overdue", !input.checked && isOverdue(dueDate));
+    });
     control.append(input, track, state);
     return control;
 }
 
-function editorPartRow(label: string, amount: number, checked: boolean, part: string, disabled = false): HTMLElement {
+function editorPartRow(
+    label: string,
+    amount: number,
+    checked: boolean,
+    part: string,
+    disabled = false,
+    dueDate?: string
+): HTMLElement {
     const row = document.createElement("div");
     row.className = "financial-part-row";
     const description = document.createElement("span");
     description.className = "financial-part-description";
     const name = document.createElement("strong");
-    name.textContent = label;
+    name.textContent = dueDate ? `${label} | ${formatDate(dueDate)}` : label;
     const value = document.createElement("small");
-    value.textContent = disabled ? "Sem entrada" : formatCents(amount);
+    value.textContent = disabled ? "Sem entrada" : `${formatCents(amount)} · ${dueDateLabel(dueDate, checked)}`;
     description.append(name, value);
-    const control = switchControl(label, checked, disabled);
+    const control = switchControl(label, checked, disabled, dueDate);
     const input = control.querySelector("input")!;
     input.dataset.part = part;
     row.append(description, control);
@@ -345,10 +382,18 @@ function summaryItem(label: string, value: string, highlight = false): HTMLEleme
     return item;
 }
 
-function previewSchedule(total: string, count: string, down: string, discount: string, interest: string): PreviewSchedule | undefined {
+function previewSchedule(
+    total: string,
+    count: string,
+    firstDueDate: string,
+    down: string,
+    discount: string,
+    interest: string
+): PreviewSchedule | undefined {
     const totalCents = Math.round(Number(total) * 100);
     const installments = Number(count);
-    if (!Number.isSafeInteger(totalCents) || totalCents < 1 || !Number.isInteger(installments) || installments < 1 || installments > 120) return undefined;
+    if (!Number.isSafeInteger(totalCents) || totalCents < 1 || !Number.isInteger(installments)
+        || installments < 1 || installments > 120 || !isDateOnly(firstDueDate)) return undefined;
     const downRate = validPercentage(down);
     const discountRate = validPercentage(discount);
     const interestRate = validPercentage(interest);
@@ -361,7 +406,11 @@ function previewSchedule(total: string, count: string, down: string, discount: s
     const remainder = installmentTotal % installments;
     return {
         downPaymentCents,
-        installments: Array.from({ length: installments }, (_, index) => base + (index < remainder ? 1 : 0)),
+        firstDueDate,
+        installments: Array.from({ length: installments }, (_, index) => ({
+            amountCents: base + (index < remainder ? 1 : 0),
+            dueDate: monthlyDueDate(firstDueDate, index + 1)
+        })),
         finalAmountCents: downPaymentCents + installmentTotal
     };
 }
@@ -377,3 +426,46 @@ function centsInput(value: number): string { return (value / 100).toFixed(2); }
 function optionalPercentage(value: number | undefined): string { return value ? value.toString() : ""; }
 function formatPercentage(value: number): string { return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`; }
 function errorMessage(error: unknown, fallback: string): string { return error instanceof Error ? error.message : fallback; }
+function todayDateOnly(): string {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+function isDateOnly(value: string): boolean {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+function monthlyDueDate(firstDueDate: string, monthOffset: number): string {
+    const [year, month, preferredDay] = firstDueDate.split("-").map(Number);
+    const target = new Date(Date.UTC(year, month - 1 + monthOffset, 1));
+    const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), Math.min(preferredDay, lastDay)))
+        .toISOString().slice(0, 10);
+}
+function formatDate(value: string): string {
+    const [year, month, day] = value.split("-");
+    return `${day}/${month}/${year}`;
+}
+function dueDateLabel(value: string | undefined, isPaid: boolean): string {
+    if (isPaid) return "Pago";
+    if (!value || !isDateOnly(value)) return "Data não informada";
+    const [year, month, day] = value.split("-").map(Number);
+    const today = new Date();
+    const difference = Math.round((Date.UTC(year, month - 1, day)
+        - Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) / 86_400_000);
+    if (difference === 0) return "Vence hoje";
+    if (difference === 1) return "Falta 1 dia";
+    if (difference > 1) return `Faltam ${difference} dias`;
+    if (difference === -1) return "Vencida há 1 dia";
+    return `Vencida há ${Math.abs(difference)} dias`;
+}
+function isOverdue(value: string | undefined): boolean {
+    if (!value || !isDateOnly(value)) return false;
+    const [year, month, day] = value.split("-").map(Number);
+    const today = new Date();
+    return Date.UTC(year, month - 1, day) < Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+}
+function paymentStateLabel(isPaid: boolean, dueDate?: string): string {
+    return isPaid ? "Pago" : isOverdue(dueDate) ? "Atrasado" : "Não pago";
+}

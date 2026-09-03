@@ -8,6 +8,7 @@ export interface PaymentFields {
     title?: unknown;
     totalAmount?: unknown;
     installmentCount?: unknown;
+    firstDueDate?: unknown;
     downPaymentPercentage?: unknown;
     discountPercentage?: unknown;
     interestPercentage?: unknown;
@@ -18,11 +19,12 @@ export interface PaymentFields {
 export interface PaymentSchedule {
     totalAmountCents: number;
     installmentCount: number;
+    firstDueDate: string;
     downPaymentPercentage: number;
     discountPercentage: number;
     interestPercentage: number;
     discountAmountCents: number;
-    downPayment: { amountCents: number; isPaid: boolean };
+    downPayment: { amountCents: number; isPaid: boolean; dueDate: string };
     financedAmountCents: number;
     interestAmountCents: number;
     installmentTotalCents: number;
@@ -36,6 +38,7 @@ export function calculatePaymentSchedule(
 ): PaymentSchedule {
     const totalAmountCents = moneyToCents(fields.totalAmount);
     const installmentCount = integerInRange(fields.installmentCount, "A quantidade de parcelas", 1, 120);
+    const firstDueDate = dateOnly(fields.firstDueDate);
     const downPaymentBasisPoints = percentageBasisPoints(fields.downPaymentPercentage, "A entrada");
     const discountBasisPoints = percentageBasisPoints(fields.discountPercentage, "O desconto");
     const interestBasisPoints = percentageBasisPoints(fields.interestPercentage, "Os juros");
@@ -52,19 +55,22 @@ export function calculatePaymentSchedule(
     const installments = Array.from({ length: installmentCount }, (_, index) => ({
         number: index + 1,
         amountCents: baseAmount + (index < remainder ? 1 : 0),
-        isPaid: suppliedPaidNumbers?.has(index + 1) ?? previousPaid.get(index + 1) ?? false
+        isPaid: suppliedPaidNumbers?.has(index + 1) ?? previousPaid.get(index + 1) ?? false,
+        dueDate: monthlyDueDate(firstDueDate, index + 1)
     }));
 
     return {
         totalAmountCents,
         installmentCount,
+        firstDueDate,
         downPaymentPercentage: downPaymentBasisPoints / 100,
         discountPercentage: discountBasisPoints / 100,
         interestPercentage: interestBasisPoints / 100,
         discountAmountCents,
         downPayment: {
             amountCents: downPaymentAmountCents,
-            isPaid: downPaymentAmountCents > 0 && suppliedPaidValue(fields.downPaymentIsPaid, previous?.downPayment.isPaid)
+            isPaid: downPaymentAmountCents > 0 && suppliedPaidValue(fields.downPaymentIsPaid, previous?.downPayment.isPaid),
+            dueDate: firstDueDate
         },
         financedAmountCents,
         interestAmountCents,
@@ -142,6 +148,7 @@ function paymentResponse(payment: ClientPaymentObject) {
         title: payment.title,
         totalAmountCents: payment.totalAmountCents,
         installmentCount: payment.installmentCount,
+        firstDueDate: payment.firstDueDate,
         downPaymentPercentage: payment.downPaymentPercentage,
         discountPercentage: payment.discountPercentage,
         interestPercentage: payment.interestPercentage,
@@ -212,4 +219,26 @@ function paidInstallmentNumbers(value: unknown, installmentCount: number): Set<n
         throw new ApplicationError("Os status das parcelas são inválidos", 400);
     }
     return new Set(value as number[]);
+}
+
+function dateOnly(value: unknown): string {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        throw new ApplicationError("A data da primeira cobrança é obrigatória", 400);
+    }
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+        throw new ApplicationError("A data da primeira cobrança é inválida", 400);
+    }
+    return value;
+}
+
+export function monthlyDueDate(firstDueDate: string, monthOffset: number): string {
+    const [year, month, preferredDay] = firstDueDate.split("-").map(Number);
+    const targetFirstDay = new Date(Date.UTC(year, month - 1 + monthOffset, 1));
+    const targetYear = targetFirstDay.getUTCFullYear();
+    const targetMonth = targetFirstDay.getUTCMonth();
+    const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+    const dueDate = new Date(Date.UTC(targetYear, targetMonth, Math.min(preferredDay, lastDay)));
+    return dueDate.toISOString().slice(0, 10);
 }

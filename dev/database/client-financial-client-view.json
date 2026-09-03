@@ -1,0 +1,9 @@
+{
+  "_id": {
+    "$oid": "6c02f1a2b3c4d5e6f708192b"
+  },
+  "viewName": "financial",
+  "permission": "client",
+  "type": "financial",
+  "view": "<section class=client-financial-page><nav class=client-financial-index aria-label='Navegação financeira'><a id=client-financial-home-index>Início</a><span aria-hidden=true>›</span><span>Financeiro</span></nav><header class=client-financial-heading><h1>Financeiro</h1><p>Acompanhe os pagamentos relacionados ao seu projeto.</p></header><section class=client-financial-highlight aria-labelledby=client-financial-highlight-title><header><span class=client-financial-highlight-icon><i class='fa fa-star' aria-hidden=true></i></span><div><span>DESTAQUE</span><h2 id=client-financial-highlight-title>Pagamento do período</h2></div></header><div id=client-financial-highlight-content class=client-financial-highlight-content><p class=client-financial-highlight-empty>Carregando pagamento em destaque...</p></div></section><section class=client-financial-panel aria-labelledby=client-financial-title><header class=client-financial-panel-heading><div class=client-financial-panel-icon><i class='fa fa-money' aria-hidden=true></i></div><div><h2 id=client-financial-title>Pagamentos</h2><p>Consulte os valores pagos, o saldo restante e a situação de cada parcela.</p></div></header><p id=client-financial-loading class=client-financial-state>Carregando pagamentos...</p><div id=client-financial-payments-list class=client-financial-payments-list></div><p id=client-financial-empty class='client-financial-state client-financial-empty' hidden>Nenhum pagamento disponível no momento.</p><p id=client-financial-feedback class='client-financial-state client-financial-feedback' role=alert></p></section><div class=client-financial-actions><button id=client-financial-back type=button><i class='fa fa-arrow-left' aria-hidden=true></i> Voltar</button></div></section>"
+}
