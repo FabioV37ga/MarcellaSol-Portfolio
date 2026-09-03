@@ -2,7 +2,12 @@ import { ClientBriefingRepository } from "../repositories/client-briefing.reposi
 import { ClientRepository } from "../repositories/client.repository.js";
 import mongoose from "mongoose";
 import { ApplicationError } from "./errors/application-error.js";
-import { normalizedProjectStages, type ProjectStage, type ProjectStageKey } from "../models/projectStage.js";
+import {
+    hasConfiguredProjectStageOrder,
+    normalizedProjectStages,
+    type ProjectStage,
+    type ProjectStageKey
+} from "../models/projectStage.js";
 
 export interface AdminClientListItem {
     id: string;
@@ -15,6 +20,7 @@ export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
     currentStageKey: ProjectStageKey;
     projectStages: ProjectStage[];
+    hasProjectStageOrder: boolean;
 }
 
 export class ListClientsService {
@@ -59,6 +65,7 @@ export class ListClientsService {
             hasFilledBriefing: client.hasFilledBriefing,
             currentStageKey: client.currentStageKey ?? "briefing",
             projectStages: normalizedProjectStages(client.projectStages, client.hasFilledBriefing),
+            hasProjectStageOrder: hasConfiguredProjectStageOrder(client.projectStages),
             driveFolderUrl: driveFolderId
                 ? `https://drive.google.com/drive/folders/${encodeURIComponent(driveFolderId)}`
                 : undefined

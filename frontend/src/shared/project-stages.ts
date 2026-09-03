@@ -1,4 +1,5 @@
 export const projectStageLabels = {
+    contract: "Contrato",
     briefing: "Briefing",
     layout: "Layout",
     "project-development": "Desenvolvimento do projeto",
@@ -25,7 +26,11 @@ export const projectStageStatusLabels = {
 
 export type ProjectStageKey = keyof typeof projectStageLabels;
 export type ProjectStageStatus = keyof typeof projectStageStatusLabels;
-export interface ProjectStage { key: ProjectStageKey; status: ProjectStageStatus; }
+export interface ProjectStage {
+    key: ProjectStageKey;
+    status: ProjectStageStatus;
+    index?: number;
+}
 
 function isProjectStageStatus(value: string): value is ProjectStageStatus {
     return Object.prototype.hasOwnProperty.call(projectStageStatusLabels, value);
@@ -36,6 +41,7 @@ export function renderProjectStages(
     stages?: ProjectStage[],
     currentStageKey?: ProjectStageKey
 ): void {
+    reorderProjectStageElements(root, stages);
     const statusByKey = new Map(stages?.map(stage => [stage.key, stage.status]));
     const elements = Array.from(root.querySelectorAll<HTMLElement>(".project-step"));
 
@@ -79,4 +85,21 @@ export function renderProjectStages(
     const label = currentStage.querySelector<HTMLElement>(".project-step-label")?.textContent?.trim() ?? "Etapa atual";
     const status = currentStage.dataset.status as ProjectStageStatus;
     summary.textContent = `${label} — ${projectStageStatusLabels[status].toLowerCase()}.`;
+}
+
+function reorderProjectStageElements(root: ParentNode, stages?: ProjectStage[]): void {
+    if (!stages?.length) return;
+    const track = root.querySelector<HTMLElement>(".project-progress-track");
+    if (!track) return;
+
+    const existing = new Map<ProjectStageKey, HTMLElement>();
+    track.querySelectorAll<HTMLElement>(":scope > .project-step").forEach(step => {
+        const key = step.dataset.stageKey as ProjectStageKey | undefined;
+        if (key && Object.prototype.hasOwnProperty.call(projectStageLabels, key)) existing.set(key, step);
+    });
+    stages.forEach(stage => {
+        const element = existing.get(stage.key);
+        if (!element) return;
+        track.append(element);
+    });
 }

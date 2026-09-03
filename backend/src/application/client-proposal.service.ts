@@ -280,7 +280,7 @@ export class ClientProposalService {
     }
 
     private requiredStageKey(value: unknown): ProjectStageKey {
-        if (typeof value !== "string" || !projectStageKeys.includes(value as ProjectStageKey)) {
+        if (typeof value !== "string" || value === "contract" || !projectStageKeys.includes(value as ProjectStageKey)) {
             throw new ApplicationError("Etapa da proposta inválida", 400);
         }
         return value as ProjectStageKey;

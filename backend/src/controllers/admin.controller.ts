@@ -85,6 +85,21 @@ export class AdminController {
         }
     };
 
+    updateClientProjectStageOrder = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            const result = await this.projectStages.updateOrder(id, request.body?.stageKeys);
+            return response.status(200).json(result);
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            if (error instanceof mongoose.Error.ValidationError) {
+                return response.status(400).json({ message: "Ordem das etapas inválida" });
+            }
+            console.error("Erro ao atualizar ordem das etapas do cliente:", error);
+            return response.status(500).json({ message: "Erro interno ao atualizar ordem das etapas do cliente" });
+        }
+    };
+
     briefingReportStatus = async (request: Request, response: Response): Promise<Response> => {
         try {
             const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;

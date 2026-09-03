@@ -1,7 +1,7 @@
 import clients from "../models/client.js";
 import type { BriefingObject } from "../models/briefing.js";
 import type mongoose from "mongoose";
-import { initialProjectStages, type ProjectStage, type ProjectStageKey } from "../models/projectStage.js";
+import type { ProjectStage, ProjectStageKey } from "../models/projectStage.js";
 
 export interface CreateClientData {
     login: string;
@@ -43,12 +43,12 @@ export class ClientRepository {
         return clients.create(data);
     }
 
-    markBriefingFilled(id: mongoose.Types.ObjectId) {
+    markBriefingFilled(id: mongoose.Types.ObjectId, projectStages: ProjectStage[]) {
         return clients.updateOne({ _id: id }, {
             $set: {
                 hasFilledBriefing: true,
                 currentStageKey: "briefing",
-                projectStages: initialProjectStages(true)
+                projectStages
             }
         });
     }

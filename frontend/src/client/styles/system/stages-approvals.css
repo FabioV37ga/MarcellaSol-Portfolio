@@ -77,11 +77,11 @@
 }
 
 .project-progress-track {
-    --steps: 7;
+    --steps: 8;
     --current-step: 1;
     --progress: 0%;
     position: relative;
-    min-width: 680px;
+    min-width: 760px;
     display: grid;
     grid-template-columns: repeat(var(--steps), minmax(70px, 1fr));
     align-items: start;

@@ -12,7 +12,7 @@ import { clientListItem } from "../templates/client-list-item.template.js";
 import { getClientManagementElements } from "../selectors/client-management.selector.js";
 import { clientProposalItem } from "../templates/client-proposal-item.template.js";
 import { logoutSession } from "@/shared/session/logout.js";
-import type { ProjectStageKey } from "@/shared/project-stages.js";
+import { projectStageLabels, type ProjectStage, type ProjectStageKey } from "@/shared/project-stages.js";
 import { ProjectStageEditor } from "../ui/project-stage-editor.js";
 
 export class AdminSystemModules {
@@ -205,6 +205,20 @@ export class AdminSystemModules {
         let currentStageKey: ProjectStageKey = "briefing";
         let projectStageEditor: ProjectStageEditor | undefined;
 
+        const syncProposalStageOptions = (stages: ProjectStage[]): void => {
+            const selected = stageSelect.value as ProjectStageKey;
+            stageSelect.replaceChildren(...stages
+                .filter(stage => stage.key !== "contract")
+                .map(stage => {
+                    const option = document.createElement("option");
+                    option.value = stage.key;
+                    option.textContent = projectStageLabels[stage.key];
+                    return option;
+                })
+            );
+            stageSelect.value = stages.some(stage => stage.key === selected) ? selected : currentStageKey;
+        };
+
         const proposalAttachments = (proposal: ClientProposal): string[] => proposal.attachments?.length
             ? proposal.attachments : proposal.attachment ? [proposal.attachment] : [];
 
@@ -382,17 +396,27 @@ export class AdminSystemModules {
             root.querySelector<HTMLElement>("#proposals-client-name")!.textContent = client.name;
             root.querySelector<HTMLElement>("#proposals-title-name")!.textContent = client.name;
             currentStageKey = client.currentStageKey;
+            syncProposalStageOptions(client.projectStages);
             projectStageEditor = new ProjectStageEditor(
                 root,
                 client.projectStages,
                 client.currentStageKey,
+                client.hasProjectStageOrder,
                 (stageKey, status) => this.api.updateClientProjectStage(
                     this.session,
                     clientId,
                     stageKey,
                     status
                 ),
-                result => { currentStageKey = result.currentStageKey; }
+                stageKeys => this.api.updateClientProjectStageOrder(
+                    this.session,
+                    clientId,
+                    stageKeys
+                ),
+                result => {
+                    currentStageKey = result.currentStageKey;
+                    syncProposalStageOptions(result.projectStages);
+                }
             );
             proposals = loaded;
             feedback.textContent = "";

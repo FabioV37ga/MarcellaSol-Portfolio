@@ -18,6 +18,7 @@ export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
     currentStageKey: ProjectStageKey;
     projectStages: ProjectStage[];
+    hasProjectStageOrder: boolean;
 }
 
 export interface UpdatedClientProjectStage {
@@ -214,6 +215,34 @@ export class AdminSystemApi {
         };
         if (!response.ok || !result.currentStageKey || !Array.isArray(result.projectStages)) {
             throw new Error(result.message ?? "Não foi possível atualizar a etapa do projeto");
+        }
+        return {
+            currentStageKey: result.currentStageKey,
+            projectStages: result.projectStages
+        };
+    }
+
+    async updateClientProjectStageOrder(
+        session: AdminSession,
+        clientId: string,
+        stageKeys: ProjectStageKey[]
+    ): Promise<UpdatedClientProjectStage> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/project-stages/order`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.token}`
+                },
+                body: JSON.stringify({ stageKeys })
+            }
+        );
+        const result = await response.json().catch(() => ({})) as Partial<UpdatedClientProjectStage> & {
+            message?: string;
+        };
+        if (!response.ok || !result.currentStageKey || !Array.isArray(result.projectStages)) {
+            throw new Error(result.message ?? "Não foi possível salvar a ordem das etapas");
         }
         return {
             currentStageKey: result.currentStageKey,

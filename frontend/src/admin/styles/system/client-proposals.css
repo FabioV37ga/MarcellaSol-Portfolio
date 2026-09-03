@@ -29,7 +29,7 @@
     border-radius: 12px;
     background: #fff;
 }
-.admin-project-progress-heading { margin-bottom: 18px; }
+.admin-project-progress-heading { position: relative; margin-bottom: 18px; padding-right: 112px; }
 .admin-project-progress-heading h2 { margin-bottom: 6px; font-size: 17px; }
 .admin-project-progress-heading p { color: var(--gray); font-size: 11px; }
 .admin-project-progress-heading .project-stage-feedback {
@@ -39,10 +39,56 @@
 }
 .admin-project-progress-heading .project-stage-feedback:empty { display: none; }
 .admin-project-progress-heading .project-stage-feedback-error { color: #943d33; }
+.admin-project-progress-heading .project-stage-order-edit {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--orange);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--orange);
+    font: 700 10px "confort";
+    cursor: pointer;
+}
+.admin-project-progress-heading .project-stage-order-edit[hidden] { display: none; }
+.admin-project-progress .project-stage-order-panel {
+    margin: -3px 0 18px;
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--orange) 35%, var(--borderGray));
+    border-radius: 10px;
+    background: #fff9f6;
+}
+.admin-project-progress .project-stage-order-panel[hidden] { display: none; }
+.admin-project-progress .project-stage-order-panel h3 { margin-bottom: 6px; font-size: 14px; }
+.admin-project-progress .project-stage-order-panel > p { color: var(--gray); font-size: 10px; line-height: 1.5; }
+.admin-project-progress .project-stage-order-move,
+.admin-project-progress .project-stage-order-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.admin-project-progress .project-stage-order-move span { margin-right: auto; color: var(--gray); font-size: 10px; }
+.admin-project-progress .project-stage-order-panel button {
+    min-height: 34px;
+    padding: 0 11px;
+    border: 1px solid var(--orange);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--orange);
+    font: 700 10px "confort";
+    cursor: pointer;
+}
+.admin-project-progress .project-stage-order-panel button:disabled { cursor: not-allowed; opacity: .45; }
+.admin-project-progress .project-stage-order-actions { justify-content: flex-end; }
+.admin-project-progress .project-stage-order-actions [data-stage-order-save] { background: var(--orange); color: #fff; }
 .admin-project-progress .project-progress-scroll { overflow-x: auto; padding: 4px 2px 12px; }
 .admin-project-progress .project-progress-track {
     position: relative;
-    min-width: 980px;
+    min-width: 1080px;
     display: grid;
     grid-template-columns: repeat(var(--steps), minmax(70px, 1fr));
     align-items: start;
@@ -89,6 +135,19 @@
     border-radius: 6px;
 }
 .admin-project-progress .project-step:disabled { cursor: wait; }
+.admin-project-progress .project-step[data-stage-key="contract"] { cursor: default; }
+.project-stage-ordering .admin-project-progress .project-step:not(.project-step-order-fixed) { cursor: grab; }
+.project-stage-ordering .admin-project-progress .project-step:not(.project-step-order-fixed):active { cursor: grabbing; }
+.project-stage-ordering .admin-project-progress .project-step-order-fixed { cursor: not-allowed; opacity: .72; }
+.project-stage-ordering .admin-project-progress .project-step-order-selected {
+    color: var(--orange);
+    font-weight: 700;
+}
+.project-stage-ordering .admin-project-progress .project-step-order-selected .project-step-dot {
+    outline: 3px solid color-mix(in srgb, var(--orange) 28%, transparent);
+    outline-offset: 3px;
+}
+.project-stage-ordering .admin-project-progress .project-step-dragging { opacity: .45; }
 .admin-project-progress .project-step-dot {
     width: 28px;
     height: 28px;
@@ -224,6 +283,9 @@
 .admin-project-progress .project-stage-status-option[data-stage-status="blocked"] { --option-background:#ddd; --option-border:#999; --option-color:#333; }
 
 .proposals-columns { display: grid; gap: 16px; }
+.proposals-columns[hidden],
+#proposals-feedback[hidden],
+.proposals-actions[hidden] { display: none; }
 .proposals-panel {
     min-width: 0;
     padding: 18px;
@@ -346,4 +408,11 @@
     .proposals-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .proposals-panel { padding: 22px; }
     #proposals-back { width: 170px; }
+}
+
+@media (max-width: 560px) {
+    .admin-project-progress-heading { padding-right: 0; }
+    .admin-project-progress-heading .project-stage-order-edit { position: static; margin-top: 10px; }
+    .admin-project-progress .project-stage-order-move span { width: 100%; }
+    .admin-project-progress .project-stage-order-move button { flex: 1; }
 }

@@ -6,6 +6,7 @@ import { ClientBriefingRepository } from "../repositories/client-briefing.reposi
 import { ApplicationError } from "./errors/application-error.js";
 import { BriefingFolderAccessService } from "./briefing-folder-access.service.js";
 import { maskedEmail } from "../services/briefing-emails.js";
+import { projectStagesAfterBriefingSubmission } from "../models/projectStage.js";
 
 export interface FileManifestEntry {
     uploadId: string;
@@ -51,7 +52,10 @@ export class SubmitBriefingService {
             attachments: storedAttachments.map(item => ({ ...item })),
             submittedAt: new Date()
         });
-        await this.clients.markBriefingFilled(client._id);
+        await this.clients.markBriefingFilled(
+            client._id,
+            projectStagesAfterBriefingSubmission(client.projectStages)
+        );
 
         const folderAccess = await this.folderAccess.execute(client.driveFolderId, responses);
         folderAccess.failures.forEach(failure => {

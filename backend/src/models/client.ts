@@ -16,7 +16,8 @@ export interface ClientObject {
 
 const projectStageSchema = new mongoose.Schema<ProjectStage>({
     key: { type: String, enum: projectStageKeys, required: true },
-    status: { type: String, enum: projectStageStatuses, required: true }
+    status: { type: String, enum: projectStageStatuses, required: true },
+    index: { type: Number, min: 0, validate: Number.isInteger, required: false }
 }, { _id: false });
 
 const clientSchema = new mongoose.Schema<ClientObject>({
