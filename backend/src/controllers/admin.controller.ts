@@ -10,6 +10,7 @@ import { ClientProposalService } from "../application/client-proposal.service.js
 import { SessionService } from "../services/session.service.js";
 import { loginCredentials } from "./login-credentials.js";
 import { UpdateClientProjectStageService } from "../application/update-client-project-stage.service.js";
+import { DeleteClientService } from "../application/delete-client.service.js";
 
 export class AdminController {
     constructor(
@@ -19,6 +20,7 @@ export class AdminController {
         private readonly briefingReports = new ClientBriefingReportService(),
         private readonly proposals = new ClientProposalService(),
         private readonly projectStages = new UpdateClientProjectStageService(),
+        private readonly deleteClient = new DeleteClientService(),
         private readonly sessions = new SessionService()
     ) {}
 
@@ -67,6 +69,18 @@ export class AdminController {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
             console.error("Erro ao buscar cliente:", error);
             return response.status(500).json({ message: "Erro interno ao buscar cliente" });
+        }
+    };
+
+    removeClient = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const id = this.routeParameter(request.params.id);
+            await this.deleteClient.execute(id, request.body?.confirmationName);
+            return response.status(204).send();
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            console.error("Erro ao remover cliente:", error);
+            return response.status(500).json({ message: "Erro interno ao remover cliente" });
         }
     };
 

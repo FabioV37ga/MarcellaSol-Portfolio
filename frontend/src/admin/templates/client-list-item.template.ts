@@ -5,46 +5,17 @@ function initials(name: string): string {
     return parts.slice(0, 2).map(part => part.charAt(0).toUpperCase()).join("") || "?";
 }
 
-function field(className: string, text: string): HTMLDivElement {
-    const element = document.createElement("div");
-    element.className = className;
-    element.textContent = text;
-    return element;
-}
-
-function paragraph(className: string, text: string): HTMLParagraphElement {
-    const element = document.createElement("p");
-    element.className = className;
-    element.textContent = text;
-    return element;
-}
-
-export function clientListItem(client: AdminClientListItem): HTMLElement {
-    const item = document.createElement("div");
-    item.className = "client-list-client";
+export function clientListItem(client: AdminClientListItem, template: HTMLTemplateElement): HTMLElement {
+    const item = template.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+    if (!item) throw new Error("A view client está desatualizada: o template da lista está vazio.");
     item.dataset.clientId = client.id;
-
-    const presentation = document.createElement("div");
-    presentation.className = "client-list-client-presentation";
-    presentation.append(
-        field("client-list-client-initials", initials(client.name)),
-        field("client-list-client-name", client.name)
-    );
-
-    const step = field("client-list-client-step", "");
-    step.append(paragraph(
-        "client-step-text",
-        client.hasFilledBriefing ? "Briefing preenchido" : "Aguardando preenchimento do briefing"
-    ));
-
-    const status = field("client-list-client-status", "");
-    status.append(paragraph("client-status-text", "(WIP)"));
-
-    item.append(
-        presentation,
-        field("client-list-client-type", client.type || "Não informado"),
-        step,
-        status
-    );
+    item.querySelector<HTMLElement>(".client-list-client-initials")!.textContent = initials(client.name);
+    item.querySelector<HTMLElement>(".client-list-client-name")!.textContent = client.name;
+    item.querySelector<HTMLElement>(".client-list-client-type")!.textContent = client.type || "Não informado";
+    item.querySelector<HTMLElement>(".client-step-text")!.textContent = client.hasFilledBriefing
+        ? "Briefing preenchido" : "Aguardando preenchimento do briefing";
+    item.querySelector<HTMLElement>(".client-status-text")!.textContent = "(WIP)";
+    item.querySelector<HTMLButtonElement>(".client-delete")!
+        .setAttribute("aria-label", `Apagar cliente ${client.name}`);
     return item;
 }

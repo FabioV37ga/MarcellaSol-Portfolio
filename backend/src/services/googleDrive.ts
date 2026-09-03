@@ -316,7 +316,7 @@ export async function renameProposalFolder(folderId: string, proposalId: string,
     });
 }
 
-export async function setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
+export async function setDriveFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
     const drive = createDriveClient();
     await drive.files.update({
         fileId: folderId,
@@ -324,6 +324,10 @@ export async function setProposalFolderTrashed(folderId: string, trashed: boolea
         fields: "id,trashed",
         supportsAllDrives: true
     });
+}
+
+export function setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
+    return setDriveFolderTrashed(folderId, trashed);
 }
 
 function proposalAttachmentFileId(attachmentUrl: string): string {

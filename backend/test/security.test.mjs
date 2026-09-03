@@ -19,6 +19,7 @@ import {
 import { BriefingFolderAccessService } from "../dist/src/application/briefing-folder-access.service.js";
 import { extractResidentEmails } from "../dist/src/services/briefing-emails.js";
 import { UpdateClientProjectStageService } from "../dist/src/application/update-client-project-stage.service.js";
+import { DeleteClientService } from "../dist/src/application/delete-client.service.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
 
@@ -616,4 +617,65 @@ test("atualização de etapa rejeita chaves e status fora da legenda", async () 
         () => service.execute(clientId, "survey", "status-inexistente"),
         error => error.status === 400
     );
+});
+
+test("remoção de cliente exige correspondência exata do nome", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    let deleted = false;
+    let touchedDrive = false;
+    const service = new DeleteClientService(
+        { async findByIdForAdmin() { return { _id: clientId, name: "Maria da Silva", driveFolderId: "pasta-1" }; } },
+        { async deleteByIdAndName() { deleted = true; return true; } },
+        { async setClientFolderTrashed() { touchedDrive = true; } }
+    );
+
+    for (const confirmation of ["Maria da Silva ", "maria da silva", "Maria  da Silva", undefined]) {
+        await assert.rejects(() => service.execute(clientId, confirmation), error => error.status === 400);
+    }
+    assert.equal(deleted, false);
+    assert.equal(touchedDrive, false);
+});
+
+test("remoção confirmada apaga os dados e envia a pasta do cliente à lixeira", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const driveUpdates = [];
+    const deletions = [];
+    const service = new DeleteClientService(
+        { async findByIdForAdmin() { return { _id: clientId, name: "Maria da Silva", driveFolderId: "pasta-1" }; } },
+        {
+            async deleteByIdAndName(id, name) {
+                deletions.push({ id, name });
+                return true;
+            }
+        },
+        {
+            async setClientFolderTrashed(folderId, trashed) {
+                driveUpdates.push({ folderId, trashed });
+            }
+        }
+    );
+
+    await service.execute(clientId, "Maria da Silva");
+    assert.deepEqual(deletions, [{ id: clientId, name: "Maria da Silva" }]);
+    assert.deepEqual(driveUpdates, [{ folderId: "pasta-1", trashed: true }]);
+});
+
+test("falha ao apagar dados restaura a pasta do cliente no Drive", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const driveUpdates = [];
+    const service = new DeleteClientService(
+        { async findByIdForAdmin() { return { _id: clientId, name: "Maria da Silva", driveFolderId: "pasta-1" }; } },
+        { async deleteByIdAndName() { throw new Error("MongoDB indisponível"); } },
+        {
+            async setClientFolderTrashed(folderId, trashed) {
+                driveUpdates.push({ folderId, trashed });
+            }
+        }
+    );
+
+    await assert.rejects(() => service.execute(clientId, "Maria da Silva"), /MongoDB indisponível/);
+    assert.deepEqual(driveUpdates, [
+        { folderId: "pasta-1", trashed: true },
+        { folderId: "pasta-1", trashed: false }
+    ]);
 });

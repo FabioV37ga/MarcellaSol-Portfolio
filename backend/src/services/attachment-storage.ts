@@ -11,6 +11,7 @@ import {
 import {
     grantFolderReadAccess,
     renameProposalFolder,
+    setDriveFolderTrashed,
     setProposalAttachmentTrashed,
     setProposalFolderTrashed,
     uploadProposalAttachment,
@@ -20,6 +21,10 @@ import {
 
 export interface ClientFolderStorage {
     createClientFolder(clientLogin: string): Promise<string>;
+}
+
+export interface ClientRemovalStorage {
+    setClientFolderTrashed(folderId: string, trashed: boolean): Promise<void>;
 }
 
 export interface AttachmentStorage {
@@ -43,9 +48,13 @@ export interface FolderReadAccessStorage {
     grantFolderReadAccess(folderId: string, email: string): Promise<FolderReadAccessResult>;
 }
 
-export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFolderStorage, BriefingReportStorage, ProposalStorage, FolderReadAccessStorage {
+export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFolderStorage, ClientRemovalStorage, BriefingReportStorage, ProposalStorage, FolderReadAccessStorage {
     createClientFolder(clientLogin: string): Promise<string> {
         return createClientDriveFolder(clientLogin);
+    }
+
+    setClientFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
+        return setDriveFolderTrashed(folderId, trashed);
     }
 
     uploadBriefing(clientLogin: string, files: Express.Multer.File[]): Promise<DriveUploadResult> {

@@ -193,6 +193,20 @@ export class AdminSystemApi {
         return result.client;
     }
 
+    async deleteClient(session: AdminSession, clientId: string, confirmationName: string): Promise<void> {
+        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.token}`
+            },
+            body: JSON.stringify({ confirmationName })
+        });
+        if (response.ok) return;
+        const result = await response.json().catch(() => ({})) as { message?: string };
+        throw new Error(result.message ?? "Não foi possível apagar o cliente");
+    }
+
     async updateClientProjectStage(
         session: AdminSession,
         clientId: string,

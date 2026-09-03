@@ -78,14 +78,82 @@ export class AdminSystemModules {
             const clients = await this.api.loadClients(this.session);
             if (!this.clients) return;
 
+            let deletingClient: typeof clients[number] | undefined;
+            let deleting = false;
+            const syncDeleteConfirmation = (): void => {
+                this.clients!.deleteConfirm.disabled = !deletingClient
+                    || this.clients!.deleteConfirmation.value !== deletingClient.name;
+            };
+            const openDeleteDialog = (client: typeof clients[number]): void => {
+                deletingClient = client;
+                this.clients!.deleteName.textContent = client.name;
+                this.clients!.deleteConfirmation.value = "";
+                this.clients!.deleteFeedback.textContent = "";
+                syncDeleteConfirmation();
+                this.clients!.deleteDialog.showModal();
+                this.clients!.deleteConfirmation.focus();
+            };
+            const resetDeleteDialog = (): void => {
+                deletingClient = undefined;
+                this.clients!.deleteForm.reset();
+                this.clients!.deleteName.textContent = "";
+                this.clients!.deleteFeedback.textContent = "";
+                this.clients!.deleteConfirm.disabled = true;
+            };
+
+            this.clients.deleteConfirmation.oninput = syncDeleteConfirmation;
+            this.clients.deleteCancel.onclick = () => this.clients?.deleteDialog.close();
+            this.clients.deleteDialog.oncancel = event => {
+                if (deleting) event.preventDefault();
+            };
+            this.clients.deleteDialog.onclose = resetDeleteDialog;
+            this.clients.deleteForm.onsubmit = event => {
+                event.preventDefault();
+                const client = deletingClient;
+                if (!client || this.clients!.deleteConfirmation.value !== client.name) {
+                    this.clients!.deleteFeedback.textContent = "Digite o nome exatamente como apresentado.";
+                    syncDeleteConfirmation();
+                    return;
+                }
+
+                deleting = true;
+                this.clients!.deleteConfirm.disabled = true;
+                this.clients!.deleteCancel.disabled = true;
+                this.clients!.deleteConfirmation.disabled = true;
+                this.clients!.deleteFeedback.textContent = "Apagando cliente...";
+                void this.api.deleteClient(this.session, client.id, this.clients!.deleteConfirmation.value).then(() => {
+                    this.clients?.list.querySelector<HTMLElement>(`[data-client-id="${CSS.escape(client.id)}"]`)?.remove();
+                    this.clients?.deleteDialog.close();
+                }, error => {
+                    this.clients!.deleteFeedback.textContent = error instanceof Error
+                        ? error.message : "Não foi possível apagar o cliente.";
+                }).then(() => {
+                    deleting = false;
+                    if (!this.clients) return;
+                    this.clients.deleteCancel.disabled = false;
+                    this.clients.deleteConfirmation.disabled = false;
+                    syncDeleteConfirmation();
+                });
+            };
+
             this.clients.list
                 .querySelectorAll(":scope > .client-list-client")
                 .forEach(item => item.remove());
 
             const items = document.createDocumentFragment();
             clients.forEach(client => {
-                const item = clientListItem(client);
+                const item = clientListItem(client, this.clients!.itemTemplate);
                 u(item).on("click", () => this.navigate("client-management", client.id));
+                item.addEventListener("keydown", event => {
+                    if (event.target === item && (event.key === "Enter" || event.key === " ")) {
+                        event.preventDefault();
+                        this.navigate("client-management", client.id);
+                    }
+                });
+                item.querySelector<HTMLButtonElement>(".client-delete")!.addEventListener("click", event => {
+                    event.stopPropagation();
+                    openDeleteDialog(client);
+                });
                 items.append(item);
             });
             this.clients.list.append(items);
