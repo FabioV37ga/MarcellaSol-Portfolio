@@ -3,6 +3,7 @@ import clients from "../models/client.js";
 import clientBriefings from "../models/clientBriefing.js";
 import clientProposals from "../models/clientProposal.js";
 import authSessions from "../models/authSession.js";
+import clientPayments from "../models/clientPayment.js";
 
 export class ClientDeletionRepository {
     async deleteByIdAndName(clientId: string, name: string): Promise<boolean> {
@@ -17,6 +18,7 @@ export class ClientDeletionRepository {
                 await Promise.all([
                     clientBriefings.deleteMany({ clientId }, { session }),
                     clientProposals.deleteMany({ userId: clientId }, { session }),
+                    clientPayments.deleteMany({ clientId }, { session }),
                     authSessions.deleteMany({ subject: clientId, role: "client" }, { session })
                 ]);
                 deleted = true;

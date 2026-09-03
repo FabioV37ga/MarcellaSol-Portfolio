@@ -11,6 +11,7 @@ import { SessionService } from "../services/session.service.js";
 import { loginCredentials } from "./login-credentials.js";
 import { UpdateClientProjectStageService } from "../application/update-client-project-stage.service.js";
 import { DeleteClientService } from "../application/delete-client.service.js";
+import { ClientPaymentService } from "../application/client-payment.service.js";
 
 export class AdminController {
     constructor(
@@ -20,6 +21,7 @@ export class AdminController {
         private readonly briefingReports = new ClientBriefingReportService(),
         private readonly proposals = new ClientProposalService(),
         private readonly projectStages = new UpdateClientProjectStageService(),
+        private readonly payments = new ClientPaymentService(),
         private readonly deleteClient = new DeleteClientService(),
         private readonly sessions = new SessionService()
     ) {}
@@ -196,6 +198,64 @@ export class AdminController {
         }
     };
 
+    clientPayments = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const clientId = this.routeParameter(request.params.id);
+            return response.status(200).json({ payments: await this.payments.list(clientId) });
+        } catch (error: unknown) {
+            return this.paymentError(error, response);
+        }
+    };
+
+    createClientPayment = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const clientId = this.routeParameter(request.params.id);
+            return response.status(201).json({ payment: await this.payments.create(clientId, request.body) });
+        } catch (error: unknown) {
+            return this.paymentError(error, response);
+        }
+    };
+
+    editClientPayment = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const clientId = this.routeParameter(request.params.id);
+            const paymentId = this.routeParameter(request.params.paymentId);
+            return response.status(200).json({ payment: await this.payments.edit(clientId, paymentId, request.body) });
+        } catch (error: unknown) {
+            return this.paymentError(error, response);
+        }
+    };
+
+    setDownPaymentPaid = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const clientId = this.routeParameter(request.params.id);
+            const paymentId = this.routeParameter(request.params.paymentId);
+            return response.status(200).json({
+                payment: await this.payments.setDownPaymentPaid(clientId, paymentId, request.body?.isPaid)
+            });
+        } catch (error: unknown) {
+            return this.paymentError(error, response);
+        }
+    };
+
+    setInstallmentPaid = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const clientId = this.routeParameter(request.params.id);
+            const paymentId = this.routeParameter(request.params.paymentId);
+            const installmentNumber = this.routeParameter(request.params.installmentNumber);
+            return response.status(200).json({
+                payment: await this.payments.setInstallmentPaid(
+                    clientId,
+                    paymentId,
+                    installmentNumber,
+                    request.body?.isPaid
+                )
+            });
+        } catch (error: unknown) {
+            return this.paymentError(error, response);
+        }
+    };
+
     create = async (request: Request, response: Response): Promise<Response> => {
         try {
             const command = this.parseCreateCommand(request.body);
@@ -240,6 +300,15 @@ export class AdminController {
         }
         console.error("Erro ao processar proposta:", error);
         return response.status(500).json({ message: "Erro interno ao processar proposta" });
+    }
+
+    private paymentError(error: unknown, response: Response): Response {
+        if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+        if (error instanceof mongoose.Error.ValidationError || error instanceof mongoose.Error.CastError) {
+            return response.status(400).json({ message: "Dados do pagamento inválidos" });
+        }
+        console.error("Erro ao processar pagamento:", error);
+        return response.status(500).json({ message: "Erro interno ao processar pagamento" });
     }
 
     private reportError(error: unknown, response: Response): Response {

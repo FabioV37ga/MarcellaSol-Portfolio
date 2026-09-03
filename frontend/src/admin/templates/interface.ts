@@ -6,6 +6,7 @@ export interface system{
     client?: HTMLElement;
     clientManagement?: HTMLElement;
     clientProposals?: HTMLElement;
+    clientFinancial?: HTMLElement;
     newClient?: HTMLElement
     // home2: HTMLElement
     // test: HTMLElement

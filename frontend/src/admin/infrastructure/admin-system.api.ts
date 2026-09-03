@@ -59,9 +59,146 @@ export interface ProposalFields {
     attachments?: File[];
 }
 
+export interface PaymentPart {
+    amountCents: number;
+    isPaid: boolean;
+}
+
+export interface PaymentInstallment extends PaymentPart {
+    number: number;
+}
+
+export interface ClientPayment {
+    id: string;
+    clientId: string;
+    title: string;
+    totalAmountCents: number;
+    installmentCount: number;
+    downPaymentPercentage: number;
+    discountPercentage: number;
+    interestPercentage: number;
+    discountAmountCents: number;
+    downPayment: PaymentPart;
+    financedAmountCents: number;
+    interestAmountCents: number;
+    installmentTotalCents: number;
+    finalAmountCents: number;
+    paidAmountCents: number;
+    remainingAmountCents: number;
+    installments: PaymentInstallment[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PaymentFields {
+    title: string;
+    totalAmount: string;
+    installmentCount: number;
+    downPaymentPercentage?: string;
+    discountPercentage?: string;
+    interestPercentage?: string;
+    downPaymentIsPaid?: boolean;
+    paidInstallmentNumbers?: number[];
+}
+
 export class AdminSystemApi {
     private authorization(session: AdminSession): HeadersInit {
         return { Authorization: `Bearer ${session.token}` };
+    }
+
+    private async paymentRequest(response: Response): Promise<{ payment?: ClientPayment; payments?: ClientPayment[] }> {
+        const result = await response.json().catch(() => ({})) as {
+            payment?: ClientPayment;
+            payments?: ClientPayment[];
+            message?: string;
+        };
+        if (!response.ok) throw new Error(result.message ?? "Não foi possível processar o pagamento");
+        return result;
+    }
+
+    async loadPayments(session: AdminSession, clientId: string): Promise<ClientPayment[]> {
+        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments`, {
+            headers: this.authorization(session)
+        });
+        return (await this.paymentRequest(response)).payments ?? [];
+    }
+
+    async createPayment(session: AdminSession, clientId: string, fields: PaymentFields): Promise<ClientPayment> {
+        return this.savePayment(session, clientId, fields);
+    }
+
+    async editPayment(
+        session: AdminSession,
+        clientId: string,
+        paymentId: string,
+        fields: PaymentFields
+    ): Promise<ClientPayment> {
+        return this.savePayment(session, clientId, fields, paymentId);
+    }
+
+    private async savePayment(
+        session: AdminSession,
+        clientId: string,
+        fields: PaymentFields,
+        paymentId?: string
+    ): Promise<ClientPayment> {
+        const suffix = paymentId ? `/${encodeURIComponent(paymentId)}` : "";
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments${suffix}`,
+            {
+                method: paymentId ? "PUT" : "POST",
+                headers: { ...this.authorization(session), "Content-Type": "application/json" },
+                body: JSON.stringify(fields)
+            }
+        );
+        const payment = (await this.paymentRequest(response)).payment;
+        if (!payment) throw new Error("Resposta inválida ao salvar pagamento");
+        return payment;
+    }
+
+    async setDownPaymentPaid(
+        session: AdminSession,
+        clientId: string,
+        paymentId: string,
+        isPaid: boolean
+    ): Promise<ClientPayment> {
+        return this.setPaymentPartPaid(session, clientId, paymentId, "down-payment", isPaid);
+    }
+
+    async setInstallmentPaid(
+        session: AdminSession,
+        clientId: string,
+        paymentId: string,
+        installmentNumber: number,
+        isPaid: boolean
+    ): Promise<ClientPayment> {
+        return this.setPaymentPartPaid(
+            session,
+            clientId,
+            paymentId,
+            `installments/${encodeURIComponent(installmentNumber)}`,
+            isPaid
+        );
+    }
+
+    private async setPaymentPartPaid(
+        session: AdminSession,
+        clientId: string,
+        paymentId: string,
+        path: string,
+        isPaid: boolean
+    ): Promise<ClientPayment> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments/${encodeURIComponent(paymentId)}/${path}`,
+            {
+                method: "PATCH",
+                headers: { ...this.authorization(session), "Content-Type": "application/json" },
+                body: JSON.stringify({ isPaid })
+            }
+        );
+        const payment = (await this.paymentRequest(response)).payment;
+        if (!payment) throw new Error("Resposta inválida ao atualizar pagamento");
+        return payment;
     }
 
     private async proposalRequest(

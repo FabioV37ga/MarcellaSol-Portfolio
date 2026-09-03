@@ -9,7 +9,8 @@ const systemViewNames: Record<string, keyof system> = {
     client: "client",
     "new-client": "newClient",
     "client-management": "clientManagement",
-    "client-proposals": "clientProposals"
+    "client-proposals": "clientProposals",
+    "client-financial": "clientFinancial"
 };
 
 const briefingViewNames: Record<string, keyof briefing> = {

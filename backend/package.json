@@ -9,6 +9,9 @@
     "dev:back": "tsx --watch src/server.ts",
     "build": "tsc",
     "test": "npm run build && node --test test/security.test.mjs",
+    "views:validate": "npm run build && node dist/src/scripts/sync-database-views.js --validate-only",
+    "views:check": "npm run build && node dist/src/scripts/sync-database-views.js",
+    "views:sync": "npm run build && node dist/src/scripts/sync-database-views.js --apply",
     "drive:share-existing": "npm run build && node dist/src/scripts/share-existing-briefing-emails.js",
     "start": "node dist/src/server.js",
     "prod": "npm run build && npm start"

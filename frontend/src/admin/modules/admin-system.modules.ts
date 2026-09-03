@@ -14,6 +14,8 @@ import { clientProposalItem } from "../templates/client-proposal-item.template.j
 import { logoutSession } from "@/shared/session/logout.js";
 import { projectStageLabels, type ProjectStage, type ProjectStageKey } from "@/shared/project-stages.js";
 import { ProjectStageEditor } from "../ui/project-stage-editor.js";
+import { getClientFinancialElements } from "../selectors/client-financial.selector.js";
+import { ClientFinancialManager } from "../ui/client-financial-manager.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
@@ -21,6 +23,7 @@ export class AdminSystemModules {
     private clients?: clientsElements;
     private newClient?: newClientElements;
     private clientManagementRequestId = 0;
+    private clientFinancialRequestId = 0;
 
     constructor(
         private readonly view: AdminSystemView,
@@ -38,6 +41,7 @@ export class AdminSystemModules {
             case "clients": this.mountClients(); break;
             case "client-management": void this.mountClientManagement(id); break;
             case "client-proposals": void this.mountClientProposals(id); break;
+            case "client-financial": void this.mountClientFinancial(id); break;
             case "new-client": this.mountNewClient(); break;
             case "briefing-home":
             case "briefing-investment":
@@ -183,6 +187,7 @@ export class AdminSystemModules {
         elements.briefingReport.onclick = null;
         u(elements.clientsIndex).off("click").on("click", () => this.navigate("clients"));
         u(elements.back).off("click").on("click", () => this.navigate("clients"));
+        u(elements.financial).off("click").on("click", () => this.navigate("client-financial", id));
 
         try {
             const client = await this.api.loadClient(this.session, id);
@@ -496,6 +501,36 @@ export class AdminSystemModules {
             render();
         } catch (error) {
             feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar as propostas.";
+        }
+    }
+
+    private async mountClientFinancial(clientId?: string): Promise<void> {
+        if (!clientId || !this.models.clientFinancial) {
+            this.navigate("clients");
+            return;
+        }
+
+        this.view.render(this.models.clientFinancial, ".page-content");
+        const requestId = ++this.clientFinancialRequestId;
+        this.view.styleNavButton(this.base!.desktop_nav_client);
+        const elements = getClientFinancialElements();
+        u(elements.clientsIndex).off("click").on("click", () => this.navigate("clients"));
+        u(elements.clientIndex).off("click").on("click", () => this.navigate("client-management", clientId));
+        u(elements.back).off("click").on("click", () => this.navigate("client-management", clientId));
+
+        try {
+            const [client, payments] = await Promise.all([
+                this.api.loadClient(this.session, clientId),
+                this.api.loadPayments(this.session, clientId)
+            ]);
+            if (requestId !== this.clientFinancialRequestId) return;
+            elements.clientName.textContent = client.name;
+            elements.titleName.textContent = client.name;
+            new ClientFinancialManager(elements, this.api, this.session, clientId, payments);
+        } catch (error) {
+            if (requestId !== this.clientFinancialRequestId) return;
+            console.error("Erro ao carregar financeiro do cliente:", error);
+            this.navigate("clients");
         }
     }
 

@@ -1,0 +1,323 @@
+.financial-management-container {
+    box-sizing: border-box;
+    max-width: 100%;
+    width: calc(100% - 24px);
+    margin: 0 auto 32px;
+    color: #1f1f1f;
+    font-family: "confort";
+}
+
+.financial-management-container *,
+.financial-payment-dialog,
+.financial-payment-dialog * {
+    box-sizing: border-box;
+}
+
+.financial-management-container .page-index {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 18px;
+    font-size: 12px;
+}
+
+.financial-management-container .root-index {
+    color: var(--orange);
+    cursor: pointer;
+}
+
+.financial-management-container .page-index p,
+.financial-management-container .page-index span,
+.financial-subtitle {
+    color: var(--gray);
+}
+
+.financial-title {
+    margin-bottom: 20px;
+}
+
+.financial-title h1 {
+    margin-bottom: 8px;
+    font-size: 24px;
+}
+
+.financial-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--orange);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.financial-subtitle,
+.financial-panel-heading p,
+.financial-empty {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.financial-panel {
+    padding: 18px;
+    border: 1px solid var(--borderGray);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.financial-panel-heading {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.financial-panel-heading-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.financial-panel-icon {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 18px;
+}
+
+.financial-panel-heading h2 {
+    margin-bottom: 5px;
+    font-size: 17px;
+}
+
+.financial-panel-heading p,
+.financial-empty {
+    color: var(--gray);
+}
+
+#financial-new-payment,
+.financial-payment-edit,
+#financial-payment-save,
+#financial-payment-cancel {
+    min-height: 42px;
+    padding: 0 18px;
+    border: 1px solid var(--orange);
+    border-radius: 8px;
+    font-family: "confort";
+    cursor: pointer;
+}
+
+#financial-new-payment,
+#financial-payment-save {
+    background: var(--orange);
+    color: #fff;
+}
+
+#financial-payment-cancel,
+.financial-payment-edit {
+    background: #fff;
+    color: var(--orange);
+}
+
+button:disabled { cursor: wait; opacity: .6; }
+
+.financial-feedback,
+.financial-form-feedback {
+    min-height: 18px;
+    color: var(--orange);
+    font-size: 12px;
+}
+
+.financial-payments-list {
+    display: grid;
+    gap: 16px;
+}
+
+.financial-payment-card {
+    padding: 16px;
+    border: 1px solid var(--borderGray);
+    border-radius: 10px;
+}
+
+.financial-payment-card > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 15px;
+}
+
+.financial-payment-card h3 { margin-bottom: 5px; font-size: 16px; }
+.financial-payment-card header p { color: var(--gray); font-size: 11px; }
+.financial-payment-edit { min-height: 34px; padding: 0 12px; white-space: nowrap; }
+
+.financial-payment-card-summary,
+.financial-payment-preview-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.financial-payment-card-summary > span,
+.financial-payment-preview-summary > span {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f7f7f7;
+}
+
+.financial-payment-card-summary small { color: var(--gray); font-size: 9px; }
+.financial-payment-card-summary strong { overflow-wrap: anywhere; font-size: 12px; }
+.financial-payment-card-summary .financial-summary-highlight { background: var(--lightOrange); color: var(--orange); }
+
+.financial-payment-progress {
+    height: 6px;
+    margin: 13px 0 16px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e8e8e8;
+}
+
+.financial-payment-progress span { display: block; height: 100%; background: #59975b; transition: width .2s ease; }
+
+.financial-parts-list {
+    display: grid;
+    gap: 8px;
+    max-height: 330px;
+    overflow-y: auto;
+}
+
+.financial-part-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    padding: 8px 10px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+}
+
+.financial-part-description { display: grid; gap: 3px; font-size: 12px; }
+.financial-part-description small { color: var(--gray); font-size: 10px; }
+
+.financial-switch {
+    display: grid;
+    grid-template-columns: 38px 56px;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+.financial-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.financial-switch > span { position: relative; width: 38px; height: 21px; border-radius: 999px; background: #b8b8b8; transition: background .2s; }
+.financial-switch > span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 15px; height: 15px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.financial-switch input:checked + span { background: #59975b; }
+.financial-switch input:checked + span::after { transform: translateX(17px); }
+.financial-switch input:focus-visible + span { outline: 2px solid var(--orange); outline-offset: 2px; }
+.financial-switch input:disabled + span { opacity: .45; }
+.financial-switch em { color: var(--gray); font-size: 9px; font-style: normal; }
+
+.financial-payment-dialog {
+    width: min(640px, calc(100% - 32px));
+    max-height: calc(100dvh - 24px);
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 12px;
+    font-family: "confort";
+}
+
+.financial-payment-dialog::backdrop { background: rgb(0 0 0 / 45%); }
+.financial-payment-dialog form { width: 100%; max-height: calc(100dvh - 24px); padding: 20px; overflow-x: hidden; overflow-y: auto; }
+.financial-payment-dialog header { margin-bottom: 18px; }
+.financial-payment-dialog header h2 { margin-bottom: 7px; font-size: 21px; }
+.financial-payment-dialog header p,
+.financial-payment-preview > p { color: var(--gray); font-size: 11px; line-height: 1.45; }
+
+.financial-form-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.financial-field { display: grid; min-width: 0; gap: 5px; }
+.financial-field > span { font-size: 12px; }
+.financial-field b { color: var(--orange); }
+.financial-field small { min-height: 27px; color: var(--gray); font-size: 9px; line-height: 1.4; }
+.financial-field input {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--borderGray);
+    border-radius: 7px;
+    font: inherit;
+    font-size: 12px;
+}
+.financial-field input:focus { border-color: var(--orange); outline: 1px solid var(--orange); }
+
+.financial-payment-preview { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--borderGray); }
+.financial-payment-preview[hidden] { display: none; }
+.financial-payment-preview-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; }
+.financial-payment-preview-summary span { font-size: 10px; }
+.financial-payment-preview-summary strong { color: var(--orange); font-size: 14px; }
+.financial-payment-preview h3 { margin-bottom: 5px; font-size: 15px; }
+.financial-payment-preview > p { margin-bottom: 12px; }
+
+.financial-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 17px; }
+
+.financial-empty {
+    padding: 32px 12px;
+    border: 1px dashed var(--borderGray);
+    border-radius: 9px;
+    text-align: center;
+}
+
+.financial-actions {
+    margin-top: 16px;
+}
+
+#financial-back {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 2px solid var(--orange);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--orange);
+    font-family: "confort";
+    cursor: pointer;
+}
+
+#financial-back:hover,
+#financial-back:focus-visible {
+    background: var(--orange);
+    color: #fff;
+    outline: none;
+}
+
+@media (min-width: 900px) {
+    .financial-management-container {
+        width: calc(100% - 60px);
+    }
+
+    .financial-panel {
+        padding: 22px;
+    }
+
+    .financial-panel-heading { align-items: center; flex-direction: row; }
+    .financial-payment-dialog form { padding: 24px; }
+    .financial-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; }
+    .financial-payment-card { padding: 20px; }
+
+    #financial-back {
+        width: 170px;
+    }
+}

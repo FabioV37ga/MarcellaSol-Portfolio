@@ -21,8 +21,53 @@ import { extractResidentEmails } from "../dist/src/services/briefing-emails.js";
 import { UpdateClientProjectStageService } from "../dist/src/application/update-client-project-stage.service.js";
 import { DeleteClientService } from "../dist/src/application/delete-client.service.js";
 import { ListClientsService } from "../dist/src/application/list-clients.service.js";
+import { calculatePaymentSchedule } from "../dist/src/application/client-payment.service.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
+
+test("cálculo financeiro distribui centavos sem perder valor", () => {
+    const schedule = calculatePaymentSchedule({
+        totalAmount: "1000.00",
+        installmentCount: 3,
+        downPaymentPercentage: "10",
+        discountPercentage: "5",
+        interestPercentage: "12"
+    });
+
+    assert.equal(schedule.discountAmountCents, 5000);
+    assert.equal(schedule.downPayment.amountCents, 9500);
+    assert.equal(schedule.financedAmountCents, 85500);
+    assert.equal(schedule.interestAmountCents, 10260);
+    assert.equal(schedule.finalAmountCents, 105260);
+    assert.deepEqual(schedule.installments.map(item => item.amountCents), [31920, 31920, 31920]);
+    assert.equal(
+        schedule.downPayment.amountCents + schedule.installments.reduce((sum, item) => sum + item.amountCents, 0),
+        schedule.finalAmountCents
+    );
+});
+
+test("edição financeira preserva ou substitui os estados pagos explicitamente", () => {
+    const previous = {
+        downPayment: { amountCents: 1000, isPaid: true },
+        installments: [
+            { number: 1, amountCents: 3000, isPaid: true },
+            { number: 2, amountCents: 3000, isPaid: false }
+        ]
+    };
+    const preserved = calculatePaymentSchedule({ totalAmount: 100, installmentCount: 2, downPaymentPercentage: 10 }, previous);
+    assert.equal(preserved.downPayment.isPaid, true);
+    assert.deepEqual(preserved.installments.map(item => item.isPaid), [true, false]);
+
+    const replaced = calculatePaymentSchedule({
+        totalAmount: 100,
+        installmentCount: 2,
+        downPaymentPercentage: 10,
+        downPaymentIsPaid: false,
+        paidInstallmentNumbers: [2]
+    }, previous);
+    assert.equal(replaced.downPayment.isPaid, false);
+    assert.deepEqual(replaced.installments.map(item => item.isPaid), [false, true]);
+});
 
 class MemorySessionStore {
     records = new Map();
