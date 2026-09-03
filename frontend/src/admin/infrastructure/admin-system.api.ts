@@ -12,11 +12,12 @@ export interface AdminClientListItem {
     name: string;
     type: string;
     hasFilledBriefing: boolean;
+    currentStageKey: ProjectStageKey;
+    currentStageStatus: ProjectStageStatus;
 }
 
 export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
-    currentStageKey: ProjectStageKey;
     projectStages: ProjectStage[];
     hasProjectStageOrder: boolean;
 }

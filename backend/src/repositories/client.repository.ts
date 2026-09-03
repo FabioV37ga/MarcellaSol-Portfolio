@@ -17,7 +17,7 @@ export interface CreateClientData {
 export class ClientRepository {
     findAllForAdmin() {
         return clients
-            .find({}, { _id: 1, name: 1, hasFilledBriefing: 1 })
+            .find({}, { _id: 1, name: 1, hasFilledBriefing: 1, currentStageKey: 1, projectStages: 1 })
             .lean();
     }
 

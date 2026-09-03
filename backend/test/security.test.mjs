@@ -20,6 +20,7 @@ import { BriefingFolderAccessService } from "../dist/src/application/briefing-fo
 import { extractResidentEmails } from "../dist/src/services/briefing-emails.js";
 import { UpdateClientProjectStageService } from "../dist/src/application/update-client-project-stage.service.js";
 import { DeleteClientService } from "../dist/src/application/delete-client.service.js";
+import { ListClientsService } from "../dist/src/application/list-clients.service.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
 
@@ -677,5 +678,58 @@ test("falha ao apagar dados restaura a pasta do cliente no Drive", async () => {
     assert.deepEqual(driveUpdates, [
         { folderId: "pasta-1", trashed: true },
         { folderId: "pasta-1", trashed: false }
+    ]);
+});
+
+test("listagem administrativa retorna a etapa e o status atuais de cada cliente", async () => {
+    const firstId = { toString: () => "507f1f77bcf86cd799439011" };
+    const secondId = { toString: () => "507f1f77bcf86cd799439012" };
+    const clients = {
+        async findAllForAdmin() {
+            return [
+                {
+                    _id: firstId,
+                    name: "Cliente A",
+                    hasFilledBriefing: true,
+                    currentStageKey: "survey",
+                    projectStages: [
+                        { key: "contract", status: "completed", index: 0 },
+                        { key: "briefing", status: "completed", index: 1 },
+                        { key: "survey", status: "in-progress", index: 2 },
+                        { key: "layout", status: "not-started", index: 3 },
+                        { key: "project-development", status: "not-started", index: 4 },
+                        { key: "budgets-definitions", status: "not-started", index: 5 },
+                        { key: "executive-project", status: "not-started", index: 6 },
+                        { key: "final-delivery", status: "not-started", index: 7 }
+                    ]
+                },
+                {
+                    _id: secondId,
+                    name: "Cliente B",
+                    hasFilledBriefing: false,
+                    projectStages: []
+                }
+            ];
+        }
+    };
+    const briefings = {
+        async findByClientIds() {
+            return [{
+                clientId: firstId,
+                briefingDefinition: { description: { type: "Apartamento" } }
+            }];
+        }
+    };
+    const service = new ListClientsService(clients, briefings);
+
+    const result = await service.execute();
+    assert.deepEqual(result.map(client => ({
+        name: client.name,
+        type: client.type,
+        stage: client.currentStageKey,
+        status: client.currentStageStatus
+    })), [
+        { name: "Cliente A", type: "Apartamento", stage: "survey", status: "in-progress" },
+        { name: "Cliente B", type: "Não informado", stage: "briefing", status: "not-started" }
     ]);
 });

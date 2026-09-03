@@ -4,9 +4,11 @@ import mongoose from "mongoose";
 import { ApplicationError } from "./errors/application-error.js";
 import {
     hasConfiguredProjectStageOrder,
+    isProjectStageKey,
     normalizedProjectStages,
     type ProjectStage,
-    type ProjectStageKey
+    type ProjectStageKey,
+    type ProjectStageStatus
 } from "../models/projectStage.js";
 
 export interface AdminClientListItem {
@@ -14,11 +16,12 @@ export interface AdminClientListItem {
     name: string;
     type: string;
     hasFilledBriefing: boolean;
+    currentStageKey: ProjectStageKey;
+    currentStageStatus: ProjectStageStatus;
 }
 
 export interface AdminClientDetails extends AdminClientListItem {
     driveFolderUrl?: string;
-    currentStageKey: ProjectStageKey;
     projectStages: ProjectStage[];
     hasProjectStageOrder: boolean;
 }
@@ -41,12 +44,22 @@ export class ListClientsService {
             ])
         );
 
-        return clients.map(client => ({
-            id: client._id.toString(),
-            name: client.name,
-            type: typeByClientId.get(client._id.toString()) ?? "Não informado",
-            hasFilledBriefing: client.hasFilledBriefing
-        }));
+        return clients.map(client => {
+            const projectStages = normalizedProjectStages(client.projectStages, client.hasFilledBriefing);
+            const currentStageKey = isProjectStageKey(client.currentStageKey)
+                && client.currentStageKey !== "contract" ? client.currentStageKey : "briefing";
+            const currentStageStatus = projectStages.find(stage => stage.key === currentStageKey)?.status
+                ?? "not-started";
+
+            return {
+                id: client._id.toString(),
+                name: client.name,
+                type: typeByClientId.get(client._id.toString()) ?? "Não informado",
+                hasFilledBriefing: client.hasFilledBriefing,
+                currentStageKey,
+                currentStageStatus
+            };
+        });
     }
 
     async executeOne(id: string): Promise<AdminClientDetails> {
@@ -57,14 +70,18 @@ export class ListClientsService {
 
         const briefing = await this.briefings.findByClientIdForAdmin(client._id);
         const driveFolderId = client.driveFolderId?.trim();
+        const projectStages = normalizedProjectStages(client.projectStages, client.hasFilledBriefing);
+        const currentStageKey = isProjectStageKey(client.currentStageKey)
+            && client.currentStageKey !== "contract" ? client.currentStageKey : "briefing";
 
         return {
             id: client._id.toString(),
             name: client.name,
             type: briefing ? this.getPropertyType(briefing.briefingDefinition) : "Não informado",
             hasFilledBriefing: client.hasFilledBriefing,
-            currentStageKey: client.currentStageKey ?? "briefing",
-            projectStages: normalizedProjectStages(client.projectStages, client.hasFilledBriefing),
+            currentStageKey,
+            currentStageStatus: projectStages.find(stage => stage.key === currentStageKey)?.status ?? "not-started",
+            projectStages,
             hasProjectStageOrder: hasConfiguredProjectStageOrder(client.projectStages),
             driveFolderUrl: driveFolderId
                 ? `https://drive.google.com/drive/folders/${encodeURIComponent(driveFolderId)}`
