@@ -283,3 +283,325 @@ O projeto não precisa de uma nova arquitetura. A estrutura originalmente adotad
 O momento atual pede refatoração incremental e localizada, principalmente no frontend administrativo, no ciclo de vida das views e na sincronização das views persistidas. Essas melhorias cabem integralmente na organização existente.
 
 Se as telas maiores forem divididas conforme forem modificadas e o processo das views for automatizado, a arquitetura poderá sustentar a próxima fase do sistema sem reescrita geral.
+
+---
+
+## 11. Atualização da varredura — 04/09/2026
+
+### 11.1 Escopo desta atualização
+
+Esta seção atualiza o diagnóstico depois da implementação do financeiro administrativo, visualização financeira do cliente, geração provisória de Pix estático, auditoria financeira, rate limiting financeiro e automação das views do MongoDB.
+
+Foi realizada uma nova leitura das camadas de backend, frontend e dos artefatos em `dev/database`. Nenhuma correção foi aplicada ao sistema nesta varredura; somente este relatório foi atualizado.
+
+Verificações executadas no estado atual:
+
+- build do backend: aprovado;
+- testes do backend: 35 aprovados, nenhuma falha;
+- build do frontend: aprovado;
+- validação local das views: 8 arquivos válidos;
+- avisos do build frontend: os sete caminhos CSS antigos de `projects.html` continuam sem resolução no momento do build.
+
+### 11.2 Avaliação geral atualizada
+
+**Nota arquitetural atual: 7,3/10.**
+
+O sistema continua sendo um monólito modular em camadas, adequado ao tamanho atual. A implementação financeira respeitou o fluxo principal:
+
+`rota → controller → serviço de aplicação → repositório/modelo`
+
+Também foram introduzidos controles positivos: valores monetários persistidos em centavos, validação no backend, concorrência otimista por versão, auditoria de mutações, isolamento pelo `clientId` obtido da sessão, rate limiting e uma implementação separada para montar o BR Code Pix.
+
+A redução da nota em relação ao checkup anterior não representa regressão geral. Ela reflete o aumento da criticidade do domínio: uma estrutura aceitável para telas e propostas precisa de garantias adicionais quando passa a representar valores pagos, saldo devedor e histórico financeiro.
+
+O sistema financeiro atual deve continuar sendo tratado como **provisório**, não como razão contábil ou integração de pagamentos definitiva.
+
+### 11.3 Situação dos achados anteriores
+
+| Achado anterior | Situação em 04/09/2026 | Observação |
+| --- | --- | --- |
+| Resolução de views por índice | Resolvido | Admin e cliente agora resolvem por `viewName`. |
+| Ausência de automação das views | Parcialmente resolvido | Existem `views:validate`, `views:check` e `views:sync`, com upsert idempotente. Ainda faltam validação estrutural do HTML, detecção completa de drift e índice único no banco. |
+| Testes concentrados apenas em segurança | Parcialmente resolvido | Há um arquivo separado para Pix, mas a maior parte dos testes de domínio continua em `security.test.mjs`. |
+| Endpoint `/api/test` público | Parcialmente resolvido | Agora exige autenticação administrativa, porém segue montado em produção e o site público continua chamando-o sem token. |
+| Inicialização do MongoDB antes do servidor | Não resolvido | `connect()` continua sem `await` e `listen()` é chamado imediatamente. |
+| Ciclo de vida das views | Não resolvido | A clonagem foi aplicada na tela de propostas, mas não se tornou regra global. |
+| Contratos duplicados frontend/backend | Não resolvido | Etapas, propostas e financeiro continuam declarados separadamente. |
+| Semântica dos status de proposta | Não resolvido | `beated` e `Cancelled` continuam no contrato atual. |
+| Código legado e logs de desenvolvimento | Não resolvido | A página pública ainda executa `checkHealth()` e `testApi()` e cria elementos de diagnóstico no DOM. |
+
+### 11.4 Novos achados e inconsistências
+
+#### ARQ-023 — termos financeiros editáveis alteram retroativamente o valor considerado pago
+
+Prioridade: **alta antes de representar pagamentos reais**
+Tipo: integridade de domínio
+
+Evidências:
+
+- `calculatePaymentSchedule()` recalcula entrada, juros e parcelas durante a edição;
+- o estado `isPaid`, `paidAt` e `settlementSource` é preservado por número da parcela;
+- o campo `amountCents` da parcela paga é substituído pelo novo cálculo;
+- `paidAmountCents` não é um lançamento imutável: ele é recalculado somando os valores atuais das partes marcadas como pagas.
+
+Consequência: se o administrador alterar valor total, desconto, entrada, juros ou quantidade depois de uma parcela paga, o sistema pode passar a afirmar que foi pago um valor diferente do realmente recebido. O evento de auditoria registra os termos anteriores, mas o saldo operacional continua sendo calculado a partir dos termos novos.
+
+Direção recomendada:
+
+1. bloquear alterações monetárias depois do primeiro pagamento; ou
+2. criar uma nova versão de cobrança e preservar a anterior; ou
+3. separar `BillingPlan` de um ledger imutável de recebimentos, no qual cada confirmação guarde seu próprio `amountCents`.
+
+Até essa decisão, não usar `isPaid` como substituto de um lançamento financeiro imutável.
+
+#### ARQ-024 — reutilização das instâncias de view acumula listeners
+
+Prioridade: **alta**
+Tipo: ciclo de vida do frontend
+
+Os getters transformam cada HTML do banco em uma única instância de `HTMLElement`. `AdminSystemView` e `ClientSystemView` removem e depois anexam novamente essa mesma instância.
+
+As telas financeiras adicionam listeners nativos a elementos estruturais a cada montagem:
+
+- `ClientFinancialManager` registra listeners no botão de nova cobrança, formulário, diálogo e editor;
+- `ClientSystemModules.mountFinancial()` registra listeners no diálogo Pix;
+- `mountStagesApprovals()` também registra listeners nos diálogos de aprovação.
+
+Apenas a tela administrativa de propostas usa `cloneNode(true)` explicitamente. Ao sair e voltar para financeiro, managers antigos podem continuar ligados ao mesmo DOM, provocando abertura duplicada, submissões concorrentes, feedback inconsistente ou referências a estado anterior.
+
+Direção recomendada:
+
+- fazer `render` clonar toda view transitória por padrão; ou
+- armazenar `HTMLTemplateElement`/string como modelo e criar uma árvore nova em cada montagem;
+- criar contrato `mount()/dispose()` para timers e listeners globais;
+- remover a exceção local de propostas depois de padronizar o comportamento.
+
+#### ARQ-025 — configuração Pix é lida antes do carregamento do `.env`
+
+Prioridade: **alta para configuração operacional**
+Tipo: bootstrap/dependências
+
+`server.ts` importa estaticamente as rotas antes de executar `dotenv.config()`. As rotas instanciam controllers, que importam `client-payment.service.ts`. Nesse módulo, `PIX_RECEIVER` é calculado no topo do arquivo.
+
+Pela ordem de avaliação de módulos ES, valores existentes apenas em `backend/.env` podem não estar disponíveis quando `PIX_RECEIVER` é criado. Nesse cenário, o código utiliza silenciosamente o CPF, nome e cidade definidos como fallback no código-fonte. Variáveis fornecidas diretamente pelo processo/serviço operacional não sofrem esse problema.
+
+Além da ordem de bootstrap, a chave Pix é dado de configuração e dado pessoal; não deveria possuir fallback de produção dentro do caso de uso.
+
+Direção recomendada:
+
+- criar um módulo de configuração validado carregado antes da composição da aplicação;
+- injetar `PixReceiverConfig` no serviço;
+- falhar no startup se a configuração obrigatória estiver ausente;
+- manter valores reais apenas no ambiente de implantação.
+
+#### ARQ-026 — `ClientPaymentService` reúne domínio, DTO, configuração e geração de imagem
+
+Prioridade: **média-alta**
+Tipo: responsabilidade por arquivo
+
+O arquivo possui aproximadamente 480 linhas e hoje executa:
+
+- parsing e validação dos campos HTTP;
+- cálculo do plano financeiro;
+- mutações administrativas;
+- autorização contextual por cliente;
+- geração e renovação de tentativa Pix;
+- leitura de configuração do recebedor;
+- geração de PNG/Data URL com a biblioteca `qrcode`;
+- montagem de DTO administrativo e DTO público;
+- criação dos eventos de auditoria.
+
+O algoritmo de BR Code já está adequadamente isolado em `services/pix-br-code.ts`, mas o caso de uso principal ainda depende diretamente de QR Code e configuração de ambiente.
+
+Extração incremental sugerida:
+
+- `payment-schedule.ts`: cálculo puro e datas;
+- `payment-presenter.ts`: DTOs de admin e cliente;
+- `pix-charge.service.ts`: janela temporária, BR Code e imagem;
+- `financial-config.ts`: configuração validada;
+- manter `ClientPaymentService` como orquestrador, ou dividi-lo por casos de uso quando voltar a ser alterado.
+
+#### ARQ-027 — regras financeiras estão duplicadas e posicionadas na camada visual
+
+Prioridade: **média-alta**
+Tipo: duplicação de regra de negócio
+
+O cálculo oficial está no backend, mas `client-financial-manager.ts` repete cálculo de desconto, entrada, juros, distribuição de centavos e vencimentos para a prévia administrativa. O frontend do cliente também define sozinho:
+
+- qual pagamento recebe destaque;
+- a regra dos 28 dias;
+- prioridade entre pago, em análise, pendente e atrasado;
+- cálculo textual de dias até o vencimento.
+
+Essas regras aparecem em arquivos de template/UI, e não há testes DOM do frontend. Uma alteração isolada pode fazer a prévia divergir do que será salvo ou admin e cliente exibirem estados diferentes.
+
+Direção recomendada:
+
+- manter o backend como autoridade dos valores;
+- retornar uma prévia calculada por endpoint, ou compartilhar funções puras sem duplicação;
+- mover seleção de destaque e classificação temporal para um módulo de domínio/apresentação testável, fora do template DOM;
+- usar um relógio injetável nos testes para regras baseadas em data.
+
+#### ARQ-028 — “expiração do Pix” significa apenas janela de exibição
+
+Prioridade: **média-alta por semântica de produto**
+Tipo: modelagem/linguagem
+
+O BR Code atual é estático e não contém uma expiração bancária. `expiresAt` controla somente:
+
+- por quanto tempo o backend devolve a tentativa existente;
+- por quanto tempo o frontend mostra “Em análise” e permite reabrir o QR.
+
+Um código copiado pode continuar sendo pago depois das cinco horas. Portanto, os nomes e mensagens não devem sugerir que a cobrança deixou de ser válida na rede Pix.
+
+Direção recomendada: nomear o conceito como `displayExpiresAt`, `analysisWindowEndsAt` ou “janela de exibição/análise”. Uma expiração real somente deve ser prometida quando houver cobrança dinâmica emitida por um PSP/banco.
+
+#### ARQ-029 — modelo financeiro mistura plano de cobrança, pagamento e tentativa Pix
+
+Prioridade: **média**
+Tipo: semântica do domínio
+
+`ClientPayment` representa, na prática, um plano/cobrança com entrada e parcelas. Cada parte também é chamada de pagamento. O mesmo agregado guarda termos comerciais, vencimentos, confirmação manual, tentativa Pix atual e todo o histórico de eventos.
+
+Outras ambiguidades:
+
+- `firstDueDate` é a data da entrada/início; a Parcela 1 vence um mês depois;
+- `settlementSource` admite `pix`, embora a implementação atual confirme apenas manualmente;
+- a collection se chama `financeiro`, enquanto os campos e o código usam inglês;
+- não existe campo explícito de moeda, apesar de toda a aplicação assumir BRL.
+
+Não é necessário renomear imediatamente. Antes de integrar um PSP, definir vocabulário estável, por exemplo: `ClientCharge`, `ChargeSchedule`, `PaymentReceipt` e `PixPresentationAttempt`.
+
+#### ARQ-030 — histórico e payloads expirados crescem no documento principal
+
+Prioridade: **média**
+Tipo: persistência/escalabilidade
+
+Cada nova geração após cinco horas sobrescreve `part.pix`, mas adiciona permanentemente um evento em `events`. O array não possui limite, paginação ou coleção própria. O BR Code expirado também permanece no documento até ser sobrescrito, editado ou a parte ser marcada manualmente.
+
+Isso não é um risco imediato com poucos clientes, mas um documento MongoDB possui limite de tamanho e a auditoria tende a crescer justamente no agregado mais consultado.
+
+Direção recomendada:
+
+- mover eventos financeiros para coleção append-only com índice por `paymentId`;
+- manter no agregado apenas estado atual e, se necessário, os últimos eventos;
+- definir retenção para tentativas Pix e nunca usar TTL sobre o documento da cobrança inteira.
+
+#### ARQ-031 — listagem financeira possui truncamento silencioso
+
+Prioridade: **média**
+Tipo: contrato/paginação
+
+`ClientPaymentRepository.findByClientId()` aplica `.limit(200)` sem cursor, contagem ou indicação de truncamento. Admin e cliente tratam o retorno como lista completa e o cliente usa toda a lista para escolher o destaque.
+
+Direção recomendada: definir paginação explícita e fornecer separadamente o resumo/destaque atual. Enquanto o volume for pequeno, ao menos documentar o limite no contrato para que ele não seja confundido com ausência de dados.
+
+#### ARQ-032 — `type` das views não possui taxonomia confiável
+
+Prioridade: **média**
+Tipo: semântica/configuração
+
+Nos arquivos atuais, `type` assume `system`, `client` e `financial`. O frontend resolve as telas por `viewName` e seus contratos `dbView`/`DbView` nem declaram `type`. No backend, o campo é usado pontualmente para localizar views administrativas de briefing.
+
+Assim, `type` parece simultaneamente categoria técnica, domínio e filtro operacional, mas não é validado por enum nem consumido de forma uniforme.
+
+Direção recomendada: decidir se `type` representa domínio, grupo de carregamento ou espécie de template. Depois, definir enum e validar combinações permitidas com `permission` e `viewName`; se não possuir função real, removê-lo mediante migração.
+
+#### ARQ-033 — automação das views é útil, porém ainda não fecha o contrato
+
+Prioridade: **média**
+Tipo: tooling/integração
+
+O novo script é um avanço concreto: valida JSON, ObjectId, campos obrigatórios e duplicidade local, compara por `permission + viewName` e aplica insert/update sem remoção.
+
+Limitações atuais:
+
+- não analisa HTML malformado;
+- não valida IDs/classes exigidos pelos selectors;
+- não confirma que todas as views obrigatórias existem;
+- não reporta como drift as views extras presentes apenas no banco;
+- não cria/verifica índice único em `(permission, viewName)`;
+- não possui checksum ou versão de schema;
+- `views:validate` não faz parte do `build` raiz nem de CI.
+
+A automação deve ser descrita como sincronização unidirecional conservadora, e não como garantia completa de equivalência repositório ↔ banco.
+
+#### ARQ-034 — inicialização e endpoints de diagnóstico permanecem fora do fluxo esperado
+
+Prioridade: **média-alta operacional**
+Tipo: bootstrap/código legado
+
+`server.ts` ainda chama `connect()` sem aguardar e inicia `listen()` logo depois, podendo aceitar requisições antes do MongoDB estar pronto e imprimir “Conectado” prematuramente.
+
+Além disso:
+
+- `/api/test` continua registrado em todas as execuções, embora protegido como admin;
+- o site público chama `/health` e `/test` ao carregar a home;
+- `testApi()` não envia token, portanto a chamada protegida é estruturalmente incapaz de obter sucesso;
+- os utilitários criam caixas de diagnóstico no DOM público e mantêm logs de desenvolvimento.
+
+Direção recomendada: criar `bootstrap()` assíncrono, separar readiness de health, montar rotas de teste somente em desenvolvimento e retirar `testRequisitions.ts` do entry público.
+
+#### ARQ-035 — contratos e nomenclatura continuam divergentes
+
+Prioridade: **média**
+Tipo: contratos/semântica
+
+Exemplos ainda ativos:
+
+- status de proposta `beated` e `Cancelled`, misturando inglês inadequado e caixa;
+- interfaces financeiras repetidas no backend, `admin-system.api.ts` e `client-system.api.ts`;
+- chaves/status de etapas duplicados entre backend e `frontend/src/shared`;
+- `home.selector.ts.ts` mantém extensão duplicada;
+- `AdminController` concentra 339 linhas e tratamento repetido de erros por domínio.
+
+Direção recomendada: estabilizar contratos via schema compartilhado ou geração de tipos, normalizar status mediante migração explícita e corrigir nomes oportunisticamente, sem uma refatoração transversal única.
+
+### 11.5 Pontos positivos das novas implementações
+
+- Valores persistidos como inteiros em centavos evitam a maior parte dos erros comuns de ponto flutuante no estado oficial.
+- O backend recalcula valores em vez de confiar na prévia enviada pelo navegador.
+- Mutações financeiras usam versão otimista e retornam conflito quando o agregado mudou.
+- Consultas e mutações vinculam cobrança ao cliente, reduzindo risco de acesso horizontal.
+- Confirmações manuais registram instante e origem, e as mutações relevantes geram auditoria.
+- A confirmação administrativa remove a tentativa Pix ativa da parte correspondente.
+- O DTO do cliente omite versão, `clientId` e cálculos internos que ele não precisa editar.
+- O BR Code foi isolado em função testável e possui teste de valor exato e CRC.
+- Admin financeiro recebeu um componente próprio (`ClientFinancialManager`), melhor do que ampliar toda a lógica dentro de `AdminSystemModules`.
+- O processo de views agora possui comandos documentados, modo somente leitura e aplicação explícita.
+
+### 11.6 Ordem recomendada para as próximas correções
+
+#### Antes de ampliar o financeiro
+
+1. Definir imutabilidade/versão dos recebimentos e impedir alteração retroativa de valores pagos.
+2. Corrigir o bootstrap da configuração Pix e retirar dados reais do fallback no código.
+3. Padronizar view nova por montagem e eliminar acúmulo de listeners.
+4. Extrair regras financeiras duplicadas e adicionar testes do frontend.
+5. Renomear a janela Pix para refletir que a validade é apenas interna.
+
+#### Antes de integrar banco ou PSP
+
+1. Separar cobrança planejada de recebimento confirmado.
+2. Definir idempotência por cobrança/parcela e identificador externo.
+3. Projetar webhook autenticado, reconciliação e estados explícitos (`pending`, `presented`, `confirmed`, `failed`, `refunded`).
+4. Tornar eventos financeiros append-only e consultáveis sem crescimento ilimitado do agregado.
+5. Definir moeda, timezone de negócio e política de alteração/cancelamento.
+
+#### Manutenção estrutural
+
+1. Tornar `views:validate` obrigatório no pipeline do repositório.
+2. Criar índice único das views após eliminar duplicidades existentes.
+3. Extrair o módulo financeiro do cliente de `ClientSystemModules`, assim como foi feito no admin.
+4. Corrigir inicialização MongoDB e remover diagnóstico do entry público.
+5. Separar testes por domínio e adicionar integração MongoDB/HTTP e regressão de remontagem de views.
+
+### 11.7 Conclusão atualizada
+
+A arquitetura-base permanece aproveitável e não precisa ser substituída. As novas funcionalidades confirmam que a divisão em routes, controllers, application, repositories, models e services funciona bem quando seguida de forma consistente.
+
+O maior risco agora está nos limites entre **plano financeiro mutável**, **recebimento confirmado** e **apresentação temporária de Pix**. Esses conceitos ainda estão no mesmo agregado e parte das regras relevantes vive no frontend. Antes de automatizar confirmação bancária, o domínio financeiro deve adquirir histórico imutável, idempotência e vocabulário explícito.
+
+No frontend, o problema mais urgente continua sendo o ciclo de vida das views persistidas. A automação do MongoDB resolveu a distribuição dos documentos, mas não resolveu a reutilização da mesma árvore DOM em memória. Esse ajuste deve preceder a inclusão de mais diálogos, timers e listeners.
+
+Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação automática das correções listadas.
