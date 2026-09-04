@@ -605,3 +605,103 @@ O maior risco agora está nos limites entre **plano financeiro mutável**, **rec
 No frontend, o problema mais urgente continua sendo o ciclo de vida das views persistidas. A automação do MongoDB resolveu a distribuição dos documentos, mas não resolveu a reutilização da mesma árvore DOM em memória. Esse ajuste deve preceder a inclusão de mais diálogos, timers e listeners.
 
 Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação automática das correções listadas.
+
+---
+
+## 12. Resumo dos pontos a melhorar por prioridade
+
+A arquitetura continua adequada e não precisa ser reescrita. As melhorias devem ser incrementais, com prioridade para a integridade do domínio financeiro, a configuração operacional e o ciclo de vida das views.
+
+### 1. Garantir a integridade dos pagamentos
+
+Atualmente, a alteração dos termos financeiros depois de uma parcela paga pode modificar retroativamente o valor considerado recebido. Deve-se adotar uma das seguintes estratégias:
+
+- bloquear alterações monetárias depois do primeiro pagamento;
+- criar uma nova versão do plano de cobrança; ou
+- registrar cada recebimento em um ledger imutável, com seu próprio valor confirmado.
+
+### 2. Corrigir o carregamento da configuração Pix
+
+A configuração pode ser lida antes do `.env`, fazendo o sistema utilizar silenciosamente dados definidos como fallback no código. É necessário:
+
+- carregar e validar a configuração antes das rotas;
+- injetar a configuração no serviço Pix;
+- retirar dados reais dos fallbacks no código;
+- impedir o startup quando uma configuração obrigatória estiver ausente.
+
+### 3. Padronizar o ciclo de vida das views
+
+As mesmas árvores DOM são reutilizadas entre montagens, permitindo acúmulo de listeners e estado antigo. A correção deve:
+
+- criar uma nova árvore DOM em cada montagem;
+- estabelecer um contrato consistente de `mount()` e `dispose()`;
+- descartar listeners globais e timers;
+- padronizar a desmontagem, preferencialmente com `replaceChildren`;
+- incluir um teste de regressão para a alternância entre clientes e telas.
+
+### 4. Eliminar divergências nas regras financeiras
+
+Parte dos cálculos e da classificação dos pagamentos está duplicada no frontend. O backend deve continuar sendo a autoridade dos valores. Recomenda-se:
+
+- disponibilizar uma prévia calculada pelo backend ou compartilhar funções puras;
+- retirar regras financeiras dos templates DOM;
+- tornar as regras baseadas em data testáveis com um relógio injetável;
+- adicionar testes de frontend.
+
+### 5. Corrigir a semântica da expiração do Pix
+
+O Pix atual é estático e não expira na rede bancária. O prazo de cinco horas representa apenas uma janela interna de exibição ou análise. Campos e mensagens devem usar termos como `displayExpiresAt`, `analysisWindowEndsAt` ou "janela de exibição/análise".
+
+### 6. Preparar o domínio antes de integrar banco ou PSP
+
+Antes de automatizar pagamentos, será necessário:
+
+- separar o plano de cobrança dos recebimentos confirmados;
+- implementar idempotência e identificadores externos;
+- projetar webhook autenticado e reconciliação;
+- definir estados explícitos de pagamento;
+- definir moeda, timezone e políticas de alteração, cancelamento e reembolso;
+- manter eventos financeiros imutáveis e fora do documento operacional principal.
+
+### 7. Corrigir a inicialização e os diagnósticos de produção
+
+- aguardar a conexão com o MongoDB antes de iniciar o servidor;
+- separar health check de readiness;
+- montar `/api/test` somente em desenvolvimento;
+- retirar chamadas, logs e elementos de diagnóstico da página pública.
+
+### 8. Completar o controle das views persistidas
+
+A automação atual é útil, mas ainda não garante equivalência completa entre o repositório e o MongoDB. Deve-se:
+
+- tornar `views:validate` obrigatório no build ou CI;
+- validar HTML e os IDs/classes exigidos pelos selectors;
+- detectar views ausentes e extras;
+- criar índice único para `(permission, viewName)`;
+- adicionar versão ou checksum para detectar drift.
+
+### 9. Melhorar a paginação e o armazenamento financeiro
+
+- substituir o limite silencioso de 200 registros por paginação explícita;
+- fornecer separadamente o resumo ou destaque financeiro atual;
+- mover o histórico para uma coleção append-only;
+- definir retenção para tentativas Pix expiradas.
+
+### 10. Modularizar arquivos grandes por oportunidade
+
+Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transversal imediata:
+
+- dividir responsabilidades de `ClientPaymentService`;
+- extrair o financeiro de `ClientSystemModules`;
+- continuar decompondo `AdminSystemModules`;
+- separar cálculo, apresentação, Pix e configuração em componentes próprios.
+
+### 11. Organizar testes, contratos e nomenclaturas
+
+- separar os testes por domínio;
+- adicionar testes DOM, MongoDB e HTTP;
+- compartilhar ou gerar contratos entre backend e frontend;
+- normalizar nomes como `beated`, `Cancelled` e `home.selector.ts.ts`;
+- definir uma taxonomia clara para o campo `type` das views.
+
+Em síntese, os três primeiros trabalhos devem ser a integridade dos recebimentos, a configuração segura do Pix e o ciclo de vida das views. Em seguida, devem ser tratadas a duplicação de regras financeiras, a preparação para integração com PSP e a confiabilidade operacional.
