@@ -42,26 +42,21 @@ if (trustProxyHops > 0) app.set("trust proxy", trustProxyHops);
 app.disable("x-powered-by");
 app.use(...securityHeaders(isProduction));
 
-// TODO: On-prod remover localhost e IPs privados da lista de origens permitidas no CORS
-// Configuração de CORS
+const productionOrigins = [
+  "https://marcellasol.com.br",
+  "https://www.marcellasol.com.br"
+];
+const developmentOrigins = [
+  "http://localhost:3000",
+  "http://localhost:8080",
+  /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+  /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/
+];
+
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:8080',
-    'https://marcellasol.com.br:8080',
-    'https://marcellasol.com.br:3000',
-    'https://marcellasol.com.br',
-    'https://www.marcellasol.com.br:8080',
-    'https://www.marcellasol.com.br:3000',
-    'https://www.marcellasol.com.br',
-    '177.153.194.22',
-    '177.153.194.22:3000',
-    /^http:\/\/192\.168\.\d+\.\d+:\d+$/, // IPs privados 192.168.x.x
-    /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/,  // IPs privados 10.x.x.x
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: isProduction ? productionOrigins : [...productionOrigins, ...developmentOrigins],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
 
 app.use(cors(corsOptions));

@@ -3,6 +3,7 @@ import { AdminController } from "../controllers/admin.controller.js";
 import { requireAuthentication } from "../middleware/authentication.middleware.js";
 import { receiveProposalAttachment } from "../middleware/proposal-upload.middleware.js";
 import { adminLoginRateLimit } from "../middleware/login-rate-limit.middleware.js";
+import { financialMutationRateLimit, financialReadRateLimit } from "../middleware/financial-rate-limit.middleware.js";
 
 const router = express.Router();
 const controller = new AdminController();
@@ -23,11 +24,11 @@ router.put("/api/admin/clients/:id/proposals/:proposalId", requireAuthentication
 router.post("/api/admin/clients/:id/proposals/:proposalId/resend", requireAuthentication("admin"), controller.resendClientProposal);
 router.delete("/api/admin/clients/:id/proposals/:proposalId/attachments/:attachmentIndex", requireAuthentication("admin"), controller.deleteClientProposalAttachment);
 router.delete("/api/admin/clients/:id/proposals/:proposalId", requireAuthentication("admin"), controller.deleteClientProposal);
-router.get("/api/admin/clients/:id/payments", requireAuthentication("admin"), controller.clientPayments);
-router.post("/api/admin/clients/:id/payments", requireAuthentication("admin"), controller.createClientPayment);
-router.put("/api/admin/clients/:id/payments/:paymentId", requireAuthentication("admin"), controller.editClientPayment);
-router.patch("/api/admin/clients/:id/payments/:paymentId/down-payment", requireAuthentication("admin"), controller.setDownPaymentPaid);
-router.patch("/api/admin/clients/:id/payments/:paymentId/installments/:installmentNumber", requireAuthentication("admin"), controller.setInstallmentPaid);
+router.get("/api/admin/clients/:id/payments", requireAuthentication("admin"), financialReadRateLimit, controller.clientPayments);
+router.post("/api/admin/clients/:id/payments", requireAuthentication("admin"), financialMutationRateLimit, controller.createClientPayment);
+router.put("/api/admin/clients/:id/payments/:paymentId", requireAuthentication("admin"), financialMutationRateLimit, controller.editClientPayment);
+router.patch("/api/admin/clients/:id/payments/:paymentId/down-payment", requireAuthentication("admin"), financialMutationRateLimit, controller.setDownPaymentPaid);
+router.patch("/api/admin/clients/:id/payments/:paymentId/installments/:installmentNumber", requireAuthentication("admin"), financialMutationRateLimit, controller.setInstallmentPaid);
 router.post("/api/admin/user", requireAuthentication("admin"), controller.create);
 
 export default router;

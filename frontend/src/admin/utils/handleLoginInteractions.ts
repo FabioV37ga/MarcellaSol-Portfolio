@@ -76,7 +76,7 @@ async function checkSection() {
 
     try {
         const saved = JSON.parse(section) as { token?: string; timestamp?: number };
-        const isCurrent = Date.now() - 604800000 < Number(saved.timestamp);
+        const isCurrent = Date.now() - 8 * 60 * 60 * 1000 < Number(saved.timestamp);
         if (!saved.token || !isCurrent) throw new Error("Sessão expirada");
 
         const response = await fetch(`${config.apiBaseUrl}/admin/session`, {

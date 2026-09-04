@@ -89,11 +89,29 @@ export class ClientController {
     payments = async (_request: Request, response: Response): Promise<Response> => {
         try {
             const principal = authenticatedPrincipal(response);
-            return response.status(200).json({ payments: await this.paymentService.list(principal.subject) });
+            return response.status(200).json({ payments: await this.paymentService.listForClient(principal.subject) });
         } catch (error: unknown) {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            console.error("Erro ao carregar pagamentos do cliente:", error);
+            console.error("Erro ao carregar pagamentos do cliente:", error instanceof Error ? error.name : "UnknownError");
             return response.status(500).json({ message: "Erro ao carregar pagamentos." });
+        }
+    };
+
+    generatePaymentPix = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const principal = authenticatedPrincipal(response);
+            const result = await this.paymentService.generatePix(
+                principal.subject,
+                String(request.params.paymentId ?? ""),
+                request.body?.partType,
+                request.body?.installmentNumber,
+                { id: principal.subject, sessionId: principal.sessionId, role: "client" }
+            );
+            return response.status(200).json(result);
+        } catch (error: unknown) {
+            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
+            console.error("Erro ao gerar código Pix:", error instanceof Error ? error.name : "UnknownError");
+            return response.status(500).json({ message: "Não foi possível gerar o código Pix." });
         }
     };
 

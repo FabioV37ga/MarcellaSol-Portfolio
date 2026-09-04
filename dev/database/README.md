@@ -25,3 +25,10 @@ npm run views:sync
 A sincronização cria views ausentes e atualiza `view`, `type`, `permission` e `viewName` das existentes. Ela nunca remove registros. O `_id` do arquivo é usado apenas ao criar uma view; atualizações preservam o `_id` existente no banco.
 
 Somente arquivos terminados em `-view.json` são considerados. Outros documentos e scripts deste diretório são ignorados.
+
+## Migrações operacionais
+
+Os arquivos `*.mongodb.js` são scripts manuais e idempotentes. Eles não são executados por `views:sync`.
+
+- `auth-sessions-indexes.mongodb.js`: índices de revogação e expiração de sessões.
+- `financial-security-migration.mongodb.js`: prepara cobranças antigas para versionamento, auditoria e arquivamento.

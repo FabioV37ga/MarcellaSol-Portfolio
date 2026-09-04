@@ -5,17 +5,19 @@ import { getBaseElements, type baseElements } from "../selectors/base.selector.j
 import { getHomeElements } from "../selectors/home.selector.js";
 import type { system } from "../templates/interface.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
-import { ClientSystemApi, type ClientProposal } from "../infrastructure/client-system.api.js";
+import { ClientSystemApi, type ClientPayment, type ClientProposal } from "../infrastructure/client-system.api.js";
 import { clientApprovalItem } from "../templates/client-approval-item.template.js";
 import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
 import { logoutSession } from "@/shared/session/logout.js";
 import { renderProjectStages } from "@/shared/project-stages.js";
 import { getClientFinancialElements } from "../selectors/financial.selector.js";
-import { clientPaymentHighlight, clientPaymentItem } from "../templates/client-payment-item.template.js";
+import { clientPaymentHighlight, clientPaymentItem, type PaymentPartReference } from "../templates/client-payment-item.template.js";
 
 export class ClientSystemModules {
     private baseElements?: baseElements;
     private financialRequestId = 0;
+    private financialExpiryTimer?: number;
+    private pixCountdownTimer?: number;
 
     constructor(
         private readonly view: ClientSystemView,
@@ -27,6 +29,11 @@ export class ClientSystemModules {
     ) {}
 
     mount(route: ClientRoute, briefingStep?: number): void {
+        if (route !== "financial") {
+            this.financialRequestId += 1;
+            window.clearTimeout(this.financialExpiryTimer);
+            window.clearInterval(this.pixCountdownTimer);
+        }
         document.body.classList.toggle("client-briefing-active", route === "briefing");
         switch (route) {
             case "base":
@@ -90,23 +97,98 @@ export class ClientSystemModules {
         this.view.styleNavButton(this.baseElements?.desktop_nav_financial);
         const elements = getClientFinancialElements();
         const requestId = ++this.financialRequestId;
+        window.clearTimeout(this.financialExpiryTimer);
+        window.clearInterval(this.pixCountdownTimer);
         u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
-        try {
-            const payments = await this.api.loadPayments(this.token);
-            if (requestId !== this.financialRequestId) return;
-            elements.loading.hidden = true;
-            elements.highlight.replaceChildren(clientPaymentHighlight(payments));
+        let payments: ClientPayment[] = [];
+        const scheduleExpiryRefresh = (): void => {
+            window.clearTimeout(this.financialExpiryTimer);
+            const expiries = payments.reduce<Array<ClientPayment["downPayment"]>>((parts, payment) => {
+                parts.push(payment.downPayment, ...payment.installments);
+                return parts;
+            }, [])
+                .map(part => part.pix ? new Date(part.pix.expiresAt).getTime() : 0)
+                .filter(value => value > Date.now());
+            if (!expiries.length) return;
+            this.financialExpiryTimer = window.setTimeout(() => renderPayments(), Math.min(...expiries) - Date.now() + 100);
+        };
+        const renderPayments = (): void => {
+            const openPix = (part: PaymentPartReference): void => { void showPix(part); };
+            elements.highlight.replaceChildren(clientPaymentHighlight(payments, openPix));
             elements.list.replaceChildren();
-            if (payments.length === 0) {
-                elements.empty.hidden = false;
+            elements.empty.hidden = payments.length > 0;
+            if (!payments.length) return;
+            const items = document.createDocumentFragment();
+            payments.forEach(payment => items.append(clientPaymentItem(payment, openPix)));
+            elements.list.append(items);
+            scheduleExpiryRefresh();
+        };
+        const updateExpiry = (expiresAt: string): void => {
+            const remaining = new Date(expiresAt).getTime() - Date.now();
+            if (remaining <= 0) {
+                elements.pixExpiry.textContent = "Este código expirou. Feche a janela e gere um novo código.";
+                elements.pixQr.hidden = true;
+                elements.pixCode.hidden = true;
+                elements.pixCopy.hidden = true;
                 return;
             }
-            elements.empty.hidden = true;
-            const items = document.createDocumentFragment();
-            payments.forEach(payment => items.append(clientPaymentItem(payment)));
-            elements.list.append(items);
+            const hours = Math.floor(remaining / 3_600_000);
+            const minutes = Math.floor(remaining % 3_600_000 / 60_000);
+            const seconds = Math.floor(remaining % 60_000 / 1000);
+            elements.pixExpiry.textContent = `Código disponível por ${hours}h ${minutes}min ${seconds}s.`;
+        };
+        const showPix = async (part: PaymentPartReference): Promise<void> => {
+            elements.pixDescription.textContent = `${part.paymentTitle} · ${part.label} · ${(part.amountCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
+            elements.pixLoading.hidden = false;
+            elements.pixResult.hidden = true;
+            elements.pixFeedback.textContent = "";
+            elements.pixQr.hidden = false;
+            elements.pixCode.hidden = false;
+            elements.pixCopy.hidden = false;
+            if (!elements.pixDialog.open) elements.pixDialog.showModal();
+            try {
+                const result = await this.api.generatePaymentPix(this.token, part.paymentId, part.partType, part.installmentNumber);
+                if (requestId !== this.financialRequestId || !elements.pixDialog.open) return;
+                const index = payments.findIndex(payment => payment.id === result.payment.id);
+                if (index >= 0) payments[index] = result.payment;
+                elements.pixQr.src = result.pix.qrCodeDataUrl;
+                elements.pixCode.value = result.pix.brCode;
+                elements.pixLoading.hidden = true;
+                elements.pixResult.hidden = false;
+                renderPayments();
+                window.clearInterval(this.pixCountdownTimer);
+                updateExpiry(result.pix.expiresAt);
+                this.pixCountdownTimer = window.setInterval(() => updateExpiry(result.pix.expiresAt), 1000);
+            } catch (error) {
+                elements.pixLoading.hidden = true;
+                elements.pixFeedback.textContent = error instanceof Error ? error.message : "Não foi possível gerar o código Pix.";
+            }
+        };
+        const closePix = (): void => {
+            window.clearInterval(this.pixCountdownTimer);
+            elements.pixDialog.close();
+        };
+        elements.pixClose.addEventListener("click", closePix);
+        elements.pixDialog.addEventListener("cancel", event => { event.preventDefault(); closePix(); });
+        elements.pixCopy.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(elements.pixCode.value);
+                elements.pixCopy.textContent = "Código copiado";
+                window.setTimeout(() => { elements.pixCopy.textContent = "Copiar código Pix"; }, 2000);
+            } catch {
+                elements.pixCode.focus();
+                elements.pixCode.select();
+                elements.pixFeedback.textContent = "Selecione e copie o código manualmente.";
+            }
+        });
+
+        try {
+            payments = await this.api.loadPayments(this.token);
+            if (requestId !== this.financialRequestId) return;
+            elements.loading.hidden = true;
+            renderPayments();
         } catch (error) {
             if (requestId !== this.financialRequestId) return;
             elements.loading.hidden = true;

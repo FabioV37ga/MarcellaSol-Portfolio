@@ -35,6 +35,7 @@ export interface ClientPaymentPart {
     amountCents: number;
     isPaid: boolean;
     dueDate?: string;
+    pix?: { generatedAt: string; expiresAt: string };
 }
 
 export interface ClientPaymentInstallment extends ClientPaymentPart {
@@ -58,6 +59,19 @@ export interface ClientPayment {
     installments: ClientPaymentInstallment[];
     createdAt: string;
     updatedAt: string;
+}
+
+export interface ClientPixResponse {
+    payment: ClientPayment;
+    pix: {
+        partType: "down-payment" | "installment";
+        installmentNumber?: number;
+        amountCents: number;
+        brCode: string;
+        qrCodeDataUrl: string;
+        generatedAt: string;
+        expiresAt: string;
+    };
 }
 
 export class ClientSystemApi {
@@ -103,6 +117,24 @@ export class ClientSystemApi {
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível carregar os pagamentos.");
         return result.payments ?? [];
+    }
+
+    async generatePaymentPix(
+        token: string,
+        paymentId: string,
+        partType: "down-payment" | "installment",
+        installmentNumber?: number
+    ): Promise<ClientPixResponse> {
+        const response = await fetch(`${config.apiBaseUrl}/client/payments/${encodeURIComponent(paymentId)}/pix`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ partType, ...(installmentNumber === undefined ? {} : { installmentNumber }) })
+        });
+        const result = await response.json().catch(() => ({})) as Partial<ClientPixResponse> & { message?: string };
+        if (!response.ok || !result.payment || !result.pix) {
+            throw new Error(result.message ?? "Não foi possível gerar o código Pix.");
+        }
+        return result as ClientPixResponse;
     }
 
     approveProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {

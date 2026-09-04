@@ -18,7 +18,11 @@ export class ClientDeletionRepository {
                 await Promise.all([
                     clientBriefings.deleteMany({ clientId }, { session }),
                     clientProposals.deleteMany({ userId: clientId }, { session }),
-                    clientPayments.deleteMany({ clientId }, { session }),
+                    clientPayments.updateMany(
+                        { clientId, archivedAt: null },
+                        { $set: { archivedAt: new Date() } },
+                        { session }
+                    ),
                     authSessions.deleteMany({ subject: clientId, role: "client" }, { session })
                 ]);
                 deleted = true;

@@ -1,6 +1,7 @@
-import express, {Request, Response } from "express";
+import express from "express";
 import mongoose from "mongoose";
 import Projeto from "../models/projeto.js";
+import { requireAuthentication } from "../middleware/authentication.middleware.js";
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get("/api/health", (req, res) => {
 });
 
 // Rota de teste para buscar projetos
-router.get("/api/test", async (req, res) => {
+router.get("/api/test", requireAuthentication("admin"), async (_req, res) => {
   try {
     const projeto = await Projeto.find();
     if (!projeto) {
@@ -24,7 +25,7 @@ router.get("/api/test", async (req, res) => {
     }
     res.json(projeto);
   } catch (error: any) {
-    console.error("Erro ao buscar projeto:", error);
+    console.error("Erro ao buscar projeto:", error instanceof Error ? error.name : "UnknownError");
     return res.status(500).json({ message: "Erro interno ao buscar projeto" });
   }
 });

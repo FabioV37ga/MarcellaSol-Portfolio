@@ -59,6 +59,7 @@ test("edição financeira preserva ou substitui os estados pagos explicitamente"
     };
     const preserved = calculatePaymentSchedule({ totalAmount: 100, installmentCount: 2, firstDueDate: "2026-08-18", downPaymentPercentage: 10 }, previous);
     assert.equal(preserved.downPayment.isPaid, true);
+    assert.equal(preserved.downPayment.paidAt, undefined);
     assert.deepEqual(preserved.installments.map(item => item.isPaid), [true, false]);
 
     const replaced = calculatePaymentSchedule({
@@ -71,6 +72,7 @@ test("edição financeira preserva ou substitui os estados pagos explicitamente"
     }, previous);
     assert.equal(replaced.downPayment.isPaid, false);
     assert.deepEqual(replaced.installments.map(item => item.isPaid), [false, true]);
+    assert.ok(replaced.installments[1].paidAt instanceof Date);
 });
 
 test("vencimentos mensais preservam o dia e usam o último dia quando necessário", () => {
@@ -116,6 +118,107 @@ test("consulta financeira usa exclusivamente o cliente recebido da sessão", asy
     assert.deepEqual(queriedIds, [clientId]);
     assert.equal(result[0].paidAmountCents, 55000);
     assert.equal(result[0].remainingAmountCents, 45000);
+});
+
+test("resposta financeira do cliente omite identificadores e cálculos internos", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const service = new ClientPaymentService(
+        { async findById() { return { _id: clientId }; } },
+        { async findByClientId() { return [{
+            _id: { toString: () => "507f1f77bcf86cd799439012" },
+            __v: 4,
+            clientId: { toString: () => clientId },
+            title: "Projeto",
+            totalAmountCents: 10000,
+            installmentCount: 1,
+            firstDueDate: "2026-09-03",
+            downPaymentPercentage: 0,
+            discountPercentage: 0,
+            interestPercentage: 0,
+            discountAmountCents: 0,
+            downPayment: { amountCents: 0, isPaid: false, dueDate: "2026-09-03" },
+            financedAmountCents: 10000,
+            interestAmountCents: 0,
+            installmentTotalCents: 10000,
+            finalAmountCents: 10000,
+            installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-03" }],
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }]; } }
+    );
+
+    const [payment] = await service.listForClient(clientId);
+    assert.equal(payment.clientId, undefined);
+    assert.equal(payment.version, undefined);
+    assert.equal(payment.financedAmountCents, undefined);
+});
+
+test("edição financeira exige versão atual e registra auditoria", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const paymentId = "507f1f77bcf86cd799439012";
+    const existing = {
+        _id: { toString: () => paymentId },
+        __v: 2,
+        clientId: { toString: () => clientId },
+        title: "Projeto original",
+        totalAmountCents: 10000,
+        installmentCount: 1,
+        firstDueDate: "2026-09-03",
+        downPaymentPercentage: 0,
+        discountPercentage: 0,
+        interestPercentage: 0,
+        discountAmountCents: 0,
+        downPayment: { amountCents: 0, isPaid: false, dueDate: "2026-09-03" },
+        financedAmountCents: 10000,
+        interestAmountCents: 0,
+        installmentTotalCents: 10000,
+        finalAmountCents: 10000,
+        installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-03" }],
+        events: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+    const updates = [];
+    const service = new ClientPaymentService(
+        { async findById() { return { _id: clientId }; } },
+        {
+            async findByIdAndClientId() { return existing; },
+            async update(id, ownerId, version, data, event) {
+                updates.push({ id, ownerId, version, data, event });
+                return { ...existing, ...data, __v: version + 1 };
+            }
+        }
+    );
+    const fields = {
+        title: "Projeto revisado",
+        totalAmount: "100.00",
+        installmentCount: 1,
+        firstDueDate: "2026-09-03",
+        version: 2
+    };
+    const actor = { id: "admin-1", sessionId: "session-1", role: "admin" };
+
+    const updated = await service.edit(clientId, paymentId, fields, actor);
+    assert.equal(updated.version, 3);
+    assert.equal(updates[0].version, 2);
+    assert.equal(updates[0].event.type, "terms-updated");
+    assert.equal(updates[0].event.actorId, "admin-1");
+
+    await assert.rejects(
+        () => service.edit(clientId, paymentId, { ...fields, version: 1 }, actor),
+        error => error.status === 409
+    );
+    assert.equal(updates.length, 1);
+});
+
+test("sessões administrativas expiram antes das sessões de cliente", () => {
+    const tokens = new SessionTokenService();
+    const now = Math.floor(Date.now() / 1000);
+    const admin = tokens.issue({ subject: "admin", role: "admin", login: "admin", name: "Admin" });
+    const client = tokens.issue({ subject: "client", role: "client", login: "client", name: "Client" });
+
+    assert.ok(admin.expiresAt - now <= 8 * 60 * 60);
+    assert.ok(client.expiresAt - now >= 7 * 24 * 60 * 60 - 1);
 });
 
 class MemorySessionStore {

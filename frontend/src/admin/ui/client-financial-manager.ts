@@ -178,13 +178,14 @@ export class ClientFinancialManager {
         this.elements.feedback.textContent = "Atualizando pagamento...";
         try {
             const updated = installmentNumber === undefined
-                ? await this.api.setDownPaymentPaid(this.session, this.clientId, payment.id, input.checked)
+                ? await this.api.setDownPaymentPaid(this.session, this.clientId, payment.id, input.checked, payment.version)
                 : await this.api.setInstallmentPaid(
                     this.session,
                     this.clientId,
                     payment.id,
                     installmentNumber,
-                    input.checked
+                    input.checked,
+                    payment.version
                 );
             this.replacePayment(updated);
             this.elements.feedback.textContent = "Pagamento atualizado.";
@@ -286,6 +287,7 @@ export class ClientFinancialManager {
             downPaymentIsPaid: paidState.down,
             paidInstallmentNumbers: [...paidState.installments]
         };
+        if (this.editing) fields.version = this.editing.version;
         this.saving = true;
         this.save.disabled = true;
         this.formFeedback.textContent = "Salvando pagamento...";

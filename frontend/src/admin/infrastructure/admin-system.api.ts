@@ -71,6 +71,7 @@ export interface PaymentInstallment extends PaymentPart {
 
 export interface ClientPayment {
     id: string;
+    version: number;
     clientId: string;
     title: string;
     totalAmountCents: number;
@@ -102,6 +103,7 @@ export interface PaymentFields {
     interestPercentage?: string;
     downPaymentIsPaid?: boolean;
     paidInstallmentNumbers?: number[];
+    version?: number;
 }
 
 export class AdminSystemApi {
@@ -163,9 +165,10 @@ export class AdminSystemApi {
         session: AdminSession,
         clientId: string,
         paymentId: string,
-        isPaid: boolean
+        isPaid: boolean,
+        version: number
     ): Promise<ClientPayment> {
-        return this.setPaymentPartPaid(session, clientId, paymentId, "down-payment", isPaid);
+        return this.setPaymentPartPaid(session, clientId, paymentId, "down-payment", isPaid, version);
     }
 
     async setInstallmentPaid(
@@ -173,14 +176,16 @@ export class AdminSystemApi {
         clientId: string,
         paymentId: string,
         installmentNumber: number,
-        isPaid: boolean
+        isPaid: boolean,
+        version: number
     ): Promise<ClientPayment> {
         return this.setPaymentPartPaid(
             session,
             clientId,
             paymentId,
             `installments/${encodeURIComponent(installmentNumber)}`,
-            isPaid
+            isPaid,
+            version
         );
     }
 
@@ -189,14 +194,15 @@ export class AdminSystemApi {
         clientId: string,
         paymentId: string,
         path: string,
-        isPaid: boolean
+        isPaid: boolean,
+        version: number
     ): Promise<ClientPayment> {
         const response = await fetch(
             `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments/${encodeURIComponent(paymentId)}/${path}`,
             {
                 method: "PATCH",
                 headers: { ...this.authorization(session), "Content-Type": "application/json" },
-                body: JSON.stringify({ isPaid })
+                body: JSON.stringify({ isPaid, version })
             }
         );
         const payment = (await this.paymentRequest(response)).payment;

@@ -8,7 +8,7 @@
     "dev": "tsx --watch src/server.ts",
     "dev:back": "tsx --watch src/server.ts",
     "build": "tsc",
-    "test": "npm run build && node --test test/security.test.mjs",
+    "test": "npm run build && node --test test/*.test.mjs",
     "views:validate": "npm run build && node dist/src/scripts/sync-database-views.js --validate-only",
     "views:check": "npm run build && node dist/src/scripts/sync-database-views.js",
     "views:sync": "npm run build && node dist/src/scripts/sync-database-views.js --apply",
@@ -29,6 +29,7 @@
     "mongoose": "^9.7.0",
     "multer": "^2.2.0",
     "puppeteer": "^25.9.0",
+    "qrcode": "^1.5.4",
     "sharp": "^0.35.4"
   },
   "devDependencies": {
@@ -36,6 +37,7 @@
     "@types/express": "^5.0.6",
     "@types/multer": "^2.2.0",
     "@types/node": "^25.9.3",
+    "@types/qrcode": "^1.5.6",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   },

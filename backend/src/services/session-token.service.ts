@@ -23,12 +23,14 @@ export interface IssuedSessionToken {
     expiresAt: number;
 }
 
-const TOKEN_DURATION_SECONDS = 7 * 24 * 60 * 60;
+const ADMIN_TOKEN_DURATION_SECONDS = 8 * 60 * 60;
+const CLIENT_TOKEN_DURATION_SECONDS = 7 * 24 * 60 * 60;
 
 export class SessionTokenService {
     issue(identity: SessionIdentity): IssuedSessionToken {
         const sessionId = randomBytes(32).toString("base64url");
-        const expiresAt = Math.floor(Date.now() / 1000) + TOKEN_DURATION_SECONDS;
+        const duration = identity.role === "admin" ? ADMIN_TOKEN_DURATION_SECONDS : CLIENT_TOKEN_DURATION_SECONDS;
+        const expiresAt = Math.floor(Date.now() / 1000) + duration;
         const payload: TokenPayload = {
             ...identity,
             sessionId,

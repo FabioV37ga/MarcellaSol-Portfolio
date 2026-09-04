@@ -210,7 +210,12 @@ export class AdminController {
     createClientPayment = async (request: Request, response: Response): Promise<Response> => {
         try {
             const clientId = this.routeParameter(request.params.id);
-            return response.status(201).json({ payment: await this.payments.create(clientId, request.body) });
+            const principal = authenticatedPrincipal(response);
+            return response.status(201).json({ payment: await this.payments.create(clientId, request.body, {
+                id: principal.subject,
+                sessionId: principal.sessionId,
+                role: "admin"
+            }) });
         } catch (error: unknown) {
             return this.paymentError(error, response);
         }
@@ -220,7 +225,12 @@ export class AdminController {
         try {
             const clientId = this.routeParameter(request.params.id);
             const paymentId = this.routeParameter(request.params.paymentId);
-            return response.status(200).json({ payment: await this.payments.edit(clientId, paymentId, request.body) });
+            const principal = authenticatedPrincipal(response);
+            return response.status(200).json({ payment: await this.payments.edit(clientId, paymentId, request.body, {
+                id: principal.subject,
+                sessionId: principal.sessionId,
+                role: "admin"
+            }) });
         } catch (error: unknown) {
             return this.paymentError(error, response);
         }
@@ -230,8 +240,15 @@ export class AdminController {
         try {
             const clientId = this.routeParameter(request.params.id);
             const paymentId = this.routeParameter(request.params.paymentId);
+            const principal = authenticatedPrincipal(response);
             return response.status(200).json({
-                payment: await this.payments.setDownPaymentPaid(clientId, paymentId, request.body?.isPaid)
+                payment: await this.payments.setDownPaymentPaid(
+                    clientId,
+                    paymentId,
+                    request.body?.isPaid,
+                    request.body?.version,
+                    { id: principal.subject, sessionId: principal.sessionId, role: "admin" }
+                )
             });
         } catch (error: unknown) {
             return this.paymentError(error, response);
@@ -243,12 +260,15 @@ export class AdminController {
             const clientId = this.routeParameter(request.params.id);
             const paymentId = this.routeParameter(request.params.paymentId);
             const installmentNumber = this.routeParameter(request.params.installmentNumber);
+            const principal = authenticatedPrincipal(response);
             return response.status(200).json({
                 payment: await this.payments.setInstallmentPaid(
                     clientId,
                     paymentId,
                     installmentNumber,
-                    request.body?.isPaid
+                    request.body?.isPaid,
+                    request.body?.version,
+                    { id: principal.subject, sessionId: principal.sessionId, role: "admin" }
                 )
             });
         } catch (error: unknown) {
@@ -307,7 +327,7 @@ export class AdminController {
         if (error instanceof mongoose.Error.ValidationError || error instanceof mongoose.Error.CastError) {
             return response.status(400).json({ message: "Dados do pagamento inválidos" });
         }
-        console.error("Erro ao processar pagamento:", error);
+        console.error("Erro ao processar pagamento:", error instanceof Error ? error.name : "UnknownError");
         return response.status(500).json({ message: "Erro interno ao processar pagamento" });
     }
 
