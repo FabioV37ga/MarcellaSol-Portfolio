@@ -3,9 +3,11 @@ import test from "node:test";
 import { crc16, generatePixBrCode } from "../dist/src/services/pix-br-code.js";
 import { ClientPaymentService } from "../dist/src/application/client-payment.service.js";
 
+const TEST_PIX_RECEIVER = { key: "test@example.com", name: "TEST RECEIVER", city: "SAO PAULO" };
+
 test("BR Code Pix inclui chave, valor exato e CRC válido", () => {
-    const payload = generatePixBrCode(12345, "abc123", { key: "52685132813", name: "MARCELLA SOL", city: "SAO PAULO" });
-    assert.match(payload, /011152685132813/);
+    const payload = generatePixBrCode(12345, "abc123", TEST_PIX_RECEIVER);
+    assert.match(payload, /test@example\.com/);
     assert.match(payload, /5406123\.45/);
     assert.equal(payload.slice(-4), crc16(payload.slice(0, -4)));
 });
@@ -24,6 +26,7 @@ test("Pix da parcela usa seu valor e permanece disponível por cinco horas", asy
     };
     let persisted;
     const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
         { async findById() { return { _id: clientId }; } },
         {
             async findByIdAndClientId() { return existing; },
@@ -37,6 +40,7 @@ test("Pix da parcela usa seu valor e permanece disponível por cinco horas", asy
     const result = await service.generatePix(clientId, paymentId, "installment", 1, { id: clientId, sessionId: "session-1", role: "client" });
     assert.equal(result.pix.amountCents, 24690);
     assert.match(result.pix.brCode, /5406246\.90/);
+    assert.match(result.pix.brCode, /test@example\.com/);
     assert.match(result.pix.qrCodeDataUrl, /^data:image\/png;base64,/);
     assert.equal(persisted.event.type, "pix-code-generated");
     assert.equal(persisted.event.actorRole, "client");

@@ -5,14 +5,9 @@ import type { ClientPaymentObject, PaymentAuditEvent, PaymentInstallment, Paymen
 import { ClientPaymentRepository } from "../repositories/client-payment.repository.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
-import { generatePixBrCode } from "../services/pix-br-code.js";
+import { generatePixBrCode, type PixReceiver } from "../services/pix-br-code.js";
 
 const PIX_ACCESS_WINDOW_MS = 5 * 60 * 60 * 1000;
-const PIX_RECEIVER = {
-    key: process.env.PIX_RECEIVER_KEY?.trim() || "52685132813",
-    name: process.env.PIX_RECEIVER_NAME?.trim() || "MARCELLA SOL",
-    city: process.env.PIX_RECEIVER_CITY?.trim() || "SAO PAULO"
-};
 
 export interface PaymentFields {
     title?: unknown;
@@ -110,6 +105,7 @@ export function calculatePaymentSchedule(
 
 export class ClientPaymentService {
     constructor(
+        private readonly pixReceiver: PixReceiver,
         private readonly clients = new ClientRepository(),
         private readonly payments = new ClientPaymentRepository()
     ) {}
@@ -144,7 +140,18 @@ export class ClientPaymentService {
         const version = paymentVersion(fields.version);
         if ((existing.__v ?? 0) !== version) throw conflictError();
         const title = paymentTitle(fields.title);
-        const schedule = calculatePaymentSchedule(fields, existing);
+        const schedule = calculatePaymentSchedule({
+            ...fields,
+            downPaymentIsPaid: undefined,
+            paidInstallmentNumbers: undefined
+        }, existing);
+        if (hasConfirmedReceiptHistory(existing) && financialTermsChanged(existing, schedule)) {
+            throw new ApplicationError(
+                "As condições financeiras não podem ser alteradas depois da confirmação de um recebimento",
+                409
+            );
+        }
+        if (hasConfirmedReceiptHistory(existing)) preservePixAttempts(schedule, existing);
         const event = auditEvent("terms-updated", actor, {
             before: termsSnapshot(existing.title, existing),
             after: termsSnapshot(title, schedule)
@@ -152,6 +159,32 @@ export class ClientPaymentService {
         const updated = await this.payments.update(paymentId, clientId, version, { title, ...schedule }, event);
         if (!updated) throw conflictError();
         return paymentResponse(updated);
+    }
+
+    async remove(
+        clientId: string,
+        paymentId: string,
+        versionValue: unknown,
+        confirmedReceiptHistoryAcknowledged: unknown,
+        actor: PaymentActor
+    ): Promise<void> {
+        this.requirePaymentId(paymentId);
+        await this.requireClient(clientId);
+        const version = paymentVersion(versionValue);
+        const existing = await this.payments.findByIdAndClientId(paymentId, clientId);
+        if (!existing) throw new ApplicationError("Pagamento não encontrado", 404);
+        if ((existing.__v ?? 0) !== version) throw conflictError();
+
+        const hadConfirmedReceiptHistory = hasConfirmedReceiptHistory(existing);
+        if (hadConfirmedReceiptHistory && confirmedReceiptHistoryAcknowledged !== true) {
+            throw new ApplicationError(
+                "Confirme explicitamente a remoção do pagamento que possui recebimentos confirmados",
+                409
+            );
+        }
+
+        const event = auditEvent("archived", actor, { hadConfirmedReceiptHistory });
+        if (!await this.payments.archive(paymentId, clientId, version, event)) throw conflictError();
     }
 
     async setDownPaymentPaid(clientId: string, paymentId: string, value: unknown, versionValue: unknown, actor: PaymentActor) {
@@ -227,7 +260,12 @@ export class ClientPaymentService {
         const txid = randomUUID().replace(/-/g, "").slice(0, 25);
         const generatedAt = now;
         const expiresAt = new Date(now.getTime() + PIX_ACCESS_WINDOW_MS);
-        const pix = { txid, brCode: generatePixBrCode(part.amountCents, txid, PIX_RECEIVER), generatedAt, expiresAt };
+        const pix = {
+            txid,
+            brCode: generatePixBrCode(part.amountCents, txid, this.pixReceiver),
+            generatedAt,
+            expiresAt
+        };
         const event = auditEvent("pix-code-generated", actor, {
             partType,
             ...(installmentNumber === undefined ? {} : { installmentNumber }),
@@ -256,6 +294,45 @@ export class ClientPaymentService {
     }
 }
 
+function hasConfirmedReceiptHistory(payment: ClientPaymentObject): boolean {
+    return payment.downPayment.isPaid
+        || payment.installments.some(item => item.isPaid)
+        || (payment.events ?? []).some(event => event.isPaid === true
+            || event.after?.downPaymentIsPaid === true
+            || Boolean(event.after?.paidInstallmentNumbers?.length));
+}
+
+function financialTermsChanged(payment: ClientPaymentObject, schedule: PaymentSchedule): boolean {
+    return payment.totalAmountCents !== schedule.totalAmountCents
+        || payment.installmentCount !== schedule.installmentCount
+        || payment.firstDueDate !== schedule.firstDueDate
+        || payment.downPaymentPercentage !== schedule.downPaymentPercentage
+        || payment.discountPercentage !== schedule.discountPercentage
+        || payment.interestPercentage !== schedule.interestPercentage
+        || payment.discountAmountCents !== schedule.discountAmountCents
+        || payment.downPayment.amountCents !== schedule.downPayment.amountCents
+        || payment.downPayment.dueDate !== schedule.downPayment.dueDate
+        || payment.financedAmountCents !== schedule.financedAmountCents
+        || payment.interestAmountCents !== schedule.interestAmountCents
+        || payment.installmentTotalCents !== schedule.installmentTotalCents
+        || payment.finalAmountCents !== schedule.finalAmountCents
+        || payment.installments.length !== schedule.installments.length
+        || payment.installments.some((item, index) => {
+            const calculated = schedule.installments[index];
+            return !calculated || item.number !== calculated.number
+                || item.amountCents !== calculated.amountCents
+                || item.dueDate !== calculated.dueDate;
+        });
+}
+
+function preservePixAttempts(schedule: PaymentSchedule, payment: ClientPaymentObject): void {
+    if (payment.downPayment.pix) schedule.downPayment.pix = payment.downPayment.pix;
+    schedule.installments.forEach((item, index) => {
+        const pix = payment.installments[index]?.pix;
+        if (pix) item.pix = pix;
+    });
+}
+
 function paymentResponse(payment: ClientPaymentObject) {
     const paidAmountCents = (payment.downPayment.isPaid ? payment.downPayment.amountCents : 0)
         + payment.installments.reduce((total, item) => total + (item.isPaid ? item.amountCents : 0), 0);
@@ -278,6 +355,7 @@ function paymentResponse(payment: ClientPaymentObject) {
         finalAmountCents: payment.finalAmountCents,
         paidAmountCents,
         remainingAmountCents: Math.max(0, payment.finalAmountCents - paidAmountCents),
+        financialTermsLocked: hasConfirmedReceiptHistory(payment),
         installments: payment.installments,
         createdAt: payment.createdAt,
         updatedAt: payment.updatedAt

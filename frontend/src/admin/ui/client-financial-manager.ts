@@ -18,7 +18,10 @@ const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "
 export class ClientFinancialManager {
     private payments: ClientPayment[];
     private editing?: ClientPayment;
+    private deletingPayment?: ClientPayment;
     private saving = false;
+    private deleting = false;
+    private deleteCountdownTimer?: number;
     private readonly title: HTMLInputElement;
     private readonly total: HTMLInputElement;
     private readonly count: HTMLInputElement;
@@ -74,6 +77,15 @@ export class ClientFinancialManager {
             this.editing = undefined;
             this.formFeedback.textContent = "";
         });
+        this.elements.deleteCancel.addEventListener("click", () => this.elements.deleteDialog.close());
+        this.elements.deleteConfirm.addEventListener("click", () => { void this.removePayment(); });
+        this.elements.deleteDialog.addEventListener("cancel", event => {
+            if (this.deleting) event.preventDefault();
+        });
+        this.elements.deleteDialog.addEventListener("close", () => {
+            this.clearDeleteCountdown();
+            this.deletingPayment = undefined;
+        });
     }
 
     private render(): void {
@@ -100,12 +112,20 @@ export class ClientFinancialManager {
         const conditions = document.createElement("p");
         conditions.textContent = this.conditionsText(payment);
         heading.append(title, conditions);
+        const actions = document.createElement("div");
+        actions.className = "financial-payment-card-actions";
         const edit = document.createElement("button");
         edit.type = "button";
         edit.className = "financial-payment-edit";
         edit.innerHTML = "<i class='fa fa-pencil' aria-hidden=true></i> Editar";
         edit.addEventListener("click", () => this.openEditor(payment));
-        header.append(heading, edit);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "financial-payment-delete";
+        remove.innerHTML = "<i class='fa fa-trash' aria-hidden=true></i> Remover";
+        remove.addEventListener("click", () => this.openDeleteDialog(payment));
+        actions.append(edit, remove);
+        header.append(heading, actions);
 
         const summary = document.createElement("div");
         summary.className = "financial-payment-card-summary";
@@ -198,6 +218,7 @@ export class ClientFinancialManager {
 
     private openEditor(payment?: ClientPayment): void {
         this.editing = payment;
+        const termsLocked = payment?.financialTermsLocked ?? false;
         this.elements.form.reset();
         required(this.elements.root, "#financial-payment-dialog-title").textContent = payment
             ? "Editar pagamento" : "Gerar pagamento";
@@ -208,10 +229,89 @@ export class ClientFinancialManager {
         this.down.value = optionalPercentage(payment?.downPaymentPercentage);
         this.discount.value = optionalPercentage(payment?.discountPercentage);
         this.interest.value = optionalPercentage(payment?.interestPercentage);
-        this.formFeedback.textContent = "";
+        [this.total, this.count, this.firstDueDate, this.down, this.discount, this.interest]
+            .forEach(input => { input.disabled = termsLocked; });
+        this.formFeedback.textContent = termsLocked
+            ? "As condições financeiras estão bloqueadas porque já existe um recebimento confirmado."
+            : "";
         this.partsEditor.replaceChildren();
         this.renderPreview();
         this.elements.dialog.showModal();
+    }
+
+    private openDeleteDialog(payment: ClientPayment): void {
+        this.clearDeleteCountdown();
+        this.deletingPayment = payment;
+        this.elements.deleteTitle.textContent = `Remover “${payment.title}”?`;
+        this.elements.deleteDescription.textContent = payment.financialTermsLocked
+            ? "Esta cobrança possui ou já possuiu recebimentos confirmados. A remoção a ocultará do administrador e do cliente, mas manterá o registro para auditoria."
+            : "A cobrança será ocultada do administrador e do cliente. O registro será mantido para auditoria.";
+        this.elements.deleteWarning.hidden = !payment.financialTermsLocked;
+        this.elements.deleteCountdown.hidden = !payment.financialTermsLocked;
+        this.elements.deleteCountdown.textContent = "";
+        this.elements.deleteCancel.disabled = false;
+        this.elements.deleteConfirm.disabled = payment.financialTermsLocked;
+        this.elements.deleteConfirm.textContent = payment.financialTermsLocked
+            ? "Remover em 5s"
+            : "Remover pagamento";
+
+        if (payment.financialTermsLocked) {
+            let seconds = 5;
+            this.elements.deleteCountdown.textContent = confirmationCountdownText(seconds);
+            this.deleteCountdownTimer = window.setInterval(() => {
+                seconds -= 1;
+                if (seconds > 0) {
+                    this.elements.deleteCountdown.textContent = confirmationCountdownText(seconds);
+                    this.elements.deleteConfirm.textContent = `Remover em ${seconds}s`;
+                    return;
+                }
+                this.clearDeleteCountdown();
+                this.elements.deleteCountdown.textContent = "Revise o alerta acima antes de confirmar.";
+                this.elements.deleteConfirm.textContent = "Remover mesmo assim";
+                this.elements.deleteConfirm.disabled = false;
+            }, 1000);
+        }
+
+        this.elements.deleteDialog.showModal();
+    }
+
+    private async removePayment(): Promise<void> {
+        const payment = this.deletingPayment;
+        if (!payment || this.deleting || this.elements.deleteConfirm.disabled) return;
+        this.deleting = true;
+        this.elements.deleteCancel.disabled = true;
+        this.elements.deleteConfirm.disabled = true;
+        this.elements.deleteConfirm.textContent = "Removendo...";
+        try {
+            await this.api.removePayment(
+                this.session,
+                this.clientId,
+                payment.id,
+                payment.version,
+                payment.financialTermsLocked
+            );
+            this.payments = this.payments.filter(item => item.id !== payment.id);
+            this.elements.deleteDialog.close();
+            this.render();
+            this.elements.feedback.textContent = "Pagamento removido com sucesso.";
+        } catch (error) {
+            this.elements.deleteConfirm.disabled = false;
+            this.elements.deleteConfirm.textContent = payment.financialTermsLocked
+                ? "Remover mesmo assim"
+                : "Remover pagamento";
+            this.elements.deleteCancel.disabled = false;
+            const message = errorMessage(error, "Não foi possível remover o pagamento.");
+            this.elements.deleteCountdown.hidden = false;
+            this.elements.deleteCountdown.textContent = message;
+            this.elements.feedback.textContent = message;
+        } finally {
+            this.deleting = false;
+        }
+    }
+
+    private clearDeleteCountdown(): void {
+        window.clearInterval(this.deleteCountdownTimer);
+        this.deleteCountdownTimer = undefined;
     }
 
     private renderPreview(): void {
@@ -236,7 +336,8 @@ export class ClientFinancialManager {
             checked.down,
             "down",
             schedule.downPaymentCents === 0,
-            schedule.firstDueDate
+            schedule.firstDueDate,
+            Boolean(this.editing)
         ));
         schedule.installments.forEach((installment, index) => this.partsEditor.append(
             editorPartRow(
@@ -245,7 +346,8 @@ export class ClientFinancialManager {
                 checked.installments.has(index + 1),
                 String(index + 1),
                 false,
-                installment.dueDate
+                installment.dueDate,
+                Boolean(this.editing)
             )
         ));
         const paid = (checked.down && schedule.downPaymentCents > 0 ? schedule.downPaymentCents : 0)
@@ -284,8 +386,10 @@ export class ClientFinancialManager {
             downPaymentPercentage: this.down.value,
             discountPercentage: this.discount.value,
             interestPercentage: this.interest.value,
-            downPaymentIsPaid: paidState.down,
-            paidInstallmentNumbers: [...paidState.installments]
+            ...(!this.editing ? {
+                downPaymentIsPaid: paidState.down,
+                paidInstallmentNumbers: [...paidState.installments]
+            } : {})
         };
         if (this.editing) fields.version = this.editing.version;
         this.saving = true;
@@ -355,7 +459,8 @@ function editorPartRow(
     checked: boolean,
     part: string,
     disabled = false,
-    dueDate?: string
+    dueDate?: string,
+    statusDisabled = false
 ): HTMLElement {
     const row = document.createElement("div");
     row.className = "financial-part-row";
@@ -366,7 +471,7 @@ function editorPartRow(
     const value = document.createElement("small");
     value.textContent = disabled ? "Sem entrada" : `${formatCents(amount)} · ${dueDateLabel(dueDate, checked)}`;
     description.append(name, value);
-    const control = switchControl(label, checked, disabled, dueDate);
+    const control = switchControl(label, checked, disabled || statusDisabled, dueDate);
     const input = control.querySelector("input")!;
     input.dataset.part = part;
     row.append(description, control);
@@ -427,6 +532,9 @@ function formatCents(value: number): string { return currency.format(value / 100
 function centsInput(value: number): string { return (value / 100).toFixed(2); }
 function optionalPercentage(value: number | undefined): string { return value ? value.toString() : ""; }
 function formatPercentage(value: number): string { return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`; }
+function confirmationCountdownText(seconds: number): string {
+    return `A confirmação será liberada em ${seconds} segundo${seconds === 1 ? "" : "s"}.`;
+}
 function errorMessage(error: unknown, fallback: string): string { return error instanceof Error ? error.message : fallback; }
 function todayDateOnly(): string {
     const today = new Date();

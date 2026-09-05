@@ -24,6 +24,7 @@ import { ListClientsService } from "../dist/src/application/list-clients.service
 import { calculatePaymentSchedule, ClientPaymentService, monthlyDueDate } from "../dist/src/application/client-payment.service.js";
 
 process.env.AUTH_TOKEN_SECRET = "test-only-session-secret-with-at-least-32-characters";
+const TEST_PIX_RECEIVER = { key: "test@example.com", name: "TEST RECEIVER", city: "SAO PAULO" };
 
 test("cálculo financeiro distribui centavos sem perder valor", () => {
     const schedule = calculatePaymentSchedule({
@@ -84,6 +85,7 @@ test("consulta financeira usa exclusivamente o cliente recebido da sessão", asy
     const clientId = "507f1f77bcf86cd799439011";
     const queriedIds = [];
     const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
         { async findById(id) { assert.equal(id, clientId); return { _id: id }; } },
         {
             async findByClientId(id) {
@@ -123,6 +125,7 @@ test("consulta financeira usa exclusivamente o cliente recebido da sessão", asy
 test("resposta financeira do cliente omite identificadores e cálculos internos", async () => {
     const clientId = "507f1f77bcf86cd799439011";
     const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
         { async findById() { return { _id: clientId }; } },
         { async findByClientId() { return [{
             _id: { toString: () => "507f1f77bcf86cd799439012" },
@@ -173,13 +176,21 @@ test("edição financeira exige versão atual e registra auditoria", async () =>
         interestAmountCents: 0,
         installmentTotalCents: 10000,
         finalAmountCents: 10000,
-        installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-03" }],
+        installments: [{
+            number: 1,
+            amountCents: 10000,
+            isPaid: true,
+            dueDate: "2026-10-03",
+            paidAt: new Date("2026-10-03T12:00:00.000Z"),
+            settlementSource: "manual"
+        }],
         events: [],
         createdAt: new Date(),
         updatedAt: new Date()
     };
     const updates = [];
     const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
         { async findById() { return { _id: clientId }; } },
         {
             async findByIdAndClientId() { return existing; },
@@ -194,6 +205,7 @@ test("edição financeira exige versão atual e registra auditoria", async () =>
         totalAmount: "100.00",
         installmentCount: 1,
         firstDueDate: "2026-09-03",
+        paidInstallmentNumbers: [],
         version: 2
     };
     const actor = { id: "admin-1", sessionId: "session-1", role: "admin" };
@@ -203,12 +215,115 @@ test("edição financeira exige versão atual e registra auditoria", async () =>
     assert.equal(updates[0].version, 2);
     assert.equal(updates[0].event.type, "terms-updated");
     assert.equal(updates[0].event.actorId, "admin-1");
+    assert.equal(updates[0].data.installments[0].isPaid, true);
+    assert.equal(updates[0].data.installments[0].amountCents, 10000);
+
+    const forbiddenChanges = [
+        { totalAmount: "120.00" },
+        { installmentCount: 2 },
+        { firstDueDate: "2026-09-04" },
+        { downPaymentPercentage: 10 },
+        { discountPercentage: 10 },
+        { interestPercentage: 10 }
+    ];
+    for (const change of forbiddenChanges) {
+        await assert.rejects(
+            () => service.edit(clientId, paymentId, { ...fields, ...change }, actor),
+            error => error.status === 409 && /condições financeiras/.test(error.message)
+        );
+    }
+
+    existing.installments[0].isPaid = false;
+    existing.events = [{ type: "manual-status-change", isPaid: true }];
+    await assert.rejects(
+        () => service.edit(clientId, paymentId, { ...fields, totalAmount: "120.00" }, actor),
+        error => error.status === 409 && /condições financeiras/.test(error.message)
+    );
 
     await assert.rejects(
         () => service.edit(clientId, paymentId, { ...fields, version: 1 }, actor),
         error => error.status === 409
     );
     assert.equal(updates.length, 1);
+});
+
+test("remoção financeira arquiva a cobrança e registra o administrador", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const paymentId = "507f1f77bcf86cd799439012";
+    const archived = [];
+    const existing = {
+        _id: paymentId,
+        __v: 3,
+        downPayment: { amountCents: 0, isPaid: false },
+        installments: [{ number: 1, amountCents: 10000, isPaid: false }],
+        events: []
+    };
+    const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
+        { async findById() { return { _id: clientId }; } },
+        {
+            async findByIdAndClientId() { return existing; },
+            async archive(id, ownerId, version, event) {
+                archived.push({ id, ownerId, version, event });
+                return { ...existing, archivedAt: event.occurredAt };
+            }
+        }
+    );
+
+    await service.remove(clientId, paymentId, 3, false, {
+        id: "admin-1",
+        sessionId: "session-1",
+        role: "admin"
+    });
+
+    assert.equal(archived.length, 1);
+    assert.equal(archived[0].id, paymentId);
+    assert.equal(archived[0].ownerId, clientId);
+    assert.equal(archived[0].version, 3);
+    assert.equal(archived[0].event.type, "archived");
+    assert.equal(archived[0].event.actorId, "admin-1");
+    assert.equal(archived[0].event.hadConfirmedReceiptHistory, false);
+});
+
+test("remoção com histórico confirmado exige confirmação reforçada", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const paymentId = "507f1f77bcf86cd799439012";
+    const archived = [];
+    const existing = {
+        _id: paymentId,
+        __v: 1,
+        downPayment: { amountCents: 0, isPaid: false },
+        installments: [{ number: 1, amountCents: 10000, isPaid: false }],
+        events: [{ type: "manual-status-change", isPaid: true }]
+    };
+    const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
+        { async findById() { return { _id: clientId }; } },
+        {
+            async findByIdAndClientId() { return existing; },
+            async archive(_id, _ownerId, _version, event) {
+                archived.push(event);
+                return existing;
+            }
+        }
+    );
+    const actor = { id: "admin-1", sessionId: "session-1", role: "admin" };
+
+    await assert.rejects(
+        () => service.remove(clientId, paymentId, 1, false, actor),
+        error => error.status === 409 && /Confirme explicitamente/.test(error.message)
+    );
+    assert.equal(archived.length, 0);
+
+    await service.remove(clientId, paymentId, 1, true, actor);
+    assert.equal(archived.length, 1);
+    assert.equal(archived[0].hadConfirmedReceiptHistory, true);
+
+    await assert.rejects(
+        () => service.remove(clientId, paymentId, 0, true, actor),
+        error => error.status === 409
+    );
+    assert.equal(archived.length, 1);
 });
 
 test("sessões administrativas expiram antes das sessões de cliente", () => {

@@ -34,7 +34,7 @@ export interface PaymentTermsSnapshot {
 
 export interface PaymentAuditEvent {
     eventId: string;
-    type: "created" | "terms-updated" | "manual-status-change" | "pix-code-generated";
+    type: "created" | "terms-updated" | "manual-status-change" | "pix-code-generated" | "archived";
     actorId: string;
     actorSessionId: string;
     actorRole: "admin" | "client";
@@ -47,6 +47,7 @@ export interface PaymentAuditEvent {
     after?: PaymentTermsSnapshot;
     pixTxid?: string;
     pixExpiresAt?: Date;
+    hadConfirmedReceiptHistory?: boolean;
 }
 
 export interface ClientPaymentObject {
@@ -113,7 +114,7 @@ const termsSnapshotSchema = new mongoose.Schema<PaymentTermsSnapshot>({
 
 const auditEventSchema = new mongoose.Schema<PaymentAuditEvent>({
     eventId: { type: String, required: true },
-    type: { type: String, enum: ["created", "terms-updated", "manual-status-change", "pix-code-generated"], required: true },
+    type: { type: String, enum: ["created", "terms-updated", "manual-status-change", "pix-code-generated", "archived"], required: true },
     actorId: { type: String, required: true },
     actorSessionId: { type: String, required: true },
     actorRole: { type: String, enum: ["admin", "client"], required: true },
@@ -125,7 +126,8 @@ const auditEventSchema = new mongoose.Schema<PaymentAuditEvent>({
     before: { type: termsSnapshotSchema },
     after: { type: termsSnapshotSchema },
     pixTxid: { type: String, minlength: 1, maxlength: 25, match: /^[A-Za-z0-9]+$/ },
-    pixExpiresAt: { type: Date }
+    pixExpiresAt: { type: Date },
+    hadConfirmedReceiptHistory: { type: Boolean }
 }, { _id: false });
 
 const clientPaymentSchema = new mongoose.Schema<ClientPaymentObject>({

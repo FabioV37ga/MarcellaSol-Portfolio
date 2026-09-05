@@ -27,6 +27,18 @@ export class ClientPaymentRepository {
         });
     }
 
+    archive(id: string, clientId: string, version: number, event: PaymentAuditEvent) {
+        return payments.findOneAndUpdate(
+            { _id: id, clientId, archivedAt: null, ...versionFilter(version) },
+            {
+                $set: { archivedAt: event.occurredAt },
+                $push: { events: event },
+                $inc: { __v: 1 }
+            },
+            { new: true, runValidators: true }
+        );
+    }
+
     setDownPaymentPaid(id: string, clientId: string, version: number, isPaid: boolean, event: PaymentAuditEvent) {
         const settlementUpdate = isPaid
             ? { $set: { "downPayment.isPaid": true, "downPayment.paidAt": event.occurredAt, "downPayment.settlementSource": "manual" }, $unset: { "downPayment.pix": 1 } }

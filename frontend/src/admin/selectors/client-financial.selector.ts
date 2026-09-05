@@ -16,6 +16,13 @@ export interface ClientFinancialElements {
     feedback: HTMLElement;
     dialog: HTMLDialogElement;
     form: HTMLFormElement;
+    deleteDialog: HTMLDialogElement;
+    deleteTitle: HTMLElement;
+    deleteDescription: HTMLElement;
+    deleteWarning: HTMLElement;
+    deleteCountdown: HTMLElement;
+    deleteCancel: HTMLButtonElement;
+    deleteConfirm: HTMLButtonElement;
 }
 
 export function getClientFinancialElements(): ClientFinancialElements {
@@ -30,6 +37,13 @@ export function getClientFinancialElements(): ClientFinancialElements {
         newPayment: requiredElement("#financial-new-payment"),
         feedback: requiredElement("#financial-feedback"),
         dialog: requiredElement("#financial-payment-dialog"),
-        form: requiredElement("#financial-payment-form")
+        form: requiredElement("#financial-payment-form"),
+        deleteDialog: requiredElement("#financial-delete-dialog"),
+        deleteTitle: requiredElement("#financial-delete-title"),
+        deleteDescription: requiredElement("#financial-delete-description"),
+        deleteWarning: requiredElement("#financial-delete-warning"),
+        deleteCountdown: requiredElement("#financial-delete-countdown"),
+        deleteCancel: requiredElement("#financial-delete-cancel"),
+        deleteConfirm: requiredElement("#financial-delete-confirm")
     };
 }

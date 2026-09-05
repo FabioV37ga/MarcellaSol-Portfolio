@@ -88,6 +88,7 @@ export interface ClientPayment {
     finalAmountCents: number;
     paidAmountCents: number;
     remainingAmountCents: number;
+    financialTermsLocked: boolean;
     installments: PaymentInstallment[];
     createdAt: string;
     updatedAt: string;
@@ -139,6 +140,25 @@ export class AdminSystemApi {
         fields: PaymentFields
     ): Promise<ClientPayment> {
         return this.savePayment(session, clientId, fields, paymentId);
+    }
+
+    async removePayment(
+        session: AdminSession,
+        clientId: string,
+        paymentId: string,
+        version: number,
+        confirmedReceiptHistoryAcknowledged: boolean
+    ): Promise<void> {
+        const response = await fetch(
+            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments/${encodeURIComponent(paymentId)}`,
+            {
+                method: "DELETE",
+                headers: { ...this.authorization(session), "Content-Type": "application/json" },
+                body: JSON.stringify({ version, confirmedReceiptHistoryAcknowledged })
+            }
+        );
+        if (response.status === 204) return;
+        await this.paymentRequest(response);
     }
 
     private async savePayment(

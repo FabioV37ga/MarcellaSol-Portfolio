@@ -15,13 +15,13 @@ import { ClientPaymentService } from "../application/client-payment.service.js";
 
 export class AdminController {
     constructor(
+        private readonly payments: ClientPaymentService,
         private readonly createClient = new CreateClientService(),
         private readonly authenticate = new AuthenticateService(),
         private readonly listClients = new ListClientsService(),
         private readonly briefingReports = new ClientBriefingReportService(),
         private readonly proposals = new ClientProposalService(),
         private readonly projectStages = new UpdateClientProjectStageService(),
-        private readonly payments = new ClientPaymentService(),
         private readonly deleteClient = new DeleteClientService(),
         private readonly sessions = new SessionService()
     ) {}
@@ -231,6 +231,24 @@ export class AdminController {
                 sessionId: principal.sessionId,
                 role: "admin"
             }) });
+        } catch (error: unknown) {
+            return this.paymentError(error, response);
+        }
+    };
+
+    removeClientPayment = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            const clientId = this.routeParameter(request.params.id);
+            const paymentId = this.routeParameter(request.params.paymentId);
+            const principal = authenticatedPrincipal(response);
+            await this.payments.remove(
+                clientId,
+                paymentId,
+                request.body?.version,
+                request.body?.confirmedReceiptHistoryAcknowledged,
+                { id: principal.subject, sessionId: principal.sessionId, role: "admin" }
+            );
+            return response.status(204).send();
         } catch (error: unknown) {
             return this.paymentError(error, response);
         }

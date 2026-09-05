@@ -16,11 +16,11 @@ import { ClientPaymentService } from "../application/client-payment.service.js";
 
 export class ClientController {
     constructor(
+        private readonly paymentService: ClientPaymentService,
         private readonly clients = new ClientRepository(),
         private readonly submitBriefing = new SubmitBriefingService(),
         private readonly authenticate = new AuthenticateService(),
         private readonly proposals = new ClientProposalService(),
-        private readonly paymentService = new ClientPaymentService(),
         private readonly sessions = new SessionService()
     ) {}
 
