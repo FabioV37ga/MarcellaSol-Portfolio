@@ -333,6 +333,8 @@ Um código copiado pode continuar sendo pago depois das cinco horas. As mensagen
 
 Novas tentativas e eventos de auditoria persistem `analysisWindowEndsAt`. O backend mantém leitura transitória do antigo `expiresAt` e converte a resposta para o contrato novo, permitindo atualizar documentos existentes sem migração imediata. Uma expiração real somente deverá ser prometida quando houver cobrança dinâmica emitida por um PSP/banco.
 
+Após falhas de autorização do mesmo QR Code estático em mais de um PSP pagador, o `txid` do payload passou a usar `***`, opção padronizada para ausência de identificador de conciliação. Os eventos internos continuam possuindo `eventId` único. Um `txid` próprio deverá voltar a ser usado somente quando houver conciliação efetiva com o PSP recebedor.
+
 #### ARQ-029 — modelo financeiro mistura plano de cobrança, pagamento e tentativa Pix
 
 Prioridade: **média**

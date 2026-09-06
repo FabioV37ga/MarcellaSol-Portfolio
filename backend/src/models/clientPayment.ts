@@ -77,7 +77,7 @@ export interface ClientPaymentObject {
 }
 
 const pixPaymentRequestSchema = new mongoose.Schema<PixPaymentRequest>({
-    txid: { type: String, required: true, minlength: 1, maxlength: 25, match: /^[A-Za-z0-9]+$/ },
+    txid: { type: String, required: true, minlength: 1, maxlength: 25, match: /^(?:[A-Za-z0-9]+|\*{3})$/ },
     brCode: { type: String, required: true, maxlength: 512 },
     generatedAt: { type: Date, required: true },
     analysisWindowEndsAt: {
@@ -132,7 +132,7 @@ const auditEventSchema = new mongoose.Schema<PaymentAuditEvent>({
     isPaid: { type: Boolean },
     before: { type: termsSnapshotSchema },
     after: { type: termsSnapshotSchema },
-    pixTxid: { type: String, minlength: 1, maxlength: 25, match: /^[A-Za-z0-9]+$/ },
+    pixTxid: { type: String, minlength: 1, maxlength: 25, match: /^(?:[A-Za-z0-9]+|\*{3})$/ },
     pixAnalysisWindowEndsAt: { type: Date },
     pixExpiresAt: { type: Date },
     hadConfirmedReceiptHistory: { type: Boolean }

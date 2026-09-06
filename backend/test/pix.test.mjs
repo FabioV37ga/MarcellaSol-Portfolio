@@ -6,9 +6,10 @@ import { ClientPaymentService } from "../dist/src/application/client-payment.ser
 const TEST_PIX_RECEIVER = { key: "test@example.com", name: "TEST RECEIVER", city: "SAO PAULO" };
 
 test("BR Code Pix inclui chave, valor exato e CRC válido", () => {
-    const payload = generatePixBrCode(12345, "abc123", TEST_PIX_RECEIVER);
+    const payload = generatePixBrCode(12345, "***", TEST_PIX_RECEIVER);
     assert.match(payload, /test@example\.com/);
     assert.match(payload, /5406123\.45/);
+    assert.match(payload, /62070503\*\*\*/);
     assert.equal(payload.slice(-4), crc16(payload.slice(0, -4)));
 });
 
@@ -44,6 +45,8 @@ test("Pix da parcela usa seu valor e abre uma janela de análise por cinco horas
     assert.match(result.pix.qrCodeDataUrl, /^data:image\/png;base64,/);
     assert.equal(persisted.event.type, "pix-code-generated");
     assert.equal(persisted.event.actorRole, "client");
+    assert.equal(persisted.pix.txid, "***");
+    assert.equal(persisted.event.pixTxid, "***");
     assert.ok(persisted.pix.analysisWindowEndsAt.getTime() - before >= 5 * 60 * 60 * 1000 - 1000);
     assert.ok(persisted.pix.analysisWindowEndsAt.getTime() - before <= 5 * 60 * 60 * 1000 + 1000);
     assert.equal(persisted.pix.expiresAt, undefined);
@@ -57,8 +60,8 @@ test("tentativa Pix legada é lida e exposta com a nova janela de análise", asy
     const paymentId = "507f1f77bcf86cd799439012";
     const legacyWindowEnd = new Date(Date.now() + 60 * 60 * 1000);
     const legacyPix = {
-        txid: "legacy123",
-        brCode: generatePixBrCode(24690, "legacy123", TEST_PIX_RECEIVER),
+        txid: "***",
+        brCode: generatePixBrCode(24690, "***", TEST_PIX_RECEIVER),
         generatedAt: new Date(),
         expiresAt: legacyWindowEnd
     };

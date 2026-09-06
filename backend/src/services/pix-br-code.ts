@@ -8,7 +8,7 @@ export interface PixReceiver {
 
 export function generatePixBrCode(amountCents: number, txid: string, receiver: PixReceiver): string {
     if (!Number.isSafeInteger(amountCents) || amountCents < 1) throw new Error("Invalid Pix amount");
-    if (!/^[A-Za-z0-9]{1,25}$/.test(txid)) throw new Error("Invalid Pix txid");
+    if (!/^(?:[A-Za-z0-9]{1,25}|\*{3})$/.test(txid)) throw new Error("Invalid Pix txid");
     const key = receiver.key.trim();
     if (!key || key.length > 77) throw new Error("Invalid Pix key");
 

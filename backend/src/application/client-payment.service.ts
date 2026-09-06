@@ -271,11 +271,12 @@ export class ClientPaymentService {
 
         const now = new Date();
         const currentAnalysisWindowEnd = part.pix ? pixAnalysisWindowEnd(part.pix) : undefined;
-        if (part.pix && currentAnalysisWindowEnd && currentAnalysisWindowEnd.getTime() > now.getTime()) {
+        if (part.pix && part.pix.txid === "***" && currentAnalysisWindowEnd
+            && currentAnalysisWindowEnd.getTime() > now.getTime()) {
             return pixResponse(existing, partType, installmentNumber, part, await pixQrCode(part.pix.brCode));
         }
 
-        const txid = randomUUID().replace(/-/g, "").slice(0, 25);
+        const txid = "***";
         const generatedAt = now;
         const analysisWindowEndsAt = new Date(now.getTime() + PIX_ANALYSIS_WINDOW_MS);
         const pix = {
