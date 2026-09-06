@@ -1,6 +1,9 @@
 import u from "umbrellajs";
+import { DomViewLifecycle, type ViewDisposer } from "@/shared/views/dom-view-lifecycle.js";
 
 export class ClientSystemView {
+    private readonly lifecycle = new DomViewLifecycle();
+
     constructor() {
         this.dismissLogin();
     }
@@ -13,23 +16,24 @@ export class ClientSystemView {
         }
     }
 
-    render(section: HTMLElement, target: string): void {
-        const container = u(target).first() as HTMLElement | undefined;
-
-        if (!container) {
-            throw new Error(`Container ${target} não encontrado.`);
-        }
-
-        if (target !== "body") {
-            this.unrender();
-        }
-
-        container.append(section);
+    render(section: HTMLElement, target: string): HTMLElement {
+        return this.lifecycle.render(section, target);
     }
 
-    private unrender(): void {
-        const container = u(".page-content").first() as HTMLElement | undefined;
-        container?.replaceChildren();
+    mountOwned(section: HTMLElement, target: string): HTMLElement {
+        return this.lifecycle.mountOwned(section, target);
+    }
+
+    registerDisposer(disposer: ViewDisposer, target = ".page-content"): void {
+        this.lifecycle.registerDisposer(disposer, target);
+    }
+
+    unrender(target = ".page-content"): void {
+        this.lifecycle.dispose(target);
+    }
+
+    dispose(): void {
+        this.lifecycle.disposeAll();
     }
 
     styleNavButton(button?: HTMLElement): void {

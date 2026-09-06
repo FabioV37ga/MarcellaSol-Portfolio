@@ -314,6 +314,12 @@ export class ClientFinancialManager {
         this.deleteCountdownTimer = undefined;
     }
 
+    dispose(): void {
+        this.clearDeleteCountdown();
+        if (this.elements.dialog.open) this.elements.dialog.close();
+        if (this.elements.deleteDialog.open) this.elements.deleteDialog.close();
+    }
+
     private renderPreview(): void {
         const schedule = previewSchedule(
             this.total.value,

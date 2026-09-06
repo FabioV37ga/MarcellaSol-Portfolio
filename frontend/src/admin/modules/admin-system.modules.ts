@@ -55,11 +55,113 @@ export class AdminSystemModules {
     private mountBase(): void {
         this.view.render(this.models.base!, "body");
         this.base = getBaseElements();
+        this.mountMobileNavigation();
         u(this.base.desktop_nav_home).off("click").on("click", () => this.navigate("home"));
         u(this.base.desktop_nav_client).off("click").on("click", () => this.navigate("clients"));
         u(this.base.desktop_logout).off("click").on("click", () => {
             void logoutSession("admin", this.session.token);
         });
+    }
+
+    private mountMobileNavigation(): void {
+        const expandButton = this.base?.mobile_expand_button;
+        const navigationContainer = document.querySelector<HTMLElement>(".navigation-container");
+        const desktopNavigation = document.querySelector<HTMLElement>(".desktop-navigation");
+        const desktopLogout = document.querySelector<HTMLElement>(".logout-desktop");
+        if (!expandButton || !navigationContainer || !desktopNavigation || !desktopLogout) return;
+
+        const menu = document.createElement("div");
+        menu.id = "admin-mobile-navigation";
+        menu.className = "mobile-navigation-menu";
+        menu.setAttribute("aria-hidden", "true");
+        const navigation = document.createElement("ul");
+        navigation.className = "mobile-navigation";
+        const desktopItems = Array.from(
+            desktopNavigation.querySelectorAll<HTMLElement>(".desktop-navigation-item")
+        );
+        const mobileItems = desktopItems.map(desktopItem => {
+            const item = desktopItem.cloneNode(true) as HTMLElement;
+            item.classList.remove("desktop-navigation-item", "desktop-nav-item-selected");
+            item.classList.add("mobile-navigation-item");
+            item.querySelector(".desktop-navigation-item-icon")
+                ?.classList.replace("desktop-navigation-item-icon", "mobile-navigation-item-icon");
+            item.querySelector(".desktop-navigation-item-label")
+                ?.classList.replace("desktop-navigation-item-label", "mobile-navigation-item-label");
+            navigation.append(item);
+            return item;
+        });
+        const logout = desktopLogout.cloneNode(true) as HTMLElement;
+        logout.className = "logout-mobile";
+        menu.append(navigation, logout);
+        navigationContainer.append(menu);
+
+        expandButton.setAttribute("role", "button");
+        expandButton.tabIndex = 0;
+        expandButton.setAttribute("aria-controls", menu.id);
+        expandButton.setAttribute("aria-expanded", "false");
+        expandButton.setAttribute("aria-label", "Abrir menu de navegação");
+
+        const syncSelection = (): void => {
+            mobileItems.forEach((item, index) => {
+                item.classList.toggle(
+                    "mobile-nav-item-selected",
+                    desktopItems[index]?.classList.contains("desktop-nav-item-selected") ?? false
+                );
+            });
+        };
+        const closeMenu = (): void => {
+            menu.classList.remove("mobile-navigation-menu-open");
+            menu.setAttribute("aria-hidden", "true");
+            expandButton.setAttribute("aria-expanded", "false");
+            expandButton.setAttribute("aria-label", "Abrir menu de navegação");
+            expandButton.querySelector("i")?.classList.replace("fa-times", "fa-bars");
+        };
+        const toggleMenu = (): void => {
+            const willOpen = !menu.classList.contains("mobile-navigation-menu-open");
+            if (willOpen) syncSelection();
+            menu.classList.toggle("mobile-navigation-menu-open", willOpen);
+            menu.setAttribute("aria-hidden", String(!willOpen));
+            expandButton.setAttribute("aria-expanded", String(willOpen));
+            expandButton.setAttribute("aria-label", willOpen
+                ? "Fechar menu de navegação"
+                : "Abrir menu de navegação");
+            expandButton.querySelector("i")?.classList.replace(
+                willOpen ? "fa-bars" : "fa-times",
+                willOpen ? "fa-times" : "fa-bars"
+            );
+        };
+
+        expandButton.addEventListener("click", toggleMenu);
+        expandButton.addEventListener("keydown", event => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            toggleMenu();
+        });
+        mobileItems.forEach((item, index) => {
+            item.addEventListener("click", () => {
+                desktopItems[index]?.click();
+                syncSelection();
+                closeMenu();
+            });
+        });
+        logout.addEventListener("click", () => {
+            desktopLogout.click();
+            closeMenu();
+        });
+
+        const globalListeners = new AbortController();
+        this.view.registerDisposer(() => globalListeners.abort(), "body");
+        document.addEventListener("click", event => {
+            const target = event.target as Node;
+            if (!menu.contains(target) && !expandButton.contains(target)) closeMenu();
+        }, { signal: globalListeners.signal });
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") closeMenu();
+        }, { signal: globalListeners.signal });
+        window.addEventListener("resize", () => {
+            if (window.innerWidth >= 900) closeMenu();
+        }, { signal: globalListeners.signal });
+        syncSelection();
     }
 
     private mountHome(): void {
@@ -174,6 +276,9 @@ export class AdminSystemModules {
 
         this.view.render(this.models.clientManagement, ".page-content");
         const requestId = ++this.clientManagementRequestId;
+        this.view.registerDisposer(() => {
+            this.clientManagementRequestId += 1;
+        });
         this.view.styleNavButton(this.base!.desktop_nav_client);
         const elements = getClientManagementElements();
         elements.drive.removeAttribute("href");
@@ -249,10 +354,7 @@ export class AdminSystemModules {
             return;
         }
 
-        // A view cadastrada é um template compartilhado. Cada cliente precisa de uma árvore
-        // própria para não reaproveitar ordem visual nem listeners que salvam usando outro ID.
-        const mountedProposalsView = proposalsView.cloneNode(true) as HTMLElement;
-        this.view.render(mountedProposalsView, ".page-content");
+        const mountedProposalsView = this.view.render(proposalsView, ".page-content");
         this.view.styleNavButton(this.base!.desktop_nav_client);
 
         const root = mountedProposalsView.matches(".proposals-management-container")
@@ -512,6 +614,11 @@ export class AdminSystemModules {
 
         this.view.render(this.models.clientFinancial, ".page-content");
         const requestId = ++this.clientFinancialRequestId;
+        let manager: ClientFinancialManager | undefined;
+        this.view.registerDisposer(() => {
+            this.clientFinancialRequestId += 1;
+            manager?.dispose();
+        });
         this.view.styleNavButton(this.base!.desktop_nav_client);
         const elements = getClientFinancialElements();
         u(elements.clientsIndex).off("click").on("click", () => this.navigate("clients"));
@@ -526,7 +633,7 @@ export class AdminSystemModules {
             if (requestId !== this.clientFinancialRequestId) return;
             elements.clientName.textContent = client.name;
             elements.titleName.textContent = client.name;
-            new ClientFinancialManager(elements, this.api, this.session, clientId, payments);
+            manager = new ClientFinancialManager(elements, this.api, this.session, clientId, payments);
         } catch (error) {
             if (requestId !== this.clientFinancialRequestId) return;
             console.error("Erro ao carregar financeiro do cliente:", error);

@@ -18,6 +18,7 @@ export class ClientSystemModules {
     private financialRequestId = 0;
     private financialExpiryTimer?: number;
     private pixCountdownTimer?: number;
+    private pixCopyFeedbackTimer?: number;
 
     constructor(
         private readonly view: ClientSystemView,
@@ -99,6 +100,16 @@ export class ClientSystemModules {
         const requestId = ++this.financialRequestId;
         window.clearTimeout(this.financialExpiryTimer);
         window.clearInterval(this.pixCountdownTimer);
+        window.clearTimeout(this.pixCopyFeedbackTimer);
+        this.view.registerDisposer(() => {
+            this.financialRequestId += 1;
+            window.clearTimeout(this.financialExpiryTimer);
+            window.clearInterval(this.pixCountdownTimer);
+            window.clearTimeout(this.pixCopyFeedbackTimer);
+            this.financialExpiryTimer = undefined;
+            this.pixCountdownTimer = undefined;
+            this.pixCopyFeedbackTimer = undefined;
+        });
         u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
@@ -176,7 +187,11 @@ export class ClientSystemModules {
             try {
                 await navigator.clipboard.writeText(elements.pixCode.value);
                 elements.pixCopy.textContent = "Código copiado";
-                window.setTimeout(() => { elements.pixCopy.textContent = "Copiar código Pix"; }, 2000);
+                window.clearTimeout(this.pixCopyFeedbackTimer);
+                this.pixCopyFeedbackTimer = window.setTimeout(() => {
+                    elements.pixCopy.textContent = "Copiar código Pix";
+                    this.pixCopyFeedbackTimer = undefined;
+                }, 2000);
             } catch {
                 elements.pixCode.focus();
                 elements.pixCode.select();
@@ -346,6 +361,8 @@ export class ClientSystemModules {
         const desktopNavigation = document.querySelector<HTMLElement>(".desktop-navigation");
         const menu = document.querySelector<HTMLElement>("#client-mobile-navigation");
         if (!expandButton || !desktopNavigation || !menu) return;
+        const globalListeners = new AbortController();
+        this.view.registerDisposer(() => globalListeners.abort(), "body");
 
         const closeMenu = (): void => {
             menu.classList.remove("mobile-navigation-menu-open");
@@ -394,19 +411,19 @@ export class ClientSystemModules {
         document.addEventListener("click", (event: MouseEvent) => {
             const target = event.target as Node;
             if (!menu.contains(target) && !expandButton.contains(target)) closeMenu();
-        });
+        }, { signal: globalListeners.signal });
         document.addEventListener("keydown", (event: KeyboardEvent) => {
             if (event.key === "Escape") closeMenu();
-        });
+        }, { signal: globalListeners.signal });
         window.addEventListener("resize", () => {
             if (window.innerWidth >= 900) closeMenu();
-        });
+        }, { signal: globalListeners.signal });
     }
 
     private mountBriefing(step?: number): void {
         const template = this.briefing.getTemplate();
         if (!template.isConnected) {
-            this.view.render(template, "body");
+            this.view.mountOwned(template, "body");
             this.briefing.initialize();
         }
         if (Number.isInteger(step)) this.briefing.navigateToStep(step!);

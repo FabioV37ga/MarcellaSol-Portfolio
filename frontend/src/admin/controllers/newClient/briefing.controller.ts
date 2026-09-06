@@ -59,6 +59,10 @@ export class Briefing {
         switch (page) {
             case "home":
                 this.home = getBriefingHome();
+                this.home.category.value = this.briefingObject.description?.category ?? ""
+                this.home.type.value = this.briefingObject.description?.type ?? ""
+                this.home.name.value = this.briefingObject.description?.name ?? ""
+                this.home.peopleAmount.value = String(this.briefingObject.description?.residentAmount || "")
 
                 const homeFields = [
                     this.home.category,
@@ -99,6 +103,7 @@ export class Briefing {
                 break
             case "investment":
                 this.investment = getBriefingInvestment()
+                this.investment.flexibility.checked = this.briefingObject.investmentFlexibility ?? false
 
                 const investmentRoutes = ["clients", "new-client", "briefing-home"]
                 this.investment.root.forEach((root, index) => {
@@ -125,6 +130,7 @@ export class Briefing {
                 break;
             case "rooms":
                 this.rooms = getBriefingRooms();
+                this.restoreRoomsView()
 
                 const roomRoutes = ["clients", "new-client", "briefing-home"]
                 this.rooms.root.forEach((root, index) => {
@@ -235,6 +241,43 @@ export class Briefing {
 
         this.configRoomItem(addedRoom)
         this.syncRoomFields(addedRoom)
+    }
+
+    private restoreRoomsView() {
+        const snapshots = (this.addedRooms ?? []).map(room => ({
+            ...room,
+            specs: [...(room.specs ?? [])]
+        }))
+        this.rooms.roomContainer.replaceChildren()
+
+        snapshots
+            .sort((first, second) => (first.index ?? 0) - (second.index ?? 0))
+            .forEach(snapshot => {
+                const item = roomItem(
+                    this.models.addedRoom!,
+                    snapshot.id ?? 0,
+                    snapshot.index ?? 0
+                )
+                item.dataset.roomId = String(snapshot.id ?? 0)
+                item.dataset.roomIndex = String(snapshot.index ?? 0)
+                this.rooms.roomContainer.append(item)
+                this.configRoomItem(item)
+
+                const name = item.querySelector<HTMLElement>("[contenteditable]")
+                const type = item.querySelector<HTMLSelectElement>(":scope > .briefing-room-select")
+                if (name) name.textContent = snapshot.name ?? ""
+                if (type) type.value = snapshot.type ?? ""
+                this.appendRoomSpecs(item, snapshot.type ?? "")
+
+                const subtype = item.querySelector<HTMLSelectElement>(".briefing-room-customizations select")
+                if (subtype) subtype.value = snapshot.subtype ?? ""
+                item.querySelectorAll<HTMLInputElement>(
+                    '.briefing-room-customizations input[type="checkbox"]'
+                ).forEach((field, index) => {
+                    field.checked = snapshot.specs[index] ?? false
+                })
+                this.syncRoomFields(item)
+            })
     }
 
     configRoomItem(item: HTMLElement) {
