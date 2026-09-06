@@ -44,6 +44,13 @@ export interface PaymentSchedule {
     installments: PaymentInstallment[];
 }
 
+export interface PaymentSchedulePreview {
+    downPaymentCents: number;
+    firstDueDate: string;
+    installments: Array<{ amountCents: number; dueDate: string }>;
+    finalAmountCents: number;
+}
+
 export function calculatePaymentSchedule(
     fields: PaymentFields,
     previous?: Pick<ClientPaymentObject, "downPayment" | "installments">
@@ -109,6 +116,16 @@ export class ClientPaymentService {
         private readonly clients = new ClientRepository(),
         private readonly payments = new ClientPaymentRepository()
     ) {}
+
+    preview(fields: PaymentFields): PaymentSchedulePreview {
+        const schedule = calculatePaymentSchedule(fields);
+        return {
+            downPaymentCents: schedule.downPayment.amountCents,
+            firstDueDate: schedule.firstDueDate,
+            installments: schedule.installments.map(({ amountCents, dueDate }) => ({ amountCents, dueDate })),
+            finalAmountCents: schedule.finalAmountCents
+        };
+    }
 
     async list(clientId: string) {
         await this.requireClient(clientId);

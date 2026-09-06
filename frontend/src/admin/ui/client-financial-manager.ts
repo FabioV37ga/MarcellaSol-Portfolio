@@ -2,16 +2,12 @@ import type {
     AdminSession,
     AdminSystemApi,
     ClientPayment,
-    PaymentFields
+    PaymentFields,
+    PaymentPreview,
+    PaymentPreviewFields
 } from "../infrastructure/admin-system.api.js";
 import type { ClientFinancialElements } from "../selectors/client-financial.selector.js";
-
-interface PreviewSchedule {
-    downPaymentCents: number;
-    firstDueDate: string;
-    installments: Array<{ amountCents: number; dueDate: string }>;
-    finalAmountCents: number;
-}
+import { dueDateLabel, isOverdue } from "@/shared/financial/payment-presentation.js";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -22,6 +18,9 @@ export class ClientFinancialManager {
     private saving = false;
     private deleting = false;
     private deleteCountdownTimer?: number;
+    private previewTimer?: number;
+    private previewRequest?: AbortController;
+    private previewSchedule?: PaymentPreview;
     private readonly title: HTMLInputElement;
     private readonly total: HTMLInputElement;
     private readonly count: HTMLInputElement;
@@ -67,13 +66,17 @@ export class ClientFinancialManager {
         required<HTMLButtonElement>(this.elements.root, "#financial-payment-cancel")
             .addEventListener("click", () => this.elements.dialog.close());
         [this.total, this.count, this.firstDueDate, this.down, this.discount, this.interest]
-            .forEach(input => input.addEventListener("input", () => this.renderPreview()));
-        this.partsEditor.addEventListener("change", () => this.renderPreview());
+            .forEach(input => input.addEventListener("input", () => this.schedulePreview()));
+        this.partsEditor.addEventListener("change", () => this.renderPreviewValues());
         this.elements.form.addEventListener("submit", event => {
             event.preventDefault();
             void this.submit();
         });
         this.elements.dialog.addEventListener("close", () => {
+            window.clearTimeout(this.previewTimer);
+            this.previewRequest?.abort();
+            this.previewSchedule = undefined;
+            this.preview.removeAttribute("aria-busy");
             this.editing = undefined;
             this.formFeedback.textContent = "";
         });
@@ -235,7 +238,7 @@ export class ClientFinancialManager {
             ? "As condições financeiras estão bloqueadas porque já existe um recebimento confirmado."
             : "";
         this.partsEditor.replaceChildren();
-        this.renderPreview();
+        void this.requestPreview();
         this.elements.dialog.showModal();
     }
 
@@ -316,25 +319,57 @@ export class ClientFinancialManager {
 
     dispose(): void {
         this.clearDeleteCountdown();
+        window.clearTimeout(this.previewTimer);
+        this.previewRequest?.abort();
         if (this.elements.dialog.open) this.elements.dialog.close();
         if (this.elements.deleteDialog.open) this.elements.deleteDialog.close();
     }
 
-    private renderPreview(): void {
-        const schedule = previewSchedule(
-            this.total.value,
-            this.count.value,
-            this.firstDueDate.value,
-            this.down.value,
-            this.discount.value,
-            this.interest.value
-        );
-        if (!schedule) {
+    private schedulePreview(): void {
+        window.clearTimeout(this.previewTimer);
+        this.previewRequest?.abort();
+        this.previewSchedule = undefined;
+        this.preview.setAttribute("aria-busy", "true");
+        this.previewTimer = window.setTimeout(() => void this.requestPreview(), 250);
+    }
+
+    private async requestPreview(): Promise<void> {
+        window.clearTimeout(this.previewTimer);
+        this.previewTimer = undefined;
+        if (!this.previewInputsAreValid()) {
+            this.previewSchedule = undefined;
             this.preview.hidden = true;
             this.partsEditor.replaceChildren();
+            this.preview.removeAttribute("aria-busy");
             return;
         }
-        const checked = this.editorPaidState();
+        const paidState = this.editorPaidState();
+        this.previewRequest?.abort();
+        const request = new AbortController();
+        this.previewRequest = request;
+        try {
+            const schedule = await this.api.previewPayment(this.session, this.previewFields(), request.signal);
+            if (request.signal.aborted) return;
+            this.previewSchedule = schedule;
+            this.renderPreviewSchedule(schedule, paidState);
+            this.preview.removeAttribute("aria-busy");
+            if (!this.editing?.financialTermsLocked) this.formFeedback.textContent = "";
+        } catch (error) {
+            if (request.signal.aborted) return;
+            this.previewSchedule = undefined;
+            this.preview.hidden = true;
+            this.partsEditor.replaceChildren();
+            this.preview.removeAttribute("aria-busy");
+            this.formFeedback.textContent = errorMessage(error, "Não foi possível calcular a prévia do pagamento.");
+        } finally {
+            if (this.previewRequest === request) this.previewRequest = undefined;
+        }
+    }
+
+    private renderPreviewSchedule(
+        schedule: PaymentPreview,
+        checked: { down: boolean; installments: Set<number> }
+    ): void {
         this.partsEditor.replaceChildren();
         this.partsEditor.append(editorPartRow(
             "Entrada",
@@ -356,13 +391,42 @@ export class ClientFinancialManager {
                 Boolean(this.editing)
             )
         ));
+        this.previewFinal.textContent = formatCents(schedule.finalAmountCents);
+        this.updatePreviewRemaining(schedule, checked);
+        this.preview.hidden = false;
+    }
+
+    private renderPreviewValues(): void {
+        if (!this.previewSchedule) return;
+        this.updatePreviewRemaining(this.previewSchedule, this.editorPaidState());
+    }
+
+    private updatePreviewRemaining(
+        schedule: PaymentPreview,
+        checked: { down: boolean; installments: Set<number> }
+    ): void {
         const paid = (checked.down && schedule.downPaymentCents > 0 ? schedule.downPaymentCents : 0)
             + schedule.installments.reduce((sum, installment, index) => (
                 sum + (checked.installments.has(index + 1) ? installment.amountCents : 0)
             ), 0);
-        this.previewFinal.textContent = formatCents(schedule.finalAmountCents);
         this.previewRemaining.textContent = formatCents(Math.max(0, schedule.finalAmountCents - paid));
-        this.preview.hidden = false;
+    }
+
+    private previewFields(): PaymentPreviewFields {
+        return {
+            totalAmount: this.total.value,
+            installmentCount: Number(this.count.value),
+            firstDueDate: this.firstDueDate.value,
+            downPaymentPercentage: this.down.value,
+            discountPercentage: this.discount.value,
+            interestPercentage: this.interest.value
+        };
+    }
+
+    private previewInputsAreValid(): boolean {
+        return Boolean(this.total.value && this.count.value && this.firstDueDate.value)
+            && [this.total, this.count, this.firstDueDate, this.down, this.discount, this.interest]
+                .every(input => input.checkValidity());
     }
 
     private editorPaidState(): { down: boolean; installments: Set<number> } {
@@ -478,8 +542,11 @@ function editorPartRow(
     value.textContent = disabled ? "Sem entrada" : `${formatCents(amount)} · ${dueDateLabel(dueDate, checked)}`;
     description.append(name, value);
     const control = switchControl(label, checked, disabled || statusDisabled, dueDate);
-    const input = control.querySelector("input")!;
+    const input = control.querySelector<HTMLInputElement>("input")!;
     input.dataset.part = part;
+    input.addEventListener("change", () => {
+        value.textContent = disabled ? "Sem entrada" : `${formatCents(amount)} · ${dueDateLabel(dueDate, input.checked)}`;
+    });
     row.append(description, control);
     return row;
 }
@@ -495,45 +562,6 @@ function summaryItem(label: string, value: string, highlight = false): HTMLEleme
     return item;
 }
 
-function previewSchedule(
-    total: string,
-    count: string,
-    firstDueDate: string,
-    down: string,
-    discount: string,
-    interest: string
-): PreviewSchedule | undefined {
-    const totalCents = Math.round(Number(total) * 100);
-    const installments = Number(count);
-    if (!Number.isSafeInteger(totalCents) || totalCents < 1 || !Number.isInteger(installments)
-        || installments < 1 || installments > 120 || !isDateOnly(firstDueDate)) return undefined;
-    const downRate = validPercentage(down);
-    const discountRate = validPercentage(discount);
-    const interestRate = validPercentage(interest);
-    if (downRate === undefined || discountRate === undefined || interestRate === undefined) return undefined;
-    const discounted = totalCents - Math.round(totalCents * discountRate / 100);
-    const downPaymentCents = Math.round(discounted * downRate / 100);
-    const financed = discounted - downPaymentCents;
-    const installmentTotal = financed + Math.round(financed * interestRate / 100);
-    const base = Math.floor(installmentTotal / installments);
-    const remainder = installmentTotal % installments;
-    return {
-        downPaymentCents,
-        firstDueDate,
-        installments: Array.from({ length: installments }, (_, index) => ({
-            amountCents: base + (index < remainder ? 1 : 0),
-            dueDate: monthlyDueDate(firstDueDate, index + 1)
-        })),
-        finalAmountCents: downPaymentCents + installmentTotal
-    };
-}
-
-function validPercentage(value: string): number | undefined {
-    if (!value) return 0;
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : undefined;
-}
-
 function formatCents(value: number): string { return currency.format(value / 100); }
 function centsInput(value: number): string { return (value / 100).toFixed(2); }
 function optionalPercentage(value: number | undefined): string { return value ? value.toString() : ""; }
@@ -546,41 +574,9 @@ function todayDateOnly(): string {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 }
-function isDateOnly(value: string): boolean {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-    const [year, month, day] = value.split("-").map(Number);
-    const date = new Date(Date.UTC(year, month - 1, day));
-    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-}
-function monthlyDueDate(firstDueDate: string, monthOffset: number): string {
-    const [year, month, preferredDay] = firstDueDate.split("-").map(Number);
-    const target = new Date(Date.UTC(year, month - 1 + monthOffset, 1));
-    const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
-    return new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), Math.min(preferredDay, lastDay)))
-        .toISOString().slice(0, 10);
-}
 function formatDate(value: string): string {
     const [year, month, day] = value.split("-");
     return `${day}/${month}/${year}`;
-}
-function dueDateLabel(value: string | undefined, isPaid: boolean): string {
-    if (isPaid) return "Pago";
-    if (!value || !isDateOnly(value)) return "Data não informada";
-    const [year, month, day] = value.split("-").map(Number);
-    const today = new Date();
-    const difference = Math.round((Date.UTC(year, month - 1, day)
-        - Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) / 86_400_000);
-    if (difference === 0) return "Vence hoje";
-    if (difference === 1) return "Falta 1 dia";
-    if (difference > 1) return `Faltam ${difference} dias`;
-    if (difference === -1) return "Vencida há 1 dia";
-    return `Vencida há ${Math.abs(difference)} dias`;
-}
-function isOverdue(value: string | undefined): boolean {
-    if (!value || !isDateOnly(value)) return false;
-    const [year, month, day] = value.split("-").map(Number);
-    const today = new Date();
-    return Date.UTC(year, month - 1, day) < Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 }
 function paymentStateLabel(isPaid: boolean, dueDate?: string): string {
     return isPaid ? "Pago" : isOverdue(dueDate) ? "Atrasado" : "Não pago";

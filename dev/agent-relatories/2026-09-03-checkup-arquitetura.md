@@ -303,26 +303,21 @@ Extração incremental sugerida:
 - `pix-charge.service.ts`: janela temporária, BR Code e imagem;
 - manter `ClientPaymentService` como orquestrador, ou dividi-lo por casos de uso quando voltar a ser alterado.
 
-#### ARQ-027 — regras financeiras estão duplicadas e posicionadas na camada visual
+#### ARQ-027 — regras financeiras duplicadas na camada visual — resolvido em 06/09/2026
 
 Prioridade: **média-alta**
 Tipo: duplicação de regra de negócio
 
-O cálculo oficial está no backend, mas `client-financial-manager.ts` repete cálculo de desconto, entrada, juros, distribuição de centavos e vencimentos para a prévia administrativa. O frontend do cliente também define sozinho:
+O cálculo oficial permanece no backend. A fórmula duplicada foi retirada de `client-financial-manager.ts`, e a prévia administrativa agora consulta um endpoint autenticado que usa `calculatePaymentSchedule`, com debounce e cancelamento de requisições obsoletas.
 
-- qual pagamento recebe destaque;
-- a regra dos 28 dias;
+As regras de apresentação do cliente foram retiradas do template DOM e concentradas no módulo puro `shared/financial/payment-presentation.ts`, incluindo:
+
+- seleção do pagamento em destaque e regra dos 28 dias;
 - prioridade entre pago, em análise, pendente e atrasado;
-- cálculo textual de dias até o vencimento.
+- cálculo textual de dias até o vencimento;
+- classificação temporal usada nas telas administrativa e do cliente.
 
-Essas regras aparecem em arquivos de template/UI, e não há testes DOM do frontend. Uma alteração isolada pode fazer a prévia divergir do que será salvo ou admin e cliente exibirem estados diferentes.
-
-Direção recomendada:
-
-- manter o backend como autoridade dos valores;
-- retornar uma prévia calculada por endpoint, ou compartilhar funções puras sem duplicação;
-- mover seleção de destaque e classificação temporal para um módulo de domínio/apresentação testável, fora do template DOM;
-- usar um relógio injetável nos testes para regras baseadas em data.
+O módulo recebe um relógio injetável e possui testes determinísticos de prazos, prioridade de estado, janela Pix ativa e destaque. Assim, o frontend não possui mais uma segunda implementação do cálculo persistido.
 
 #### ARQ-028 — “expiração do Pix” significa apenas janela de exibição
 
@@ -452,8 +447,7 @@ Direção recomendada: estabilizar contratos via schema compartilhado ou geraç�
 
 #### Antes de ampliar o financeiro
 
-1. Extrair regras financeiras duplicadas e adicionar testes do frontend.
-2. Renomear a janela Pix para refletir que a validade é apenas interna.
+1. Renomear a janela Pix para refletir que a validade é apenas interna.
 
 #### Antes de integrar banco ou PSP
 
@@ -475,7 +469,7 @@ A arquitetura-base permanece aproveitável e não precisa ser substituída. As n
 
 O bloqueio dos termos após o primeiro recebimento protege o fluxo manual atual contra recálculo retroativo. Antes de automatizar a confirmação bancária, ainda será necessário separar **plano de cobrança**, **recebimento confirmado** e **apresentação temporária de Pix**, além de definir idempotência e vocabulário explícito.
 
-No frontend, o ciclo de vida das views persistidas foi padronizado. O próximo risco relevante é a duplicação das regras financeiras entre backend e frontend, seguida pela semântica imprecisa da janela Pix.
+No frontend, o ciclo de vida das views persistidas foi padronizado e as regras financeiras de apresentação foram isoladas e testadas. O próximo risco relevante é a semântica imprecisa da janela Pix.
 
 Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação automática das correções listadas.
 
@@ -483,16 +477,13 @@ Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação aut
 
 ## 12. Resumo dos pontos a melhorar por prioridade
 
-A arquitetura continua adequada e não precisa ser reescrita. As melhorias devem ser incrementais, começando agora pela eliminação de regras financeiras duplicadas no frontend.
+A arquitetura continua adequada e não precisa ser reescrita. As melhorias devem ser incrementais; a eliminação de regras financeiras duplicadas foi concluída e o próximo trabalho é corrigir a semântica da janela Pix.
 
-### 1. Eliminar divergências nas regras financeiras
+### 1. Eliminar divergências nas regras financeiras — concluído em 06/09/2026
 
-Parte dos cálculos e da classificação dos pagamentos está duplicada no frontend. O backend deve continuar sendo a autoridade dos valores. Recomenda-se:
+O backend agora calcula tanto a prévia quanto o pagamento persistido por meio da mesma função oficial. O frontend administrativo consulta essa prévia com debounce e cancelamento de requisições antigas.
 
-- disponibilizar uma prévia calculada pelo backend ou compartilhar funções puras;
-- retirar regras financeiras dos templates DOM;
-- tornar as regras baseadas em data testáveis com um relógio injetável;
-- adicionar testes de frontend.
+A classificação temporal e a seleção de destaque foram retiradas dos templates DOM e centralizadas em funções puras compartilhadas pelas telas. Essas funções recebem um relógio injetável e possuem testes no frontend.
 
 ### 2. Corrigir a semântica da expiração do Pix
 
@@ -544,4 +535,4 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 - normalizar nomes como `beated`, `Cancelled` e `home.selector.ts.ts`;
 - definir uma taxonomia clara para o campo `type` das views.
 
-Em síntese, os primeiros trabalhos pendentes são a eliminação das regras financeiras duplicadas e a correção da semântica da janela Pix. Em seguida, devem ser tratadas a preparação para integração com PSP e a confiabilidade operacional.
+Em síntese, o primeiro trabalho pendente é a correção da semântica da janela Pix. Em seguida, devem ser tratadas a preparação para integração com PSP e a confiabilidade operacional.

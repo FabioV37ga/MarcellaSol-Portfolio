@@ -24,6 +24,7 @@ export default function adminRoutes(controller: AdminController) {
     router.post("/api/admin/clients/:id/proposals/:proposalId/resend", requireAuthentication("admin"), controller.resendClientProposal);
     router.delete("/api/admin/clients/:id/proposals/:proposalId/attachments/:attachmentIndex", requireAuthentication("admin"), controller.deleteClientProposalAttachment);
     router.delete("/api/admin/clients/:id/proposals/:proposalId", requireAuthentication("admin"), controller.deleteClientProposal);
+    router.post("/api/admin/payments/preview", requireAuthentication("admin"), financialReadRateLimit, controller.previewClientPayment);
     router.get("/api/admin/clients/:id/payments", requireAuthentication("admin"), financialReadRateLimit, controller.clientPayments);
     router.post("/api/admin/clients/:id/payments", requireAuthentication("admin"), financialMutationRateLimit, controller.createClientPayment);
     router.put("/api/admin/clients/:id/payments/:paymentId", requireAuthentication("admin"), financialMutationRateLimit, controller.editClientPayment);

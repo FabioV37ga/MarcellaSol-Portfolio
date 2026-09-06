@@ -107,15 +107,32 @@ export interface PaymentFields {
     version?: number;
 }
 
+export type PaymentPreviewFields = Pick<PaymentFields,
+    "totalAmount" | "installmentCount" | "firstDueDate"
+    | "downPaymentPercentage" | "discountPercentage" | "interestPercentage"
+>;
+
+export interface PaymentPreview {
+    downPaymentCents: number;
+    firstDueDate: string;
+    installments: Array<{ amountCents: number; dueDate: string }>;
+    finalAmountCents: number;
+}
+
 export class AdminSystemApi {
     private authorization(session: AdminSession): HeadersInit {
         return { Authorization: `Bearer ${session.token}` };
     }
 
-    private async paymentRequest(response: Response): Promise<{ payment?: ClientPayment; payments?: ClientPayment[] }> {
+    private async paymentRequest(response: Response): Promise<{
+        payment?: ClientPayment;
+        payments?: ClientPayment[];
+        preview?: PaymentPreview;
+    }> {
         const result = await response.json().catch(() => ({})) as {
             payment?: ClientPayment;
             payments?: ClientPayment[];
+            preview?: PaymentPreview;
             message?: string;
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível processar o pagamento");
@@ -127,6 +144,22 @@ export class AdminSystemApi {
             headers: this.authorization(session)
         });
         return (await this.paymentRequest(response)).payments ?? [];
+    }
+
+    async previewPayment(
+        session: AdminSession,
+        fields: PaymentPreviewFields,
+        signal?: AbortSignal
+    ): Promise<PaymentPreview> {
+        const response = await fetch(`${config.apiBaseUrl}/admin/payments/preview`, {
+            method: "POST",
+            headers: { ...this.authorization(session), "Content-Type": "application/json" },
+            body: JSON.stringify(fields),
+            signal
+        });
+        const preview = (await this.paymentRequest(response)).preview;
+        if (!preview) throw new Error("Resposta inválida ao calcular o pagamento");
+        return preview;
     }
 
     async createPayment(session: AdminSession, clientId: string, fields: PaymentFields): Promise<ClientPayment> {

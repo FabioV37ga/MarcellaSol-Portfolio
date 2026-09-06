@@ -207,6 +207,14 @@ export class AdminController {
         }
     };
 
+    previewClientPayment = async (request: Request, response: Response): Promise<Response> => {
+        try {
+            return response.status(200).json({ preview: this.payments.preview(request.body) });
+        } catch (error: unknown) {
+            return this.paymentError(error, response);
+        }
+    };
+
     createClientPayment = async (request: Request, response: Response): Promise<Response> => {
         try {
             const clientId = this.routeParameter(request.params.id);

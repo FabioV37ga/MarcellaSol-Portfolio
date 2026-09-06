@@ -28,6 +28,29 @@ test("cálculo financeiro distribui centavos sem perder valor", () => {
     );
 });
 
+test("prévia financeira usa o mesmo cálculo oficial do pagamento", () => {
+    const service = new ClientPaymentService(TEST_PIX_RECEIVER);
+    const preview = service.preview({
+        totalAmount: "1000.00",
+        installmentCount: 3,
+        firstDueDate: "2026-01-31",
+        downPaymentPercentage: "10",
+        discountPercentage: "5",
+        interestPercentage: "12"
+    });
+
+    assert.deepEqual(preview, {
+        downPaymentCents: 9500,
+        firstDueDate: "2026-01-31",
+        installments: [
+            { amountCents: 31920, dueDate: "2026-02-28" },
+            { amountCents: 31920, dueDate: "2026-03-31" },
+            { amountCents: 31920, dueDate: "2026-04-30" }
+        ],
+        finalAmountCents: 105260
+    });
+});
+
 test("edição financeira preserva ou substitui os estados pagos explicitamente", () => {
     const previous = {
         downPayment: { amountCents: 1000, isPaid: true },
@@ -303,4 +326,3 @@ test("remoção com histórico confirmado exige confirmação reforçada", async
     );
     assert.equal(archived.length, 1);
 });
-

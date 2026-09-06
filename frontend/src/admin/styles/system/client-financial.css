@@ -220,6 +220,7 @@ button:disabled { cursor: wait; opacity: .6; }
 .financial-part-description small { color: var(--gray); font-size: 10px; }
 
 .financial-switch {
+    position: relative;
     display: grid;
     grid-template-columns: 38px 56px;
     align-items: center;
@@ -227,7 +228,15 @@ button:disabled { cursor: wait; opacity: .6; }
     cursor: pointer;
 }
 
-.financial-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.financial-switch input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
 .financial-switch > span { position: relative; width: 38px; height: 21px; border-radius: 999px; background: #b8b8b8; transition: background .2s; }
 .financial-switch > span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 15px; height: 15px; border-radius: 50%; background: #fff; transition: transform .2s; }
 .financial-switch input:checked + span { background: #59975b; }
@@ -247,8 +256,20 @@ button:disabled { cursor: wait; opacity: .6; }
     font-family: "confort";
 }
 
+.financial-payment-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
 .financial-payment-dialog::backdrop { background: rgb(0 0 0 / 45%); }
-.financial-payment-dialog form { width: 100%; max-height: calc(100dvh - 24px); padding: 20px; overflow-x: hidden; overflow-y: auto; }
+.financial-payment-dialog form {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
 .financial-payment-dialog header { margin-bottom: 18px; }
 .financial-payment-dialog header h2 { margin-bottom: 7px; font-size: 21px; }
 .financial-payment-dialog header p,
@@ -274,6 +295,7 @@ button:disabled { cursor: wait; opacity: .6; }
 
 .financial-payment-preview { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--borderGray); }
 .financial-payment-preview[hidden] { display: none; }
+.financial-payment-preview[aria-busy="true"] { opacity: .72; }
 .financial-payment-preview-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; }
 .financial-payment-preview-summary span { font-size: 10px; }
 .financial-payment-preview-summary strong { color: var(--orange); font-size: 14px; }
