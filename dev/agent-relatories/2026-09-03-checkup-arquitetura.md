@@ -160,14 +160,13 @@ Não é necessário criar um pacote compartilhado imediatamente. Um teste de con
 
 ### 6.5 Cobertura automatizada desequilibrada
 
-Os testes atuais verificam autenticação, propostas, etapas, remoção e listagem. Porém, todos permanecem em `backend/test/security.test.mjs`, mesmo quando não tratam de segurança.
+Os testes do backend foram separados entre autenticação/segurança, clientes, financeiro, propostas, etapas/briefing, contratos, Pix, configuração e views.
 
-O frontend agora possui Vitest, jsdom e regressões do ciclo de vida das views e do menu mobile administrativo. Ainda faltam:
+O frontend possui Vitest, jsdom e regressões do ciclo de vida, propostas administrativas e menus mobile de admin e cliente. Ainda faltam:
 
 - ampliar testes DOM por domínio;
-- testes do contrato dos JSONs;
 - integração com MongoDB para operações transacionais;
-- validação automatizada das fixtures.
+- testes HTTP de mais casos de uso.
 
 Os testes podem ser separados por assunto sem mudar a infraestrutura atual baseada no test runner nativo do Node.
 
@@ -179,11 +178,11 @@ Foram encontrados alguns pontos que não exigem mudança arquitetural, mas preju
 - o schema de cliente não define índice único para `login`;
 - a configuração CORS ainda reúne origens de desenvolvimento e produção;
 - o build do frontend avisa sobre caminhos CSS antigos em `projects.html`;
-- não há scripts de lint, testes de frontend ou CI no `package.json` raiz.
+- não há scripts de lint ou CI no `package.json` raiz.
 
 ## 7. Plano incremental recomendado
 
-As prioridades de estabilidade e controle das views foram concluídas em 06/09/2026. O frontend passou a criar uma árvore DOM por montagem e descartar recursos explicitamente. As 15 views persistidas foram versionadas, validadas, sincronizadas por checksum e protegidas por índice único. O menu mobile administrativo também foi completado com o mesmo comportamento da área do cliente.
+As prioridades de estabilidade, controle das views e testes/contratos foram concluídas em 06/09/2026. O frontend passou a criar uma árvore DOM por montagem e descartar recursos explicitamente. As 15 views persistidas foram versionadas, validadas, sincronizadas por checksum e protegidas por índice único. Os testes foram organizados por domínio, o build passou a validar as fixtures e contratos compartilhados possuem verificação de compatibilidade. O menu mobile administrativo também foi completado com o mesmo comportamento da área do cliente.
 
 ### Prioridade 3 — modularização por oportunidade
 
@@ -192,13 +191,6 @@ A tela de propostas foi extraída de `AdminSystemModules` em 06/09/2026, preserv
 1. Extrair a listagem/remoção de clientes em uma alteração posterior.
 2. Separar partes do briefing somente quando o fluxo voltar a ser modificado.
 3. Evitar refatorações simultâneas de áreas estáveis.
-
-### Prioridade 4 — testes e contratos
-
-1. Dividir `security.test.mjs` por domínio.
-2. Adicionar testes DOM para admin e cliente.
-3. Adicionar validação das fixtures ao comando de teste ou build.
-4. Criar verificação de compatibilidade dos status e etapas entre backend e frontend.
 
 ### Prioridade 5 — inicialização e limpeza
 
@@ -276,11 +268,11 @@ O sistema financeiro atual deve continuar sendo tratado como **provisório**, n�
 | --- | --- | --- |
 | Resolução de views por índice | Resolvido | Admin e cliente agora resolvem por `viewName`. |
 | Ausência de automação das views | Resolvido em 06/09/2026 | As 15 views estão versionadas; validação HTML, inventário conhecido, checksums, detecção de extras, upsert idempotente e índice único estão ativos. |
-| Testes concentrados apenas em segurança | Parcialmente resolvido | Há um arquivo separado para Pix, mas a maior parte dos testes de domínio continua em `security.test.mjs`. |
+| Testes concentrados apenas em segurança | Resolvido em 06/09/2026 | A suíte foi dividida por domínio; frontend possui testes DOM e contratos entre backend/admin/cliente são verificados automaticamente. |
 | Endpoint `/api/test` público | Parcialmente resolvido | Agora exige autenticação administrativa, porém segue montado em produção e o site público continua chamando-o sem token. |
 | Inicialização do MongoDB antes do servidor | Resolvido | O bootstrap agora aguarda a conexão antes de registrar as rotas e abrir a porta HTTP. |
 | Ciclo de vida das views | Resolvido em 06/09/2026 | Admin e cliente usam uma árvore nova por montagem, `replaceChildren` e callbacks de descarte para timers e listeners globais. |
-| Contratos duplicados frontend/backend | Não resolvido | Etapas, propostas e financeiro continuam declarados separadamente. |
+| Contratos duplicados frontend/backend | Parcialmente resolvido | Etapas e status de propostas ainda são declarados separadamente, mas um teste AST impede divergência entre backend, admin e cliente. Contratos financeiros continuam sem essa garantia. |
 | Semântica dos status de proposta | Não resolvido | `beated` e `Cancelled` continuam no contrato atual. |
 | Código legado e logs de desenvolvimento | Não resolvido | A página pública ainda executa `checkHealth()` e `testApi()` e cria elementos de diagnóstico no DOM. |
 
@@ -407,7 +399,6 @@ O script agora valida JSON, ObjectId, campos obrigatórios, nomes conhecidos, ti
 Limitações atuais:
 
 - não valida IDs/classes exigidos pelos selectors;
-- `views:validate` não faz parte do `build` raiz nem de CI.
 
 A automação cobre o contrato documental e o drift. Ainda não garante que mudanças nos selectors TypeScript permaneçam compatíveis com IDs e classes do HTML.
 
@@ -474,10 +465,9 @@ Direção recomendada: estabilizar contratos via schema compartilhado ou geraç�
 
 #### Manutenção estrutural
 
-1. Tornar `views:validate` obrigatório no pipeline do repositório.
-2. Extrair o módulo financeiro do cliente de `ClientSystemModules`, assim como foi feito no admin.
-3. Remover diagnóstico do entry público.
-4. Separar testes por domínio e adicionar integração MongoDB/HTTP.
+1. Extrair o módulo financeiro do cliente de `ClientSystemModules`, assim como foi feito no admin.
+2. Remover diagnóstico do entry público.
+3. Adicionar integração MongoDB/HTTP.
 
 ### 11.7 Conclusão atualizada
 
@@ -527,9 +517,8 @@ Antes de automatizar pagamentos, será necessário:
 
 ### 5. Completar o controle das views persistidas
 
-A automação documental e a equivalência entre repositório e MongoDB foram concluídas. Ainda se deve:
+A automação documental, a equivalência entre repositório e MongoDB e a validação obrigatória no build foram concluídas. Ainda se deve:
 
-- tornar `views:validate` obrigatório no build ou CI;
 - validar HTML e os IDs/classes exigidos pelos selectors;
 
 ### 6. Melhorar a paginação e o armazenamento financeiro
@@ -550,9 +539,8 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 
 ### 8. Organizar testes, contratos e nomenclaturas
 
-- separar os testes por domínio;
 - adicionar testes DOM, MongoDB e HTTP;
-- compartilhar ou gerar contratos entre backend e frontend;
+- compartilhar ou gerar contratos financeiros entre backend e frontend;
 - normalizar nomes como `beated`, `Cancelled` e `home.selector.ts.ts`;
 - definir uma taxonomia clara para o campo `type` das views.
 

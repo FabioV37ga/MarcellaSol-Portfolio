@@ -5,6 +5,8 @@
   "description": "Porfolio profisisonal de Marcella Sol, Designer de interiores.",
   "main": "index.js",
   "scripts": {
+    "prebuild": "npm run views:validate",
+    "test": "npm --prefix frontend test && npm --prefix backend test",
     "dev:front": "cd frontend && npm run dev",
     "build:front": "cd frontend && npm run build",
     "dev:back": "cd backend && npm run dev",
