@@ -25,3 +25,12 @@ layout e desenvolvimento e orçamento
 
 
 arrumar explicação guarda-roupa - cliente pediu***
+
+
+financeiro:
+
+2. implementar api de pagamento (pix)
+    - cliente tem acesso a tela de financeiro, onde ele pode gerar o pix e pagar.
+    - o cliente pode adiantar pagamentos de meses seguidos 
+    obs: jaja ela decide
+    

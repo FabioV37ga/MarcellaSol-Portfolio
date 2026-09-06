@@ -68,7 +68,7 @@ Esse fluxo está claro nas funcionalidades recentes e é adequado para o projeto
 
 Os documentos de `dev/database` funcionam como representação versionada das views armazenadas no MongoDB. A abordagem é compatível com o restante do sistema, desde que esses arquivos sejam tratados como código e tenham sincronização controlada com o banco.
 
-Existem comandos de validação, conferência e sincronização idempotente. Ainda faltam validação estrutural do HTML, detecção completa de drift e índice único no banco.
+As 15 views conhecidas estão versionadas. Os comandos validam estrutura HTML e nomes, conferem checksums e drift, sincronizam de forma idempotente e garantem unicidade no banco.
 
 ## 4. Aderência das funcionalidades recentes
 
@@ -123,34 +123,20 @@ A clonagem foi generalizada para todas as views persistidas, eliminando a exceç
 
 ### 6.1 `AdminSystemModules` concentra funcionalidades demais
 
-`frontend/src/admin/modules/admin-system.modules.ts` possui aproximadamente 589 linhas e coordena:
+`frontend/src/admin/modules/admin-system.modules.ts` possui aproximadamente 455 linhas e coordena:
 
 - navegação inicial;
 - listagem e remoção de clientes;
 - gestão individual do cliente;
 - relatórios de briefing;
-- propostas e anexos;
 - editor de etapas;
 - início da criação de clientes.
 
 O arquivo ainda é compreensível, mas cada nova funcionalidade aumenta o risco de interferência entre telas. O problema de listeners associados a clientes visitados anteriormente foi um exemplo desse tipo de acoplamento.
 
-Não é necessário substituí-lo de uma vez. As telas `clients`, `client-management` e `client-proposals` podem ser extraídas gradualmente para módulos próprios dentro da estrutura atual.
+A tela de propostas foi extraída para `admin-client-proposals.module.ts`. As telas `clients` e `client-management` podem ser extraídas gradualmente quando voltarem a receber alterações.
 
-### 6.2 O pipeline das views persistidas ainda é incompleto
-
-Os JSONs de `dev/database` são sincronizados por comandos próprios. O pipeline ainda não consegue:
-
-- validar o schema dos documentos;
-- validar o HTML;
-- garantir unicidade por `permission`, `type` e `viewName`;
-- detectar drift entre os ambientes.
-
-Isso cria duas possíveis fontes da verdade: o arquivo versionado e o documento atualmente implantado.
-
-A recomendação não é retirar as views do MongoDB, mas adicionar validação e sincronização ao fluxo já utilizado.
-
-### 6.3 Serviços e controllers grandes
+### 6.2 Serviços e controllers grandes
 
 `backend/src/application/client-proposal.service.ts` concentra criação, edição, reenvio, aprovação, solicitação de alterações, exclusão, anexos, compensações do Drive e sincronização de etapas.
 
@@ -158,7 +144,7 @@ A recomendação não é retirar as views do MongoDB, mas adicionar validação 
 
 Ambos podem continuar funcionando como estão. A extração deve ocorrer apenas quando essas áreas voltarem a receber alterações, reduzindo risco e evitando uma refatoração ampla sem benefício imediato.
 
-### 6.4 Pequenos desvios entre camadas
+### 6.3 Pequenos desvios entre camadas
 
 Alguns controllers acessam repositórios e modelos diretamente. Por exemplo, `ClientController` consulta `ClientRepository` e chama a normalização de etapas para montar a resposta de aprovações.
 
@@ -166,13 +152,13 @@ Isso não compromete o sistema, mas é diferente do fluxo predominante baseado e
 
 Também existem usos diretos do Mongoose em serviços de aplicação apenas para validar ou criar `ObjectId`. É um acoplamento aceitável no projeto atual, mas deve ser evitado em regras que não dependam realmente do MongoDB.
 
-### 6.5 Contratos duplicados entre backend e frontend
+### 6.4 Contratos duplicados entre backend e frontend
 
 Chaves e status de etapas existem no backend e no frontend. Essa duplicação pode causar divergência silenciosa quando um lado for alterado sem o outro.
 
 Não é necessário criar um pacote compartilhado imediatamente. Um teste de contrato ou schema gerado já reduziria significativamente o risco.
 
-### 6.6 Cobertura automatizada desequilibrada
+### 6.5 Cobertura automatizada desequilibrada
 
 Os testes atuais verificam autenticação, propostas, etapas, remoção e listagem. Porém, todos permanecem em `backend/test/security.test.mjs`, mesmo quando não tratam de segurança.
 
@@ -185,7 +171,7 @@ O frontend agora possui Vitest, jsdom e regressões do ciclo de vida das views e
 
 Os testes podem ser separados por assunto sem mudar a infraestrutura atual baseada no test runner nativo do Node.
 
-### 6.7 Operação e código legado
+### 6.6 Operação e código legado
 
 Foram encontrados alguns pontos que não exigem mudança arquitetural, mas prejudicam a confiabilidade:
 
@@ -197,20 +183,15 @@ Foram encontrados alguns pontos que não exigem mudança arquitetural, mas preju
 
 ## 7. Plano incremental recomendado
 
-A prioridade de estabilidade das views foi concluída em 06/09/2026. O frontend passou a criar uma árvore DOM por montagem, desmontar views com descarte explícito de recursos e executar testes DOM de regressão. O menu mobile administrativo também foi completado com o mesmo comportamento da área do cliente.
-
-### Prioridade 2 — controle das views persistidas
-
-1. Ampliar o validador para nomes conhecidos e HTML básico.
-2. Adicionar versão ou checksum para detectar drift.
-3. Garantir índice único adequado na coleção de views.
+As prioridades de estabilidade e controle das views foram concluídas em 06/09/2026. O frontend passou a criar uma árvore DOM por montagem e descartar recursos explicitamente. As 15 views persistidas foram versionadas, validadas, sincronizadas por checksum e protegidas por índice único. O menu mobile administrativo também foi completado com o mesmo comportamento da área do cliente.
 
 ### Prioridade 3 — modularização por oportunidade
 
-1. Extrair a tela de propostas de `AdminSystemModules` quando ela receber nova alteração.
-2. Extrair a listagem/remoção de clientes em uma alteração posterior.
-3. Separar partes do briefing somente quando o fluxo voltar a ser modificado.
-4. Evitar refatorações simultâneas de áreas estáveis.
+A tela de propostas foi extraída de `AdminSystemModules` em 06/09/2026, preservando rota e contratos existentes.
+
+1. Extrair a listagem/remoção de clientes em uma alteração posterior.
+2. Separar partes do briefing somente quando o fluxo voltar a ser modificado.
+3. Evitar refatorações simultâneas de áreas estáveis.
 
 ### Prioridade 4 — testes e contratos
 
@@ -294,7 +275,7 @@ O sistema financeiro atual deve continuar sendo tratado como **provisório**, n�
 | Achado anterior | Situação em 05/09/2026 | Observação |
 | --- | --- | --- |
 | Resolução de views por índice | Resolvido | Admin e cliente agora resolvem por `viewName`. |
-| Ausência de automação das views | Parcialmente resolvido | Existem `views:validate`, `views:check` e `views:sync`, com upsert idempotente. Ainda faltam validação estrutural do HTML, detecção completa de drift e índice único no banco. |
+| Ausência de automação das views | Resolvido em 06/09/2026 | As 15 views estão versionadas; validação HTML, inventário conhecido, checksums, detecção de extras, upsert idempotente e índice único estão ativos. |
 | Testes concentrados apenas em segurança | Parcialmente resolvido | Há um arquivo separado para Pix, mas a maior parte dos testes de domínio continua em `security.test.mjs`. |
 | Endpoint `/api/test` público | Parcialmente resolvido | Agora exige autenticação administrativa, porém segue montado em produção e o site público continua chamando-o sem token. |
 | Inicialização do MongoDB antes do servidor | Resolvido | O bootstrap agora aguarda a conexão antes de registrar as rotas e abrir a porta HTTP. |
@@ -416,24 +397,19 @@ Assim, `type` parece simultaneamente categoria técnica, domínio e filtro opera
 
 Direção recomendada: decidir se `type` representa domínio, grupo de carregamento ou espécie de template. Depois, definir enum e validar combinações permitidas com `permission` e `viewName`; se não possuir função real, removê-lo mediante migração.
 
-#### ARQ-033 — automação das views é útil, porém ainda não fecha o contrato
+#### ARQ-033 — integração das views ainda não valida selectors no pipeline
 
 Prioridade: **média**
 Tipo: tooling/integração
 
-O novo script é um avanço concreto: valida JSON, ObjectId, campos obrigatórios e duplicidade local, compara por `permission + viewName` e aplica insert/update sem remoção.
+O script agora valida JSON, ObjectId, campos obrigatórios, nomes conhecidos, tipos, duplicidade e HTML, além de conferir checksums, inventário completo, views extras e índice único. A sincronização continua conservadora e não remove documentos automaticamente.
 
 Limitações atuais:
 
-- não analisa HTML malformado;
 - não valida IDs/classes exigidos pelos selectors;
-- não confirma que todas as views obrigatórias existem;
-- não reporta como drift as views extras presentes apenas no banco;
-- não cria/verifica índice único em `(permission, viewName)`;
-- não possui checksum ou versão de schema;
 - `views:validate` não faz parte do `build` raiz nem de CI.
 
-A automação deve ser descrita como sincronização unidirecional conservadora, e não como garantia completa de equivalência repositório ↔ banco.
+A automação cobre o contrato documental e o drift. Ainda não garante que mudanças nos selectors TypeScript permaneçam compatíveis com IDs e classes do HTML.
 
 #### ARQ-034 — endpoints de diagnóstico permanecem fora do fluxo esperado
 
@@ -478,6 +454,7 @@ Direção recomendada: estabilizar contratos via schema compartilhado ou geraç�
 - A configuração Pix é validada antes da composição da aplicação, não possui fallback no código e é injetada no serviço.
 - O servidor aguarda a conexão com o MongoDB antes de registrar as rotas e aceitar requisições.
 - Admin financeiro recebeu um componente próprio (`ClientFinancialManager`), melhor do que ampliar toda a lógica dentro de `AdminSystemModules`.
+- Propostas administrativas passaram a possuir módulo próprio, reduzindo o orquestrador principal sem alterar o fluxo.
 - O processo de views agora possui comandos documentados, modo somente leitura e aplicação explícita.
 
 ### 11.6 Ordem recomendada para as próximas correções
@@ -498,10 +475,9 @@ Direção recomendada: estabilizar contratos via schema compartilhado ou geraç�
 #### Manutenção estrutural
 
 1. Tornar `views:validate` obrigatório no pipeline do repositório.
-2. Criar índice único das views após eliminar duplicidades existentes.
-3. Extrair o módulo financeiro do cliente de `ClientSystemModules`, assim como foi feito no admin.
-4. Remover diagnóstico do entry público.
-5. Separar testes por domínio e adicionar integração MongoDB/HTTP.
+2. Extrair o módulo financeiro do cliente de `ClientSystemModules`, assim como foi feito no admin.
+3. Remover diagnóstico do entry público.
+4. Separar testes por domínio e adicionar integração MongoDB/HTTP.
 
 ### 11.7 Conclusão atualizada
 
@@ -551,13 +527,10 @@ Antes de automatizar pagamentos, será necessário:
 
 ### 5. Completar o controle das views persistidas
 
-A automação atual é útil, mas ainda não garante equivalência completa entre o repositório e o MongoDB. Deve-se:
+A automação documental e a equivalência entre repositório e MongoDB foram concluídas. Ainda se deve:
 
 - tornar `views:validate` obrigatório no build ou CI;
 - validar HTML e os IDs/classes exigidos pelos selectors;
-- detectar views ausentes e extras;
-- criar índice único para `(permission, viewName)`;
-- adicionar versão ou checksum para detectar drift.
 
 ### 6. Melhorar a paginação e o armazenamento financeiro
 
@@ -572,7 +545,7 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 
 - dividir responsabilidades de `ClientPaymentService`;
 - extrair o financeiro de `ClientSystemModules`;
-- continuar decompondo `AdminSystemModules`;
+- extrair listagem e gestão de clientes de `AdminSystemModules` quando esses fluxos forem alterados;
 - separar cálculo, apresentação e Pix em componentes próprios.
 
 ### 8. Organizar testes, contratos e nomenclaturas
