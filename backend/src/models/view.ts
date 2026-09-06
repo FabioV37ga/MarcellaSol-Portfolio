@@ -8,4 +8,9 @@ const viewSchema = new mongoose.Schema({
     view: { type: String, required: true },
 }, {collection: 'views'});
 
-export default mongoose.model("View", viewSchema);  
+viewSchema.index(
+    { permission: 1, viewName: 1 },
+    { name: "views_permission_viewName_unique", unique: true, collation: { locale: "en", strength: 2 } }
+);
+
+export default mongoose.model("View", viewSchema);

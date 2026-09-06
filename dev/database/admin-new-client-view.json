@@ -1,0 +1,9 @@
+{
+  "_id": {
+    "$oid": "6a8312f0d51fb8e0a84bb14b"
+  },
+  "viewName": "new-client",
+  "permission": "admin",
+  "type": "system",
+  "view": "<div class=\"create-client-container\"><div class=\"page-index\"><a class=\"root-index\">Clientes</a><p>/ Novo cliente</p></div><div class=\"add-client-title\"><h1>Novo cliente</h1><p>Cadastre um novo cliente.</p></div><div class=\"add-client-window\"><div class=\"add-client-window-header\"><div class=\"add-client-window-header-pic\"></div><div class=\"add-client-window-header-text\"><h2>Dados do cliente</h2><p>Esses dados serão usados para o acesso do cliente ao sistema.</p></div></div><div class=\"add-client-form\"><div class=\"add-client-form-item\"><span class=\"add-client-form-item-label\">Nome do cliente </span><input class=\"add-client-form-input\" placeholder=\"Ex.:  Fulano de tal\"></div><div class=\"add-client-form-item\"><span class=\"add-client-form-item-label\">Login </span><input class=\"add-client-form-input\" placeholder=\"Ex.: FulanoDeTal2026\"></div><div class=\"add-client-form-item\"><span class=\"add-client-form-item-label\">Senha </span><input class=\"add-client-form-input\" placeholder=\"••••••••\"><div class=\"add-client-form-input-showpass\"></div></div></div><div class=\"add-client-buttons\"><a id=\"add-client-cancel\">Cancelar</a> <a id=\"add-client-confirm\">Criar cliente</a></div></div></div>"
+}

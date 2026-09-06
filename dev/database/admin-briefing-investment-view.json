@@ -1,0 +1,9 @@
+{
+  "_id": {
+    "$oid": "6a84df1dc3e6e55944ba1703"
+  },
+  "viewName": "briefing-investment",
+  "permission": "admin",
+  "type": "briefing",
+  "view": "<div class=\"briefing-rooms-container\"><div class=\"page-index\"><a class=\"root-index\">Clientes</a><p>/</p><a class=\"root-index\">Novo cliente</a><p>/</p><a class=\"root-index\">Gerar briefing</a><p>/</p><span>Investimento</span></div><div class=\"briefing-rooms-title\"><h1>Investimento</h1><p>Defina as informações de investimento que farão parte do briefing.</p></div><div class=\"briefing-rooms-window\"><div class=\"briefing-rooms-header\"><div class=\"briefing-rooms-header-text\"><h2>Configuração de investimento</h2><p>Selecione a pergunta que deverá ser incluída no briefing.</p></div></div><div class=\"briefing-rooms-list\"><div class=\"briefing-room-card briefing-room-card-customizable\"><div class=\"briefing-room-card-header\"><span>Investimento</span></div><div class=\"briefing-room-customizations\"><label class=\"briefing-room-option\"><input checked=\"\" id=\"briefing-investment-flexibility\" type=\"checkbox\"> <span class=\"briefing-room-checkbox\"><i aria-hidden=\"true\" class=\"fa fa-check\"></i> </span><span>Incluir pergunta sobre flexibilidade de investimento</span></label></div></div></div><div class=\"briefing-rooms-buttons\"><button id=\"briefing-investment-cancel\" type=\"button\">Voltar</button> <button id=\"briefing-rooms-confirm\" type=\"button\">Continuar</button></div></div></div>"
+}

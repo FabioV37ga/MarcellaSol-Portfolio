@@ -1,0 +1,9 @@
+{
+  "_id": {
+    "$oid": "6a7ea83315ecdf7e6c93e484"
+  },
+  "viewName": "home",
+  "permission": "admin",
+  "type": "system",
+  "view": "<section class=\"accesses\"><div class=\"accesses-content\"><h2>Acesso rápido</h2><div class=\"access-list\"><a class=\"access\" id=\"portfolio\"><div class=\"access-picture\"><img alt=\"\" src=\"images/admin/home/home-icon-portfolio.png\" srcset=\"\"></div><div class=\"access-text\"><h3>Portfolio</h3><p>Gerencie o portfolio.</p></div><div class=\"access-arrow\"><i aria-hidden=\"true\" class=\"fa fa-angle-right\"></i></div></a><a class=\"access\" id=\"client\"><div class=\"access-picture\"><img alt=\"\" src=\"images/admin/home/home-icon-portfolio.png\" srcset=\"\"></div><div class=\"access-text\"><h3>Clientes</h3><p>Gerencie seus clientes e informações.</p></div><div class=\"access-arrow\"><i aria-hidden=\"true\" class=\"fa fa-angle-right\"></i></div></a></div></div></section>"
+}

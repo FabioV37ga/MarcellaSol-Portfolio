@@ -1,0 +1,9 @@
+{
+  "_id": {
+    "$oid": "6a84b9fe95088e718669540b"
+  },
+  "viewName": "briefing-added-room",
+  "permission": "admin",
+  "type": "briefing",
+  "view": "<div class=\"briefing-room-card\" value=\"%index%\"><div class=\"briefing-room-card-header\"><label for=\"briefing-room-%id%\" contenteditable=\"\">Cômodo %id%</label> <button aria-label=\"Excluir cômodo %id%\" class=\"briefing-room-delete\" type=\"button\"><i aria-hidden=\"true\" class=\"fa fa-trash-o\"></i></button></div><select class=\"briefing-room-select\" id=\"briefing-room-%id%\"><option value=\"sala-estar\">Sala de estar</option><option value=\"sala-jantar\">Sala de jantar</option><option value=\"cozinha\">Cozinha</option><option value=\"varanda\">Varanda</option><option value=\"lavanderia\">Lavanderia</option><option value=\"quarto\">Quarto</option><option value=\"banheiro\">Banheiro</option><option value=\"lavabo\">Lavabo</option></select></div>"
+}

@@ -1,0 +1,9 @@
+{
+  "_id": {
+    "$oid": "6a84b47b95088e718669540a"
+  },
+  "viewName": "briefing-rooms",
+  "permission": "admin",
+  "type": "briefing",
+  "view": "<div class=\"briefing-rooms\"><div class=\"briefing-rooms-container\"><div class=\"page-index\"><a class=\"root-index\">Clientes</a><p>/</p><a class=\"root-index\">Novo cliente</a><p>/</p><a class=\"root-index\">Gerar briefing</a><p>/</p><span>Cômodos</span></div><div class=\"briefing-rooms-title\"><h1>Criar cômodos</h1><p>Adicione os cômodos que farão parte do briefing e personalize quando houver opções disponíveis.</p></div><div class=\"briefing-rooms-window\"><div class=\"briefing-rooms-header\"><div class=\"briefing-rooms-header-text\"><h2>Cômodos do briefing</h2><p>Selecione os ambientes desejados. Alguns cômodos podem ter configurações adicionais.</p></div><button type=\"button\" class=\"briefing-room-add\"><i aria-hidden=\"true\" class=\"fa fa-plus\"></i> <span>Adicionar cômodo</span></button></div><div class=\"briefing-rooms-list\"></div><p class=\"briefing-rooms-available\">Opções disponíveis: Sala de estar, Sala de jantar, cozinha, varanda, lavanderia, quarto, banheiro, lavabo.</p><div class=\"briefing-rooms-buttons\"><button type=\"button\" id=\"briefing-rooms-cancel\">Cancelar</button> <button type=\"button\" id=\"briefing-rooms-confirm\">Continuar</button></div></div></div></div>"
+}

@@ -28,7 +28,7 @@ A arquitetura atual é viável e coerente para o tamanho do sistema. Ela se comp
 
 As funcionalidades recentes seguem, em sua maioria, o padrão estabelecido. Não há justificativa técnica para uma refatoração total. As melhorias necessárias são localizadas e podem ser feitas progressivamente enquanto novas funcionalidades forem desenvolvidas.
 
-O principal risco atual não é a estrutura de diretórios. É a concentração crescente de responsabilidades em poucos arquivos e a ausência de um ciclo de vida uniforme para as views recebidas do banco.
+O principal risco atual não é a estrutura de diretórios. É a concentração crescente de responsabilidades em poucos arquivos e o contrato ainda incompleto das views persistidas.
 
 ## 3. Arquitetura identificada
 
@@ -62,13 +62,13 @@ Esse fluxo está claro nas funcionalidades recentes e é adequado para o projeto
 | `modules` | Orquestração das telas e dos casos de interação | Correta, mas concentrada |
 | `selectors` | Contrato entre o HTML e o comportamento | Boa |
 | `templates` | Hidratação de templates e criação de conteúdo dinâmico | Boa |
-| `views` | Montagem, desmontagem e estado visual global | Precisa de padronização |
+| `views` | Montagem, desmontagem e estado visual global | Boa, com ciclo de vida compartilhado |
 
 ### Views persistidas
 
 Os documentos de `dev/database` funcionam como representação versionada das views armazenadas no MongoDB. A abordagem é compatível com o restante do sistema, desde que esses arquivos sejam tratados como código e tenham sincronização controlada com o banco.
 
-Atualmente essa sincronização é manual, o que permite divergência entre o repositório e o ambiente implantado.
+Existem comandos de validação, conferência e sincronização idempotente. Ainda faltam validação estrutural do HTML, detecção completa de drift e índice único no banco.
 
 ## 4. Aderência das funcionalidades recentes
 
@@ -104,7 +104,7 @@ A transação do MongoDB pressupõe que o ambiente utilize replica set ou uma im
 
 A regra está persistida no documento do cliente e atualizada por identificador individual. A lógica de normalização, ordenação e status está centralizada em `backend/src/models/projectStage.ts`.
 
-A correção recente que clonou a view de propostas resolveu o compartilhamento acidental de DOM e listeners entre clientes. A regra de negócio já era individual; o vazamento acontecia no ciclo de vida da interface.
+A clonagem foi generalizada para todas as views persistidas, eliminando a exceção local da tela de propostas. A regra de negócio continua individual e o ciclo de vida da interface agora descarta árvores, timers e listeners globais por montagem.
 
 ## 5. Pontos fortes
 
@@ -137,36 +137,20 @@ O arquivo ainda é compreensível, mas cada nova funcionalidade aumenta o risco 
 
 Não é necessário substituí-lo de uma vez. As telas `clients`, `client-management` e `client-proposals` podem ser extraídas gradualmente para módulos próprios dentro da estrutura atual.
 
-### 6.2 O ciclo de vida das views não é uniforme
+### 6.2 O pipeline das views persistidas ainda é incompleto
 
-O getter administrativo converte cada string vinda do banco em uma instância de `HTMLElement`. Em seguida, `AdminSystemView.render` anexa essa mesma instância ao DOM.
-
-Isso significa que estado visual, ordem de elementos e listeners podem permanecer na instância entre montagens. A tela de propostas precisou executar `cloneNode(true)` explicitamente para impedir esse comportamento entre clientes.
-
-A melhoria recomendada é estabelecer uma única regra:
-
-- telas transitórias devem receber uma nova árvore DOM a cada montagem;
-- listeners globais devem possuir descarte explícito;
-- `render` e `unrender` devem usar uma implementação consistente, preferencialmente com `replaceChildren`.
-
-Essa alteração mantém a view responsável pela estrutura visual e não exige trocar o modelo arquitetural atual.
-
-### 6.3 As views do banco não possuem pipeline de sincronização
-
-Os JSONs de `dev/database` são referências manuais. Não existe um comando automatizado para:
+Os JSONs de `dev/database` são sincronizados por comandos próprios. O pipeline ainda não consegue:
 
 - validar o schema dos documentos;
 - validar o HTML;
 - garantir unicidade por `permission`, `type` e `viewName`;
-- comparar o conteúdo local com o MongoDB;
-- aplicar um upsert idempotente;
 - detectar drift entre os ambientes.
 
 Isso cria duas possíveis fontes da verdade: o arquivo versionado e o documento atualmente implantado.
 
 A recomendação não é retirar as views do MongoDB, mas adicionar validação e sincronização ao fluxo já utilizado.
 
-### 6.4 Serviços e controllers grandes
+### 6.3 Serviços e controllers grandes
 
 `backend/src/application/client-proposal.service.ts` concentra criação, edição, reenvio, aprovação, solicitação de alterações, exclusão, anexos, compensações do Drive e sincronização de etapas.
 
@@ -174,7 +158,7 @@ A recomendação não é retirar as views do MongoDB, mas adicionar validação 
 
 Ambos podem continuar funcionando como estão. A extração deve ocorrer apenas quando essas áreas voltarem a receber alterações, reduzindo risco e evitando uma refatoração ampla sem benefício imediato.
 
-### 6.5 Pequenos desvios entre camadas
+### 6.4 Pequenos desvios entre camadas
 
 Alguns controllers acessam repositórios e modelos diretamente. Por exemplo, `ClientController` consulta `ClientRepository` e chama a normalização de etapas para montar a resposta de aprovações.
 
@@ -182,28 +166,26 @@ Isso não compromete o sistema, mas é diferente do fluxo predominante baseado e
 
 Também existem usos diretos do Mongoose em serviços de aplicação apenas para validar ou criar `ObjectId`. É um acoplamento aceitável no projeto atual, mas deve ser evitado em regras que não dependam realmente do MongoDB.
 
-### 6.6 Contratos duplicados entre backend e frontend
+### 6.5 Contratos duplicados entre backend e frontend
 
 Chaves e status de etapas existem no backend e no frontend. Essa duplicação pode causar divergência silenciosa quando um lado for alterado sem o outro.
 
 Não é necessário criar um pacote compartilhado imediatamente. Um teste de contrato ou schema gerado já reduziria significativamente o risco.
 
-### 6.7 Cobertura automatizada desequilibrada
+### 6.6 Cobertura automatizada desequilibrada
 
 Os testes atuais verificam autenticação, propostas, etapas, remoção e listagem. Porém, todos permanecem em `backend/test/security.test.mjs`, mesmo quando não tratam de segurança.
 
-Ainda faltam:
+O frontend agora possui Vitest, jsdom e regressões do ciclo de vida das views e do menu mobile administrativo. Ainda faltam:
 
-- testes de frontend;
-- regressão da navegação entre clientes;
-- testes do ciclo de vida das views;
+- ampliar testes DOM por domínio;
 - testes do contrato dos JSONs;
 - integração com MongoDB para operações transacionais;
 - validação automatizada das fixtures.
 
 Os testes podem ser separados por assunto sem mudar a infraestrutura atual baseada no test runner nativo do Node.
 
-### 6.8 Operação e código legado
+### 6.7 Operação e código legado
 
 Foram encontrados alguns pontos que não exigem mudança arquitetural, mas prejudicam a confiabilidade:
 
@@ -215,19 +197,13 @@ Foram encontrados alguns pontos que não exigem mudança arquitetural, mas preju
 
 ## 7. Plano incremental recomendado
 
-### Prioridade 1 — estabilidade das views
-
-1. Padronizar a criação de uma nova árvore DOM por montagem.
-2. Padronizar desmontagem com `replaceChildren` e descarte de listeners globais.
-3. Adicionar teste de regressão ao alternar entre clientes.
+A prioridade de estabilidade das views foi concluída em 06/09/2026. O frontend passou a criar uma árvore DOM por montagem, desmontar views com descarte explícito de recursos e executar testes DOM de regressão. O menu mobile administrativo também foi completado com o mesmo comportamento da área do cliente.
 
 ### Prioridade 2 — controle das views persistidas
 
-1. Criar validador dos arquivos em `dev/database`.
-2. Validar campos obrigatórios, nomes conhecidos, duplicidade e HTML básico.
-3. Criar comando idempotente de upsert.
-4. Adicionar versão ou checksum para detectar drift.
-5. Garantir índice único adequado na coleção de views.
+1. Ampliar o validador para nomes conhecidos e HTML básico.
+2. Adicionar versão ou checksum para detectar drift.
+3. Garantir índice único adequado na coleção de views.
 
 ### Prioridade 3 — modularização por oportunidade
 
@@ -277,7 +253,7 @@ Para preservar a arquitetura existente, novas funcionalidades devem seguir estas
 
 O projeto não precisa de uma nova arquitetura. A estrutura originalmente adotada continua adequada, e o desenvolvimento recente a respeitou de forma satisfatória.
 
-O momento atual pede refatoração incremental e localizada, principalmente no frontend administrativo, no ciclo de vida das views e na sincronização das views persistidas. Essas melhorias cabem integralmente na organização existente.
+O momento atual pede refatoração incremental e localizada, principalmente no frontend administrativo e na sincronização das views persistidas. Essas melhorias cabem integralmente na organização existente.
 
 Se as telas maiores forem divididas conforme forem modificadas e o processo das views for automatizado, a arquitetura poderá sustentar a próxima fase do sistema sem reescrita geral.
 
@@ -322,34 +298,12 @@ O sistema financeiro atual deve continuar sendo tratado como **provisório**, n�
 | Testes concentrados apenas em segurança | Parcialmente resolvido | Há um arquivo separado para Pix, mas a maior parte dos testes de domínio continua em `security.test.mjs`. |
 | Endpoint `/api/test` público | Parcialmente resolvido | Agora exige autenticação administrativa, porém segue montado em produção e o site público continua chamando-o sem token. |
 | Inicialização do MongoDB antes do servidor | Resolvido | O bootstrap agora aguarda a conexão antes de registrar as rotas e abrir a porta HTTP. |
-| Ciclo de vida das views | Não resolvido | A clonagem foi aplicada na tela de propostas, mas não se tornou regra global. |
+| Ciclo de vida das views | Resolvido em 06/09/2026 | Admin e cliente usam uma árvore nova por montagem, `replaceChildren` e callbacks de descarte para timers e listeners globais. |
 | Contratos duplicados frontend/backend | Não resolvido | Etapas, propostas e financeiro continuam declarados separadamente. |
 | Semântica dos status de proposta | Não resolvido | `beated` e `Cancelled` continuam no contrato atual. |
 | Código legado e logs de desenvolvimento | Não resolvido | A página pública ainda executa `checkHealth()` e `testApi()` e cria elementos de diagnóstico no DOM. |
 
 ### 11.4 Novos achados e inconsistências
-
-#### ARQ-024 — reutilização das instâncias de view acumula listeners
-
-Prioridade: **alta**
-Tipo: ciclo de vida do frontend
-
-Os getters transformam cada HTML do banco em uma única instância de `HTMLElement`. `AdminSystemView` e `ClientSystemView` removem e depois anexam novamente essa mesma instância.
-
-As telas financeiras adicionam listeners nativos a elementos estruturais a cada montagem:
-
-- `ClientFinancialManager` registra listeners no botão de nova cobrança, formulário, diálogo e editor;
-- `ClientSystemModules.mountFinancial()` registra listeners no diálogo Pix;
-- `mountStagesApprovals()` também registra listeners nos diálogos de aprovação.
-
-Apenas a tela administrativa de propostas usa `cloneNode(true)` explicitamente. Ao sair e voltar para financeiro, managers antigos podem continuar ligados ao mesmo DOM, provocando abertura duplicada, submissões concorrentes, feedback inconsistente ou referências a estado anterior.
-
-Direção recomendada:
-
-- fazer `render` clonar toda view transitória por padrão; ou
-- armazenar `HTMLTemplateElement`/string como modelo e criar uma árvore nova em cada montagem;
-- criar contrato `mount()/dispose()` para timers e listeners globais;
-- remover a exceção local de propostas depois de padronizar o comportamento.
 
 #### ARQ-026 — `ClientPaymentService` reúne domínio, DTO e geração de imagem
 
@@ -530,9 +484,8 @@ Direção recomendada: estabilizar contratos via schema compartilhado ou geraç�
 
 #### Antes de ampliar o financeiro
 
-1. Padronizar view nova por montagem e eliminar acúmulo de listeners.
-2. Extrair regras financeiras duplicadas e adicionar testes do frontend.
-3. Renomear a janela Pix para refletir que a validade é apenas interna.
+1. Extrair regras financeiras duplicadas e adicionar testes do frontend.
+2. Renomear a janela Pix para refletir que a validade é apenas interna.
 
 #### Antes de integrar banco ou PSP
 
@@ -548,7 +501,7 @@ Direção recomendada: estabilizar contratos via schema compartilhado ou geraç�
 2. Criar índice único das views após eliminar duplicidades existentes.
 3. Extrair o módulo financeiro do cliente de `ClientSystemModules`, assim como foi feito no admin.
 4. Remover diagnóstico do entry público.
-5. Separar testes por domínio e adicionar integração MongoDB/HTTP e regressão de remontagem de views.
+5. Separar testes por domínio e adicionar integração MongoDB/HTTP.
 
 ### 11.7 Conclusão atualizada
 
@@ -556,7 +509,7 @@ A arquitetura-base permanece aproveitável e não precisa ser substituída. As n
 
 O bloqueio dos termos após o primeiro recebimento protege o fluxo manual atual contra recálculo retroativo. Antes de automatizar a confirmação bancária, ainda será necessário separar **plano de cobrança**, **recebimento confirmado** e **apresentação temporária de Pix**, além de definir idempotência e vocabulário explícito.
 
-No frontend, o problema mais urgente continua sendo o ciclo de vida das views persistidas. A automação do MongoDB resolveu a distribuição dos documentos, mas não resolveu a reutilização da mesma árvore DOM em memória. Esse ajuste deve preceder a inclusão de mais diálogos, timers e listeners.
+No frontend, o ciclo de vida das views persistidas foi padronizado. O próximo risco relevante é a duplicação das regras financeiras entre backend e frontend, seguida pela semântica imprecisa da janela Pix.
 
 Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação automática das correções listadas.
 
@@ -564,19 +517,9 @@ Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação aut
 
 ## 12. Resumo dos pontos a melhorar por prioridade
 
-A arquitetura continua adequada e não precisa ser reescrita. As melhorias devem ser incrementais, começando pelo ciclo de vida das views e pela eliminação de regras financeiras duplicadas no frontend.
+A arquitetura continua adequada e não precisa ser reescrita. As melhorias devem ser incrementais, começando agora pela eliminação de regras financeiras duplicadas no frontend.
 
-### 1. Padronizar o ciclo de vida das views
-
-As mesmas árvores DOM são reutilizadas entre montagens, permitindo acúmulo de listeners e estado antigo. A correção deve:
-
-- criar uma nova árvore DOM em cada montagem;
-- estabelecer um contrato consistente de `mount()` e `dispose()`;
-- descartar listeners globais e timers;
-- padronizar a desmontagem, preferencialmente com `replaceChildren`;
-- incluir um teste de regressão para a alternância entre clientes e telas.
-
-### 2. Eliminar divergências nas regras financeiras
+### 1. Eliminar divergências nas regras financeiras
 
 Parte dos cálculos e da classificação dos pagamentos está duplicada no frontend. O backend deve continuar sendo a autoridade dos valores. Recomenda-se:
 
@@ -585,11 +528,11 @@ Parte dos cálculos e da classificação dos pagamentos está duplicada no front
 - tornar as regras baseadas em data testáveis com um relógio injetável;
 - adicionar testes de frontend.
 
-### 3. Corrigir a semântica da expiração do Pix
+### 2. Corrigir a semântica da expiração do Pix
 
 O Pix atual é estático e não expira na rede bancária. O prazo de cinco horas representa apenas uma janela interna de exibição ou análise. Campos e mensagens devem usar termos como `displayExpiresAt`, `analysisWindowEndsAt` ou "janela de exibição/análise".
 
-### 4. Preparar o domínio antes de integrar banco ou PSP
+### 3. Preparar o domínio antes de integrar banco ou PSP
 
 Antes de automatizar pagamentos, será necessário:
 
@@ -600,13 +543,13 @@ Antes de automatizar pagamentos, será necessário:
 - definir moeda, timezone e políticas de alteração, cancelamento e reembolso;
 - manter eventos financeiros imutáveis e fora do documento operacional principal.
 
-### 5. Corrigir os diagnósticos de produção
+### 4. Corrigir os diagnósticos de produção
 
 - separar health check de readiness;
 - montar `/api/test` somente em desenvolvimento;
 - retirar chamadas, logs e elementos de diagnóstico da página pública.
 
-### 6. Completar o controle das views persistidas
+### 5. Completar o controle das views persistidas
 
 A automação atual é útil, mas ainda não garante equivalência completa entre o repositório e o MongoDB. Deve-se:
 
@@ -616,14 +559,14 @@ A automação atual é útil, mas ainda não garante equivalência completa entr
 - criar índice único para `(permission, viewName)`;
 - adicionar versão ou checksum para detectar drift.
 
-### 7. Melhorar a paginação e o armazenamento financeiro
+### 6. Melhorar a paginação e o armazenamento financeiro
 
 - substituir o limite silencioso de 200 registros por paginação explícita;
 - fornecer separadamente o resumo ou destaque financeiro atual;
 - mover o histórico para uma coleção append-only;
 - definir retenção para tentativas Pix expiradas.
 
-### 8. Modularizar arquivos grandes por oportunidade
+### 7. Modularizar arquivos grandes por oportunidade
 
 Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transversal imediata:
 
@@ -632,7 +575,7 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 - continuar decompondo `AdminSystemModules`;
 - separar cálculo, apresentação e Pix em componentes próprios.
 
-### 9. Organizar testes, contratos e nomenclaturas
+### 8. Organizar testes, contratos e nomenclaturas
 
 - separar os testes por domínio;
 - adicionar testes DOM, MongoDB e HTTP;
@@ -640,4 +583,4 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 - normalizar nomes como `beated`, `Cancelled` e `home.selector.ts.ts`;
 - definir uma taxonomia clara para o campo `type` das views.
 
-Em síntese, os primeiros trabalhos pendentes são o ciclo de vida das views, a eliminação das regras financeiras duplicadas e a correção da semântica da janela Pix. Em seguida, devem ser tratadas a preparação para integração com PSP e a confiabilidade operacional.
+Em síntese, os primeiros trabalhos pendentes são a eliminação das regras financeiras duplicadas e a correção da semântica da janela Pix. Em seguida, devem ser tratadas a preparação para integração com PSP e a confiabilidade operacional.

@@ -1,7 +1,9 @@
 import "dotenv/config";
+import { createHash } from "node:crypto";
 import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import mongoose from "mongoose";
+import { parseFragment, type ParserError } from "parse5";
 
 interface ViewFile {
     _id: { $oid: string };
@@ -19,11 +21,55 @@ interface StoredView {
     view: string;
 }
 
+const knownViews = new Map<string, string>([
+    ["admin:base", "system"],
+    ["admin:home", "system"],
+    ["admin:client", "system"],
+    ["admin:new-client", "system"],
+    ["admin:client-management", "client"],
+    ["admin:client-proposals", "system"],
+    ["admin:client-financial", "financial"],
+    ["admin:briefing-home", "briefing"],
+    ["admin:briefing-investment", "briefing"],
+    ["admin:briefing-rooms", "briefing"],
+    ["admin:briefing-added-room", "briefing"],
+    ["client:base", "system"],
+    ["client:home", "system"],
+    ["client:stages-approvals", "system"],
+    ["client:financial", "financial"]
+]);
+const uniqueIndexName = "views_permission_viewName_unique";
+
 const applyChanges = process.argv.includes("--apply");
 const validateOnly = process.argv.includes("--validate-only");
 
 function identity(view: Pick<ViewFile, "permission" | "viewName">): string {
     return `${view.permission.trim().toLowerCase()}:${view.viewName.trim().toLowerCase()}`;
+}
+
+function checksum(view: Pick<ViewFile, "permission" | "viewName" | "type" | "view">): string {
+    return createHash("sha256").update(JSON.stringify({
+        permission: view.permission.trim(),
+        viewName: view.viewName.trim(),
+        type: view.type?.trim() ?? "",
+        view: view.view
+    })).digest("hex");
+}
+
+function validateHtml(html: string, filename: string): void {
+    const errors: ParserError[] = [];
+    const fragment = parseFragment(html, { onParseError: error => errors.push(error) });
+    if (errors.length > 0) {
+        const details = errors
+            .slice(0, 3)
+            .map(error => `${error.code} (${error.startLine}:${error.startCol})`)
+            .join(", ");
+        throw new Error(`${filename}: HTML inválido: ${details}.`);
+    }
+    const roots = fragment.childNodes.filter(node => node.nodeName !== "#text" && node.nodeName !== "#comment");
+    if (roots.length !== 1) {
+        throw new Error(`${filename}: view deve possuir exatamente um elemento HTML raiz; encontrados ${roots.length}.`);
+    }
 }
 
 function validateViewFile(value: unknown, filename: string): ViewFile {
@@ -40,7 +86,17 @@ function validateViewFile(value: unknown, filename: string): ViewFile {
             throw new Error(`${filename}: ${field} é obrigatório.`);
         }
     }
-    return candidate as ViewFile;
+    const view = candidate as ViewFile;
+    const key = identity(view);
+    const expectedType = knownViews.get(key);
+    if (!expectedType) {
+        throw new Error(`${filename}: view desconhecida (${key}).`);
+    }
+    if (view.type.trim() !== expectedType) {
+        throw new Error(`${filename}: type inválido para ${key}; esperado "${expectedType}".`);
+    }
+    validateHtml(view.view, filename);
+    return view;
 }
 
 async function databaseDirectory(): Promise<string> {
@@ -86,6 +142,10 @@ async function loadFiles(directory: string): Promise<Array<{ filename: string; d
         identities.add(key);
         objectIds.add(data._id.$oid);
     }
+    const missing = Array.from(knownViews.keys()).filter(key => !identities.has(key));
+    if (missing.length > 0) {
+        throw new Error(`Views obrigatórias ausentes em dev/database: ${missing.join(", ")}.`);
+    }
     return loaded;
 }
 
@@ -113,9 +173,16 @@ async function main(): Promise<void> {
         const key = identity(view);
         storedByIdentity.set(key, [...(storedByIdentity.get(key) ?? []), view]);
     }
+    const duplicatedStoredViews = Array.from(storedByIdentity.entries())
+        .filter(([, matches]) => matches.length > 1)
+        .map(([key, matches]) => `${key} (${matches.length})`);
+    if (duplicatedStoredViews.length > 0) {
+        throw new Error(`Views duplicadas no banco: ${duplicatedStoredViews.join(", ")}.`);
+    }
 
     const operations: mongoose.mongo.AnyBulkWriteOperation<StoredView>[] = [];
     let unchanged = 0;
+    const localIdentities = new Set(files.map(({ data }) => identity(data)));
     for (const { filename, data } of files) {
         const key = identity(data);
         const matches = storedByIdentity.get(key) ?? [];
@@ -156,21 +223,37 @@ async function main(): Promise<void> {
                 view: data.view
             } }
         } });
-        console.log(`[ATUALIZAR] ${key} <- ${filename}`);
+        console.log(`[ATUALIZAR] ${key} <- ${filename} (${checksum(existing).slice(0, 12)} → ${checksum(data).slice(0, 12)})`);
     }
 
+    const extraStoredViews = stored.filter(view => !localIdentities.has(identity(view)));
+    extraStoredViews.forEach(view => console.log(`[EXTRA NO BANCO] ${identity(view)} (${view._id})`));
+    const indexes = await collection.indexes();
+    const hasUniqueIdentityIndex = indexes.some(index => index.unique === true
+        && index.key.permission === 1
+        && index.key.viewName === 1
+        && index.collation?.strength === 2);
+    if (!hasUniqueIdentityIndex) console.log(`[ÍNDICE AUSENTE] ${uniqueIndexName}`);
+
     if (!applyChanges) {
-        console.log(`Conferência concluída: ${operations.length} alteração(ões), ${unchanged} sem mudança.`);
+        console.log(`Conferência concluída: ${operations.length} alteração(ões), ${extraStoredViews.length} extra(s), ${unchanged} sem mudança.`);
         console.log("Nenhum dado foi alterado. Execute novamente com --apply para sincronizar.");
         return;
     }
-    if (operations.length === 0) {
-        console.log(`Banco já sincronizado: ${unchanged} view(s) sem mudança.`);
-        return;
+    let insertedCount = 0;
+    let modifiedCount = 0;
+    if (operations.length > 0) {
+        const result = await collection.bulkWrite(operations, { ordered: true, maxTimeMS: 10_000 });
+        insertedCount = result.insertedCount;
+        modifiedCount = result.modifiedCount;
     }
-
-    const result = await collection.bulkWrite(operations, { ordered: true, maxTimeMS: 10_000 });
-    console.log(`Sincronização concluída: ${result.insertedCount} criada(s), ${result.modifiedCount} atualizada(s).`);
+    if (!hasUniqueIdentityIndex) {
+        await collection.createIndex(
+            { permission: 1, viewName: 1 },
+            { name: uniqueIndexName, unique: true, collation: { locale: "en", strength: 2 } }
+        );
+    }
+    console.log(`Sincronização concluída: ${insertedCount} criada(s), ${modifiedCount} atualizada(s), índice único verificado.`);
 }
 
 main()
