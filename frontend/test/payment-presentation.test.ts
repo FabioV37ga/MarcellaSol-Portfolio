@@ -25,15 +25,15 @@ describe("apresentação financeira", () => {
     });
 
     it("prioriza pagamento confirmado e depois a janela Pix ativa", () => {
-        const pix = { expiresAt: new Date(clock().getTime() + 60 * 60 * 1000).toISOString() };
+        const pix = { analysisWindowEndsAt: new Date(clock().getTime() + 60 * 60 * 1000).toISOString() };
         expect(paymentPartStatus("2026-09-01", true, pix, clock).kind).toBe("paid");
         expect(paymentPartStatus("2026-09-01", false, pix, clock).kind).toBe("analysis");
     });
 
     it("não marca como atrasada uma parcela com janela Pix ativa", () => {
-        const expiresAt = new Date(clock().getTime() + 60 * 60 * 1000).toISOString();
+        const analysisWindowEndsAt = new Date(clock().getTime() + 60 * 60 * 1000).toISOString();
         const payment = createPayment([
-            { number: 1, amountCents: 5000, isPaid: false, dueDate: "2026-09-01", pix: { expiresAt } }
+            { number: 1, amountCents: 5000, isPaid: false, dueDate: "2026-09-01", pix: { analysisWindowEndsAt } }
         ]);
 
         expect(paymentHasActivePix(payment, clock)).toBe(true);

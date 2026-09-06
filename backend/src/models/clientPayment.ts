@@ -13,7 +13,8 @@ export interface PixPaymentRequest {
     txid: string;
     brCode: string;
     generatedAt: Date;
-    expiresAt: Date;
+    analysisWindowEndsAt: Date;
+    expiresAt?: Date;
 }
 
 export interface PaymentInstallment extends PaymentPart {
@@ -46,6 +47,7 @@ export interface PaymentAuditEvent {
     before?: PaymentTermsSnapshot;
     after?: PaymentTermsSnapshot;
     pixTxid?: string;
+    pixAnalysisWindowEndsAt?: Date;
     pixExpiresAt?: Date;
     hadConfirmedReceiptHistory?: boolean;
 }
@@ -78,7 +80,12 @@ const pixPaymentRequestSchema = new mongoose.Schema<PixPaymentRequest>({
     txid: { type: String, required: true, minlength: 1, maxlength: 25, match: /^[A-Za-z0-9]+$/ },
     brCode: { type: String, required: true, maxlength: 512 },
     generatedAt: { type: Date, required: true },
-    expiresAt: { type: Date, required: true }
+    analysisWindowEndsAt: {
+        type: Date,
+        required: function requireAnalysisWindowEnd(this: PixPaymentRequest) { return !this.expiresAt; }
+    },
+    // Compatibilidade temporária com tentativas persistidas antes da renomeação.
+    expiresAt: { type: Date }
 }, { _id: false });
 
 const paymentPartSchema = new mongoose.Schema<PaymentPart>({
@@ -126,6 +133,7 @@ const auditEventSchema = new mongoose.Schema<PaymentAuditEvent>({
     before: { type: termsSnapshotSchema },
     after: { type: termsSnapshotSchema },
     pixTxid: { type: String, minlength: 1, maxlength: 25, match: /^[A-Za-z0-9]+$/ },
+    pixAnalysisWindowEndsAt: { type: Date },
     pixExpiresAt: { type: Date },
     hadConfirmedReceiptHistory: { type: Boolean }
 }, { _id: false });

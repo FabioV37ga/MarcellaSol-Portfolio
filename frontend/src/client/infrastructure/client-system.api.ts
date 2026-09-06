@@ -35,7 +35,7 @@ export interface ClientPaymentPart {
     amountCents: number;
     isPaid: boolean;
     dueDate?: string;
-    pix?: { generatedAt: string; expiresAt: string };
+    pix?: { generatedAt: string; analysisWindowEndsAt: string };
 }
 
 export interface ClientPaymentInstallment extends ClientPaymentPart {
@@ -70,7 +70,7 @@ export interface ClientPixResponse {
         brCode: string;
         qrCodeDataUrl: string;
         generatedAt: string;
-        expiresAt: string;
+        analysisWindowEndsAt: string;
     };
 }
 

@@ -1,7 +1,7 @@
 export type FinancialClock = () => Date;
 
 export interface FinancialPixWindow {
-    expiresAt: string;
+    analysisWindowEndsAt: string;
 }
 
 export interface FinancialPart {
@@ -182,7 +182,7 @@ function reference(
 }
 
 function isActivePix(pix: FinancialPixWindow | undefined, now: Date): boolean {
-    return Boolean(pix && new Date(pix.expiresAt).getTime() > now.getTime());
+    return Boolean(pix && new Date(pix.analysisWindowEndsAt).getTime() > now.getTime());
 }
 
 function isDateOnly(value: string): boolean {

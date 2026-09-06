@@ -16,7 +16,7 @@ import { clientPaymentHighlight, clientPaymentItem, type PaymentPartReference } 
 export class ClientSystemModules {
     private baseElements?: baseElements;
     private financialRequestId = 0;
-    private financialExpiryTimer?: number;
+    private financialAnalysisWindowTimer?: number;
     private pixCountdownTimer?: number;
     private pixCopyFeedbackTimer?: number;
 
@@ -32,7 +32,7 @@ export class ClientSystemModules {
     mount(route: ClientRoute, briefingStep?: number): void {
         if (route !== "financial") {
             this.financialRequestId += 1;
-            window.clearTimeout(this.financialExpiryTimer);
+            window.clearTimeout(this.financialAnalysisWindowTimer);
             window.clearInterval(this.pixCountdownTimer);
         }
         document.body.classList.toggle("client-briefing-active", route === "briefing");
@@ -98,15 +98,15 @@ export class ClientSystemModules {
         this.view.styleNavButton(this.baseElements?.desktop_nav_financial);
         const elements = getClientFinancialElements();
         const requestId = ++this.financialRequestId;
-        window.clearTimeout(this.financialExpiryTimer);
+        window.clearTimeout(this.financialAnalysisWindowTimer);
         window.clearInterval(this.pixCountdownTimer);
         window.clearTimeout(this.pixCopyFeedbackTimer);
         this.view.registerDisposer(() => {
             this.financialRequestId += 1;
-            window.clearTimeout(this.financialExpiryTimer);
+            window.clearTimeout(this.financialAnalysisWindowTimer);
             window.clearInterval(this.pixCountdownTimer);
             window.clearTimeout(this.pixCopyFeedbackTimer);
-            this.financialExpiryTimer = undefined;
+            this.financialAnalysisWindowTimer = undefined;
             this.pixCountdownTimer = undefined;
             this.pixCopyFeedbackTimer = undefined;
         });
@@ -114,16 +114,19 @@ export class ClientSystemModules {
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
         let payments: ClientPayment[] = [];
-        const scheduleExpiryRefresh = (): void => {
-            window.clearTimeout(this.financialExpiryTimer);
-            const expiries = payments.reduce<Array<ClientPayment["downPayment"]>>((parts, payment) => {
+        const scheduleAnalysisWindowRefresh = (): void => {
+            window.clearTimeout(this.financialAnalysisWindowTimer);
+            const analysisWindowEnds = payments.reduce<Array<ClientPayment["downPayment"]>>((parts, payment) => {
                 parts.push(payment.downPayment, ...payment.installments);
                 return parts;
             }, [])
-                .map(part => part.pix ? new Date(part.pix.expiresAt).getTime() : 0)
+                .map(part => part.pix ? new Date(part.pix.analysisWindowEndsAt).getTime() : 0)
                 .filter(value => value > Date.now());
-            if (!expiries.length) return;
-            this.financialExpiryTimer = window.setTimeout(() => renderPayments(), Math.min(...expiries) - Date.now() + 100);
+            if (!analysisWindowEnds.length) return;
+            this.financialAnalysisWindowTimer = window.setTimeout(
+                () => renderPayments(),
+                Math.min(...analysisWindowEnds) - Date.now() + 100
+            );
         };
         const renderPayments = (): void => {
             const openPix = (part: PaymentPartReference): void => { void showPix(part); };
@@ -134,12 +137,12 @@ export class ClientSystemModules {
             const items = document.createDocumentFragment();
             payments.forEach(payment => items.append(clientPaymentItem(payment, openPix)));
             elements.list.append(items);
-            scheduleExpiryRefresh();
+            scheduleAnalysisWindowRefresh();
         };
-        const updateExpiry = (expiresAt: string): void => {
-            const remaining = new Date(expiresAt).getTime() - Date.now();
+        const updateAnalysisWindow = (analysisWindowEndsAt: string): void => {
+            const remaining = new Date(analysisWindowEndsAt).getTime() - Date.now();
             if (remaining <= 0) {
-                elements.pixExpiry.textContent = "Este código expirou. Feche a janela e gere um novo código.";
+                elements.pixAnalysisWindow.textContent = "A janela de análise terminou. O código Pix não foi cancelado; feche esta janela e gere uma nova apresentação para continuar o acompanhamento.";
                 elements.pixQr.hidden = true;
                 elements.pixCode.hidden = true;
                 elements.pixCopy.hidden = true;
@@ -148,7 +151,7 @@ export class ClientSystemModules {
             const hours = Math.floor(remaining / 3_600_000);
             const minutes = Math.floor(remaining % 3_600_000 / 60_000);
             const seconds = Math.floor(remaining % 60_000 / 1000);
-            elements.pixExpiry.textContent = `Código disponível por ${hours}h ${minutes}min ${seconds}s.`;
+            elements.pixAnalysisWindow.textContent = `Janela de análise disponível por ${hours}h ${minutes}min ${seconds}s.`;
         };
         const showPix = async (part: PaymentPartReference): Promise<void> => {
             elements.pixDescription.textContent = `${part.paymentTitle} · ${part.label} · ${(part.amountCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
@@ -170,8 +173,11 @@ export class ClientSystemModules {
                 elements.pixResult.hidden = false;
                 renderPayments();
                 window.clearInterval(this.pixCountdownTimer);
-                updateExpiry(result.pix.expiresAt);
-                this.pixCountdownTimer = window.setInterval(() => updateExpiry(result.pix.expiresAt), 1000);
+                updateAnalysisWindow(result.pix.analysisWindowEndsAt);
+                this.pixCountdownTimer = window.setInterval(
+                    () => updateAnalysisWindow(result.pix.analysisWindowEndsAt),
+                    1000
+                );
             } catch (error) {
                 elements.pixLoading.hidden = true;
                 elements.pixFeedback.textContent = error instanceof Error ? error.message : "Não foi possível gerar o código Pix.";

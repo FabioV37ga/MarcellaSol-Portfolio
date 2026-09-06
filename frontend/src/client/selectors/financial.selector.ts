@@ -21,7 +21,7 @@ export function getClientFinancialElements() {
         pixQr: requiredElement<HTMLImageElement>("#client-pix-qr"),
         pixCode: requiredElement<HTMLTextAreaElement>("#client-pix-code"),
         pixCopy: requiredElement<HTMLButtonElement>("#client-pix-copy"),
-        pixExpiry: requiredElement<HTMLElement>("#client-pix-expiry"),
+        pixAnalysisWindow: requiredElement<HTMLElement>("#client-pix-analysis-window"),
         pixFeedback: requiredElement<HTMLElement>("#client-pix-feedback")
     };
 }

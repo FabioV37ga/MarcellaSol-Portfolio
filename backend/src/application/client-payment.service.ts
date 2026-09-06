@@ -7,7 +7,7 @@ import { ClientRepository } from "../repositories/client.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
 import { generatePixBrCode, type PixReceiver } from "../services/pix-br-code.js";
 
-const PIX_ACCESS_WINDOW_MS = 5 * 60 * 60 * 1000;
+const PIX_ANALYSIS_WINDOW_MS = 5 * 60 * 60 * 1000;
 
 export interface PaymentFields {
     title?: unknown;
@@ -270,24 +270,25 @@ export class ClientPaymentService {
         if (part.amountCents < 1) throw new ApplicationError("Este pagamento não possui valor para Pix", 400);
 
         const now = new Date();
-        if (part.pix && part.pix.expiresAt.getTime() > now.getTime()) {
+        const currentAnalysisWindowEnd = part.pix ? pixAnalysisWindowEnd(part.pix) : undefined;
+        if (part.pix && currentAnalysisWindowEnd && currentAnalysisWindowEnd.getTime() > now.getTime()) {
             return pixResponse(existing, partType, installmentNumber, part, await pixQrCode(part.pix.brCode));
         }
 
         const txid = randomUUID().replace(/-/g, "").slice(0, 25);
         const generatedAt = now;
-        const expiresAt = new Date(now.getTime() + PIX_ACCESS_WINDOW_MS);
+        const analysisWindowEndsAt = new Date(now.getTime() + PIX_ANALYSIS_WINDOW_MS);
         const pix = {
             txid,
             brCode: generatePixBrCode(part.amountCents, txid, this.pixReceiver),
             generatedAt,
-            expiresAt
+            analysisWindowEndsAt
         };
         const event = auditEvent("pix-code-generated", actor, {
             partType,
             ...(installmentNumber === undefined ? {} : { installmentNumber }),
             pixTxid: txid,
-            pixExpiresAt: expiresAt
+            pixAnalysisWindowEndsAt: analysisWindowEndsAt
         });
         const version = existing.__v ?? 0;
         const updated = partType === "down-payment"
@@ -402,12 +403,14 @@ function clientPaymentResponse(payment: ClientPaymentObject) {
 }
 
 function publicPaymentPart(part: PaymentPart) {
-    const hasActivePix = !part.isPaid && part.pix && part.pix.expiresAt.getTime() > Date.now();
+    const analysisWindowEndsAt = part.pix ? pixAnalysisWindowEnd(part.pix) : undefined;
+    const hasActivePix = !part.isPaid && part.pix && analysisWindowEndsAt
+        && analysisWindowEndsAt.getTime() > Date.now();
     return {
         amountCents: part.amountCents,
         isPaid: part.isPaid,
         dueDate: part.dueDate,
-        ...(hasActivePix ? { pix: { generatedAt: part.pix!.generatedAt, expiresAt: part.pix!.expiresAt } } : {})
+        ...(hasActivePix ? { pix: { generatedAt: part.pix!.generatedAt, analysisWindowEndsAt } } : {})
     };
 }
 
@@ -438,9 +441,13 @@ function pixResponse(
             brCode: part.pix!.brCode,
             qrCodeDataUrl,
             generatedAt: part.pix!.generatedAt,
-            expiresAt: part.pix!.expiresAt
+            analysisWindowEndsAt: pixAnalysisWindowEnd(part.pix!)!
         }
     };
+}
+
+function pixAnalysisWindowEnd(pix: PaymentPart["pix"]): Date | undefined {
+    return pix?.analysisWindowEndsAt ?? pix?.expiresAt;
 }
 
 function paymentTitle(value: unknown): string {

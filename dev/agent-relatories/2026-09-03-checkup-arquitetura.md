@@ -319,19 +319,19 @@ As regras de apresentação do cliente foram retiradas do template DOM e concent
 
 O módulo recebe um relógio injetável e possui testes determinísticos de prazos, prioridade de estado, janela Pix ativa e destaque. Assim, o frontend não possui mais uma segunda implementação do cálculo persistido.
 
-#### ARQ-028 — “expiração do Pix” significa apenas janela de exibição
+#### ARQ-028 — “expiração do Pix” significa apenas janela de análise — resolvido em 06/09/2026
 
 Prioridade: **média-alta por semântica de produto**
 Tipo: modelagem/linguagem
 
-O BR Code atual é estático e não contém uma expiração bancária. `expiresAt` controla somente:
+O BR Code atual é estático e não contém uma expiração bancária. O contrato foi renomeado para `analysisWindowEndsAt`, explicitando que as cinco horas controlam somente:
 
 - por quanto tempo o backend devolve a tentativa existente;
 - por quanto tempo o frontend mostra “Em análise” e permite reabrir o QR.
 
-Um código copiado pode continuar sendo pago depois das cinco horas. Portanto, os nomes e mensagens não devem sugerir que a cobrança deixou de ser válida na rede Pix.
+Um código copiado pode continuar sendo pago depois das cinco horas. As mensagens agora informam que o encerramento da janela não cancela o código Pix e evitam prometer expiração na rede bancária.
 
-Direção recomendada: nomear o conceito como `displayExpiresAt`, `analysisWindowEndsAt` ou “janela de exibição/análise”. Uma expiração real somente deve ser prometida quando houver cobrança dinâmica emitida por um PSP/banco.
+Novas tentativas e eventos de auditoria persistem `analysisWindowEndsAt`. O backend mantém leitura transitória do antigo `expiresAt` e converte a resposta para o contrato novo, permitindo atualizar documentos existentes sem migração imediata. Uma expiração real somente deverá ser prometida quando houver cobrança dinâmica emitida por um PSP/banco.
 
 #### ARQ-029 — modelo financeiro mistura plano de cobrança, pagamento e tentativa Pix
 
@@ -349,12 +349,12 @@ Outras ambiguidades:
 
 Não é necessário renomear imediatamente. Antes de integrar um PSP, definir vocabulário estável, por exemplo: `ClientCharge`, `ChargeSchedule`, `PaymentReceipt` e `PixPresentationAttempt`.
 
-#### ARQ-030 — histórico e payloads expirados crescem no documento principal
+#### ARQ-030 — histórico e tentativas com janela encerrada crescem no documento principal
 
 Prioridade: **média**
 Tipo: persistência/escalabilidade
 
-Cada nova geração após cinco horas sobrescreve `part.pix`, mas adiciona permanentemente um evento em `events`. O array não possui limite, paginação ou coleção própria. O BR Code expirado também permanece no documento até ser sobrescrito, editado ou a parte ser marcada manualmente.
+Cada nova geração após cinco horas sobrescreve `part.pix`, mas adiciona permanentemente um evento em `events`. O array não possui limite, paginação ou coleção própria. O BR Code cuja janela de análise terminou também permanece no documento até ser sobrescrito, editado ou a parte ser marcada manualmente.
 
 Isso não é um risco imediato com poucos clientes, mas um documento MongoDB possui limite de tamanho e a auditoria tende a crescer justamente no agregado mais consultado.
 
@@ -447,7 +447,7 @@ Direção recomendada: estabilizar contratos via schema compartilhado ou geraç�
 
 #### Antes de ampliar o financeiro
 
-1. Renomear a janela Pix para refletir que a validade é apenas interna.
+Os ajustes imediatos de duplicação de regras e semântica da janela Pix foram concluídos em 06/09/2026.
 
 #### Antes de integrar banco ou PSP
 
@@ -469,7 +469,7 @@ A arquitetura-base permanece aproveitável e não precisa ser substituída. As n
 
 O bloqueio dos termos após o primeiro recebimento protege o fluxo manual atual contra recálculo retroativo. Antes de automatizar a confirmação bancária, ainda será necessário separar **plano de cobrança**, **recebimento confirmado** e **apresentação temporária de Pix**, além de definir idempotência e vocabulário explícito.
 
-No frontend, o ciclo de vida das views persistidas foi padronizado e as regras financeiras de apresentação foram isoladas e testadas. O próximo risco relevante é a semântica imprecisa da janela Pix.
+No frontend, o ciclo de vida das views persistidas foi padronizado, as regras financeiras de apresentação foram isoladas e a janela Pix passou a possuir semântica explicitamente interna. O próximo risco relevante é preparar o domínio antes de integrar banco ou PSP.
 
 Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação automática das correções listadas.
 
@@ -477,7 +477,7 @@ Este relatório continua sendo diagnóstico. Ele não autoriza a aplicação aut
 
 ## 12. Resumo dos pontos a melhorar por prioridade
 
-A arquitetura continua adequada e não precisa ser reescrita. As melhorias devem ser incrementais; a eliminação de regras financeiras duplicadas foi concluída e o próximo trabalho é corrigir a semântica da janela Pix.
+A arquitetura continua adequada e não precisa ser reescrita. As melhorias devem ser incrementais; a eliminação de regras financeiras duplicadas e a correção da semântica da janela Pix foram concluídas.
 
 ### 1. Eliminar divergências nas regras financeiras — concluído em 06/09/2026
 
@@ -485,9 +485,9 @@ O backend agora calcula tanto a prévia quanto o pagamento persistido por meio d
 
 A classificação temporal e a seleção de destaque foram retiradas dos templates DOM e centralizadas em funções puras compartilhadas pelas telas. Essas funções recebem um relógio injetável e possuem testes no frontend.
 
-### 2. Corrigir a semântica da expiração do Pix
+### 2. Corrigir a semântica da expiração do Pix — concluído em 06/09/2026
 
-O Pix atual é estático e não expira na rede bancária. O prazo de cinco horas representa apenas uma janela interna de exibição ou análise. Campos e mensagens devem usar termos como `displayExpiresAt`, `analysisWindowEndsAt` ou "janela de exibição/análise".
+O prazo de cinco horas agora é representado por `analysisWindowEndsAt` no modelo, na auditoria e nos DTOs. A interface usa “janela de análise” e informa explicitamente que seu encerramento não cancela o código Pix. Registros antigos com `expiresAt` continuam legíveis pelo backend, sem expor o nome legado nas respostas.
 
 ### 3. Preparar o domínio antes de integrar banco ou PSP
 
@@ -517,7 +517,7 @@ A automação documental, a equivalência entre repositório e MongoDB e a valid
 - substituir o limite silencioso de 200 registros por paginação explícita;
 - fornecer separadamente o resumo ou destaque financeiro atual;
 - mover o histórico para uma coleção append-only;
-- definir retenção para tentativas Pix expiradas.
+- definir retenção para tentativas Pix cuja janela de análise terminou.
 
 ### 7. Modularizar arquivos grandes por oportunidade
 
@@ -535,4 +535,4 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 - normalizar nomes como `beated`, `Cancelled` e `home.selector.ts.ts`;
 - definir uma taxonomia clara para o campo `type` das views.
 
-Em síntese, o primeiro trabalho pendente é a correção da semântica da janela Pix. Em seguida, devem ser tratadas a preparação para integração com PSP e a confiabilidade operacional.
+Em síntese, o primeiro trabalho pendente é preparar o domínio antes de integrar banco ou PSP. Em seguida, devem ser tratadas a confiabilidade operacional, paginação e persistência do histórico financeiro.
