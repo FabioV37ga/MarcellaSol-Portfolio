@@ -1,5 +1,5 @@
 import express, { type Application } from "express";
-import testRoutes from "./testRoutes.js";
+import { createOperationalRoutes } from "./operationalRoutes.js";
 import createAdminRoutes from "./adminRoutes.js";
 import viewRoutes from "./viewRoutes.js";
 import createClientRoutes from "./clientRoutes.js"
@@ -12,9 +12,10 @@ interface RouteControllers {
     client: ClientController;
 }
 
-const routes = (app: Application, controllers: RouteControllers) => {
+const routes = (app: Application, controllers: RouteControllers, isProduction: boolean) => {
     app.use(express.json({ limit: "100kb" }));
-    app.use(testRoutes, createAdminRoutes(controllers.admin), createClientRoutes(controllers.client), viewRoutes);
+    app.use(createOperationalRoutes(isProduction));
+    app.use(createAdminRoutes(controllers.admin), createClientRoutes(controllers.client), viewRoutes);
     app.use(notFoundHandler);
     app.use(errorHandler);
 }

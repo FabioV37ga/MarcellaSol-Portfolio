@@ -269,12 +269,12 @@ O sistema financeiro atual deve continuar sendo tratado como **provisório**, n�
 | Resolução de views por índice | Resolvido | Admin e cliente agora resolvem por `viewName`. |
 | Ausência de automação das views | Resolvido em 06/09/2026 | As 15 views estão versionadas; validação HTML, inventário conhecido, checksums, detecção de extras, upsert idempotente e índice único estão ativos. |
 | Testes concentrados apenas em segurança | Resolvido em 06/09/2026 | A suíte foi dividida por domínio; frontend possui testes DOM e contratos entre backend/admin/cliente são verificados automaticamente. |
-| Endpoint `/api/test` público | Parcialmente resolvido | Agora exige autenticação administrativa, porém segue montado em produção e o site público continua chamando-o sem token. |
+| Endpoint `/api/test` público | Resolvido em 08/09/2026 | Continua autenticado e agora é montado somente fora de produção. A home não realiza chamadas de diagnóstico. |
 | Inicialização do MongoDB antes do servidor | Resolvido | O bootstrap agora aguarda a conexão antes de registrar as rotas e abrir a porta HTTP. |
 | Ciclo de vida das views | Resolvido em 06/09/2026 | Admin e cliente usam uma árvore nova por montagem, `replaceChildren` e callbacks de descarte para timers e listeners globais. |
 | Contratos duplicados frontend/backend | Parcialmente resolvido | Etapas e status de propostas ainda são declarados separadamente, mas um teste AST impede divergência entre backend, admin e cliente. Contratos financeiros continuam sem essa garantia. |
 | Semântica dos status de proposta | Não resolvido | `beated` e `Cancelled` continuam no contrato atual. |
-| Código legado e logs de desenvolvimento | Não resolvido | A página pública ainda executa `checkHealth()` e `testApi()` e cria elementos de diagnóstico no DOM. |
+| Código legado e logs de desenvolvimento | Resolvido em 08/09/2026 | O utilitário de requisições de teste e suas chamadas, logs e elementos visuais foram retirados do bundle público. |
 
 ### 11.4 Novos achados e inconsistências
 
@@ -399,7 +399,7 @@ Limitações atuais:
 
 A automação cobre o contrato documental e o drift. Ainda não garante que mudanças nos selectors TypeScript permaneçam compatíveis com IDs e classes do HTML.
 
-#### ARQ-034 — endpoints de diagnóstico permanecem fora do fluxo esperado
+#### ARQ-034 — endpoints de diagnóstico permanecem fora do fluxo esperado — resolvido em 08/09/2026
 
 Prioridade: **média-alta operacional**
 Tipo: código legado
@@ -409,7 +409,7 @@ Tipo: código legado
 - `testApi()` não envia token, portanto a chamada protegida é estruturalmente incapaz de obter sucesso;
 - os utilitários criam caixas de diagnóstico no DOM público e mantêm logs de desenvolvimento.
 
-Direção recomendada: separar readiness de health, montar rotas de teste somente em desenvolvimento e retirar `testRequisitions.ts` do entry público.
+O endpoint `/api/health` agora representa somente a vida do processo e não depende do MongoDB. O novo `/api/ready` responde `200` quando a conexão está pronta e `503` quando indisponível. `/api/test` é montado apenas fora de produção, e `testRequisitions.ts` foi removido junto de todas as chamadas e caixas de diagnóstico da home.
 
 #### ARQ-035 — contratos e nomenclatura continuam divergentes
 
@@ -507,11 +507,9 @@ O domínio agora declara explicitamente:
 
 Os campos de projeção mantêm `isPaid` e o mesmo formato esperado pelas telas atuais. Identificadores internos dos recibos não são expostos pela API.
 
-### 4. Corrigir os diagnósticos de produção
+### 4. Corrigir os diagnósticos de produção — concluído em 08/09/2026
 
-- separar health check de readiness;
-- montar `/api/test` somente em desenvolvimento;
-- retirar chamadas, logs e elementos de diagnóstico da página pública.
+O backend separa liveness (`/api/health`) de readiness (`/api/ready`), retornando `503` nesta última quando o MongoDB não está disponível. A rota autenticada `/api/test` é registrada apenas fora de produção. O utilitário de diagnóstico, suas chamadas, logs e elementos inseridos no DOM foram removidos da página pública.
 
 ### 5. Completar o controle das views persistidas
 

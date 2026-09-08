@@ -1,8 +1,4 @@
 import HomePageController from "./controllers/homePage.controller.js";
-import { checkHealth, testApi } from "../utils/testRequisitions.js";
-
-// checkHealth();
-// testApi();
 
 // alert(window.innerWidth + " x " + window.innerHeight);
 
@@ -10,10 +6,8 @@ var page = window.location.pathname.split("/").pop()?.replace(".html", "") || "h
 
 
 if (page == "home"){
-    document.addEventListener("DOMContentLoaded", async () => {
+    document.addEventListener("DOMContentLoaded", () => {
         new HomePageController();
-        await checkHealth()
-        await testApi()
     })
 }
 import "font-awesome/css/font-awesome.min.css";

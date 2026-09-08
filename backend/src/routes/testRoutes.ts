@@ -1,20 +1,8 @@
 import express from "express";
-import mongoose from "mongoose";
 import Projeto from "../models/projeto.js";
 import { requireAuthentication } from "../middleware/authentication.middleware.js";
 
 const router = express.Router();
-
-
-
-// Rota de health check
-router.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    mongodb: mongoose.connection.readyState === 1 ? "Conectado" : "Desconectado",
-    timestamp: new Date().toISOString(),
-  });
-});
 
 // Rota de teste para buscar projetos
 router.get("/api/test", requireAuthentication("admin"), async (_req, res) => {

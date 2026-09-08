@@ -30,7 +30,7 @@ export async function startServer(config: ApplicationConfig): Promise<Server> {
     routes(app, {
         admin: new AdminController(payments),
         client: new ClientController(payments)
-    });
+    }, config.isProduction);
 
     return app.listen(config.port, () => {
         console.log(`✓ Servidor rodando na porta ${config.port}`);
