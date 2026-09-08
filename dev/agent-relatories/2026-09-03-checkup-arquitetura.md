@@ -353,6 +353,8 @@ Não é necessário renomear imediatamente. Antes de integrar um PSP, definir vo
 
 #### ARQ-030 — histórico e tentativas com janela encerrada crescem no documento principal
 
+Estado em 08/09/2026: **mitigado**. Os eventos financeiros novos já estão na coleção append-only `financial_events`. Foi adicionada uma rotina de retenção das projeções Pix encerradas, com prévia obrigatória por padrão e aplicação explícita; cobranças, recebimentos e eventos contábeis não são apagados.
+
 Prioridade: **média**
 Tipo: persistência/escalabilidade
 
@@ -367,6 +369,8 @@ Direção recomendada:
 - definir retenção para tentativas Pix e nunca usar TTL sobre o documento da cobrança inteira.
 
 #### ARQ-031 — listagem financeira possui truncamento silencioso
+
+Estado em 08/09/2026: **resolvido**. Admin e cliente usam paginação por cursor estável (`createdAt` + `_id`), com páginas de 20 registros, indicador de continuidade e resumo global independente da página.
 
 Prioridade: **média**
 Tipo: contrato/paginação
@@ -515,11 +519,13 @@ O backend separa liveness (`/api/health`) de readiness (`/api/ready`), retornand
 
 Além da validação estrutural do HTML, inventário e equivalência com o MongoDB, o pipeline agora extrai automaticamente os IDs e classes utilizados pelos selectors TypeScript e confirma sua presença na view correspondente. Assim, uma alteração incompatível falha antes do build e da sincronização.
 
-### 6. Melhorar a paginação e o armazenamento financeiro
+### 6. Melhorar a paginação e o armazenamento financeiro — concluído em 08/09/2026
 
 - substituir o limite silencioso de 200 registros por paginação explícita;
 - fornecer separadamente o resumo ou destaque financeiro atual;
 - definir retenção para tentativas Pix cuja janela de análise terminou.
+
+A retenção adotada remove somente o código Pix persistido 30 dias após o fim da janela de análise. A execução `financial:prune-pix` é somente leitura sem `--apply`, permitindo validar a quantidade afetada antes de qualquer alteração nos dados reais.
 
 ### 7. Modularizar arquivos grandes por oportunidade
 

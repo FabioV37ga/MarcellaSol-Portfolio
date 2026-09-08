@@ -6,10 +6,45 @@ import payments, { type ClientPaymentObject, type PaymentAuditEvent, type PixPay
 
 export type PaymentData = Omit<ClientPaymentObject, "_id" | "createdAt" | "updatedAt" | "__v">;
 export type PaymentTermsData = Omit<PaymentData, "clientId" | "events" | "archivedAt" | "currency" | "timeZone" | "status" | "hasReceiptHistory">;
+export interface PaymentPageCursor { createdAt: Date; id: mongoose.Types.ObjectId }
+export interface PaymentPageOptions { limit: number; cursor?: PaymentPageCursor }
 
 export class ClientPaymentRepository {
-    findByClientId(clientId: string) {
-        return payments.find({ clientId, archivedAt: null }).sort({ createdAt: -1 }).limit(200).lean();
+    async findPageByClientId(clientId: string, options: PaymentPageOptions) {
+        const cursorFilter = options.cursor ? {
+            $or: [
+                { createdAt: { $lt: options.cursor.createdAt } },
+                { createdAt: options.cursor.createdAt, _id: { $lt: options.cursor.id } }
+            ]
+        } : {};
+        const records = await payments.find({ clientId, archivedAt: null, ...cursorFilter })
+            .sort({ createdAt: -1, _id: -1 })
+            .limit(options.limit + 1)
+            .lean();
+        return { records: records.slice(0, options.limit), hasMore: records.length > options.limit };
+    }
+
+    async summarizeByClientId(clientId: string) {
+        const [summary] = await payments.aggregate<{ paymentCount: number; totalAmountCents: number; paidAmountCents: number }>([
+            { $match: { clientId: new mongoose.Types.ObjectId(clientId), archivedAt: null } },
+            { $project: {
+                finalAmountCents: 1,
+                paidAmountCents: { $add: [
+                    { $cond: ["$downPayment.isPaid", "$downPayment.amountCents", 0] },
+                    { $sum: { $map: { input: "$installments", as: "part", in: { $cond: ["$$part.isPaid", "$$part.amountCents", 0] } } } }
+                ] }
+            } },
+            { $group: {
+                _id: null,
+                paymentCount: { $sum: 1 },
+                totalAmountCents: { $sum: "$finalAmountCents" },
+                paidAmountCents: { $sum: "$paidAmountCents" }
+            } }
+        ]);
+        const totalAmountCents = summary?.totalAmountCents ?? 0;
+        const paidAmountCents = summary?.paidAmountCents ?? 0;
+        return { paymentCount: summary?.paymentCount ?? 0, totalAmountCents, paidAmountCents,
+            remainingAmountCents: Math.max(0, totalAmountCents - paidAmountCents) };
     }
 
     findByIdAndClientId(id: string, clientId: string) {

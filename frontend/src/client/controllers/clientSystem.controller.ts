@@ -12,7 +12,8 @@ export default class ClientSystem {
     constructor(
         private readonly token: string,
         private readonly name: string,
-        hasFilledBriefing: boolean
+        hasFilledBriefing: boolean,
+        private readonly restoreCurrentRoute = false
     ) {
         void this.initialize(hasFilledBriefing);
     }
@@ -45,6 +46,6 @@ export default class ClientSystem {
         const initialRoute: ClientRoute = normalizedData.clientObject.hasFilledBriefing || hasFilledBriefing
             ? "base"
             : "briefing";
-        this.router.start(initialRoute);
+        this.router.start(initialRoute, this.restoreCurrentRoute);
     }
 }

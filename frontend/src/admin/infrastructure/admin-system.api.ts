@@ -94,6 +94,12 @@ export interface ClientPayment {
     updatedAt: string;
 }
 
+export interface PaymentPage {
+    payments: ClientPayment[];
+    page: { limit: number; hasMore: boolean; nextCursor?: string };
+    summary: { paymentCount: number; totalAmountCents: number; paidAmountCents: number; remainingAmountCents: number };
+}
+
 export interface PaymentFields {
     title: string;
     totalAmount: string;
@@ -128,6 +134,8 @@ export class AdminSystemApi {
         payment?: ClientPayment;
         payments?: ClientPayment[];
         preview?: PaymentPreview;
+        page?: PaymentPage["page"];
+        summary?: PaymentPage["summary"];
     }> {
         const result = await response.json().catch(() => ({})) as {
             payment?: ClientPayment;
@@ -139,11 +147,17 @@ export class AdminSystemApi {
         return result;
     }
 
-    async loadPayments(session: AdminSession, clientId: string): Promise<ClientPayment[]> {
-        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments`, {
+    async loadPayments(session: AdminSession, clientId: string, cursor?: string): Promise<PaymentPage> {
+        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments${query}`, {
             headers: this.authorization(session)
         });
-        return (await this.paymentRequest(response)).payments ?? [];
+        const result = await this.paymentRequest(response);
+        return {
+            payments: result.payments ?? [],
+            page: result.page ?? { limit: 20, hasMore: false },
+            summary: result.summary ?? { paymentCount: 0, totalAmountCents: 0, paidAmountCents: 0, remainingAmountCents: 0 }
+        };
     }
 
     async previewPayment(

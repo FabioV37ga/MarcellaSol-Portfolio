@@ -85,7 +85,7 @@ async function checkSection() {
         });
         if (!response.ok) throw new Error("Sessão inválida");
         const client = await response.json() as { name: string; hasFilledBriefing: boolean };
-        new ClientSystem(saved.token, client.name, client.hasFilledBriefing);
+        new ClientSystem(saved.token, client.name, client.hasFilledBriefing, true);
     } catch {
         localStorage.removeItem("Client-Section");
     }

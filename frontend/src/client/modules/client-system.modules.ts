@@ -114,6 +114,9 @@ export class ClientSystemModules {
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
         let payments: ClientPayment[] = [];
+        let nextCursor: string | undefined;
+        let totalPaymentCount = 0;
+        let loadingMore = false;
         const scheduleAnalysisWindowRefresh = (): void => {
             window.clearTimeout(this.financialAnalysisWindowTimer);
             const analysisWindowEnds = payments.reduce<Array<ClientPayment["downPayment"]>>((parts, payment) => {
@@ -133,6 +136,10 @@ export class ClientSystemModules {
             elements.highlight.replaceChildren(clientPaymentHighlight(payments, openPix));
             elements.list.replaceChildren();
             elements.empty.hidden = payments.length > 0;
+            elements.paginationStatus.textContent = `${payments.length} de ${totalPaymentCount} pagamentos exibidos`;
+            elements.loadMore.hidden = !nextCursor;
+            elements.loadMore.disabled = loadingMore;
+            elements.loadMore.textContent = loadingMore ? "Carregando..." : "Carregar mais";
             if (!payments.length) return;
             const items = document.createDocumentFragment();
             payments.forEach(payment => items.append(clientPaymentItem(payment, openPix)));
@@ -204,10 +211,32 @@ export class ClientSystemModules {
                 elements.pixFeedback.textContent = "Selecione e copie o código manualmente.";
             }
         });
+        elements.loadMore.addEventListener("click", async () => {
+            if (!nextCursor || loadingMore) return;
+            loadingMore = true;
+            renderPayments();
+            try {
+                const page = await this.api.loadPayments(this.token, nextCursor);
+                if (requestId !== this.financialRequestId) return;
+                const known = new Set(payments.map(payment => payment.id));
+                payments.push(...page.payments.filter(payment => !known.has(payment.id)));
+                nextCursor = page.page.nextCursor;
+                totalPaymentCount = page.summary.paymentCount;
+                renderPayments();
+            } catch (error) {
+                elements.feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar mais pagamentos.";
+            } finally {
+                loadingMore = false;
+                if (requestId === this.financialRequestId) renderPayments();
+            }
+        });
 
         try {
-            payments = await this.api.loadPayments(this.token);
+            const page = await this.api.loadPayments(this.token);
             if (requestId !== this.financialRequestId) return;
+            payments = page.payments;
+            nextCursor = page.page.nextCursor;
+            totalPaymentCount = page.summary.paymentCount;
             elements.loading.hidden = true;
             renderPayments();
         } catch (error) {

@@ -62,7 +62,7 @@ export class BriefingNavigator {
         this.syncActiveSection(page);
         this.options.onPageShown(page);
 
-        const historyState = { page: "briefing", briefingStep: index };
+        const historyState = { scope: "client", page: "briefing", briefingStep: index };
         if (historyOptions.replaceHistory) {
             window.history.replaceState(historyState, "");
         } else if (historyOptions.pushHistory ?? true) {

@@ -3,6 +3,7 @@ import type {
     AdminSystemApi,
     ClientPayment,
     PaymentFields,
+    PaymentPage,
     PaymentPreview,
     PaymentPreviewFields
 } from "../infrastructure/admin-system.api.js";
@@ -13,6 +14,9 @@ const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "
 
 export class ClientFinancialManager {
     private payments: ClientPayment[];
+    private nextCursor?: string;
+    private totalPaymentCount: number;
+    private loadingMore = false;
     private editing?: ClientPayment;
     private deletingPayment?: ClientPayment;
     private saving = false;
@@ -40,9 +44,16 @@ export class ClientFinancialManager {
         private readonly api: AdminSystemApi,
         private readonly session: AdminSession,
         private readonly clientId: string,
-        payments: ClientPayment[]
+        paymentPage: PaymentPage | ClientPayment[]
     ) {
-        this.payments = payments;
+        const normalizedPage = Array.isArray(paymentPage) ? {
+            payments: paymentPage,
+            page: { limit: paymentPage.length, hasMore: false },
+            summary: { paymentCount: paymentPage.length, totalAmountCents: 0, paidAmountCents: 0, remainingAmountCents: 0 }
+        } : paymentPage;
+        this.payments = normalizedPage.payments;
+        this.nextCursor = normalizedPage.page.nextCursor;
+        this.totalPaymentCount = normalizedPage.summary.paymentCount;
         const root = elements.root;
         this.title = required<HTMLInputElement>(root, "#financial-payment-title");
         this.total = required<HTMLInputElement>(root, "#financial-payment-total");
@@ -63,6 +74,7 @@ export class ClientFinancialManager {
 
     private bind(): void {
         this.elements.newPayment.addEventListener("click", () => this.openEditor());
+        this.elements.loadMore.addEventListener("click", () => { void this.loadMore(); });
         required<HTMLButtonElement>(this.elements.root, "#financial-payment-cancel")
             .addEventListener("click", () => this.elements.dialog.close());
         [this.total, this.count, this.firstDueDate, this.down, this.discount, this.interest]
@@ -98,10 +110,39 @@ export class ClientFinancialManager {
             empty.className = "financial-empty";
             empty.textContent = "Nenhum pagamento cadastrado.";
             this.elements.paymentsList.append(empty);
+            this.renderPagination();
             return;
         }
 
         this.payments.forEach(payment => this.elements.paymentsList.append(this.paymentCard(payment)));
+        this.renderPagination();
+    }
+
+    private renderPagination(): void {
+        this.elements.paginationStatus.textContent = `${this.payments.length} de ${this.totalPaymentCount} pagamentos exibidos`;
+        this.elements.loadMore.hidden = !this.nextCursor;
+        this.elements.loadMore.disabled = this.loadingMore;
+        this.elements.loadMore.textContent = this.loadingMore ? "Carregando..." : "Carregar mais";
+    }
+
+    private async loadMore(): Promise<void> {
+        if (!this.nextCursor || this.loadingMore) return;
+        this.loadingMore = true;
+        this.renderPagination();
+        try {
+            const page = await this.api.loadPayments(this.session, this.clientId, this.nextCursor);
+            const known = new Set(this.payments.map(payment => payment.id));
+            this.payments.push(...page.payments.filter(payment => !known.has(payment.id)));
+            this.nextCursor = page.page.nextCursor;
+            this.totalPaymentCount = page.summary.paymentCount;
+            this.render();
+        } catch (error) {
+            this.elements.feedback.textContent = errorMessage(error, "Não foi possível carregar mais pagamentos.");
+            this.renderPagination();
+        } finally {
+            this.loadingMore = false;
+            this.renderPagination();
+        }
     }
 
     private paymentCard(payment: ClientPayment): HTMLElement {
@@ -294,6 +335,7 @@ export class ClientFinancialManager {
                 payment.financialTermsLocked
             );
             this.payments = this.payments.filter(item => item.id !== payment.id);
+            this.totalPaymentCount = Math.max(0, this.totalPaymentCount - 1);
             this.elements.deleteDialog.close();
             this.render();
             this.elements.feedback.textContent = "Pagamento removido com sucesso.";
@@ -483,7 +525,10 @@ export class ClientFinancialManager {
     private replacePayment(payment: ClientPayment): void {
         const index = this.payments.findIndex(item => item.id === payment.id);
         if (index >= 0) this.payments[index] = payment;
-        else this.payments.unshift(payment);
+        else {
+            this.payments.unshift(payment);
+            this.totalPaymentCount += 1;
+        }
         this.render();
     }
 

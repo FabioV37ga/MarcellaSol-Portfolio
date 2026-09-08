@@ -20,6 +20,7 @@ export async function logoutSession(role: AccountRole, token: string): Promise<v
         console.warn(`Não foi possível contatar o servidor para encerrar a sessão ${role}.`, error);
     } finally {
         localStorage.removeItem(storageKeys[role]);
+        window.history.replaceState(null, "");
         window.location.reload();
     }
 }

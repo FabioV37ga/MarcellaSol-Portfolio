@@ -84,7 +84,7 @@ async function checkSection() {
         });
         if (!response.ok) throw new Error("Sessão inválida");
         const admin = await response.json() as { name: string };
-        new AdminSystem(saved.token, admin.name);
+        new AdminSystem(saved.token, admin.name, true);
     } catch {
         localStorage.removeItem("Admin-Section");
     }

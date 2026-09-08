@@ -16,3 +16,9 @@ db.financeiro.createIndex(
   { clientId: 1, archivedAt: 1, createdAt: -1 },
   { name: "clientId_archivedAt_createdAt" }
 );
+
+// Suporta paginação por cursor sem varrer nem pular registros existentes.
+db.financeiro.createIndex(
+  { clientId: 1, archivedAt: 1, createdAt: -1, _id: -1 },
+  { name: "clientId_archivedAt_createdAt_id" }
+);

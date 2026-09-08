@@ -61,6 +61,12 @@ export interface ClientPayment {
     updatedAt: string;
 }
 
+export interface ClientPaymentPage {
+    payments: ClientPayment[];
+    page: { limit: number; hasMore: boolean; nextCursor?: string };
+    summary: { paymentCount: number; totalAmountCents: number; paidAmountCents: number; remainingAmountCents: number };
+}
+
 export interface ClientPixResponse {
     payment: ClientPayment;
     pix: {
@@ -107,16 +113,23 @@ export class ClientSystemApi {
         };
     }
 
-    async loadPayments(token: string): Promise<ClientPayment[]> {
-        const response = await fetch(`${config.apiBaseUrl}/client/payments`, {
+    async loadPayments(token: string, cursor?: string): Promise<ClientPaymentPage> {
+        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+        const response = await fetch(`${config.apiBaseUrl}/client/payments${query}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const result = await response.json().catch(() => ({})) as {
             payments?: ClientPayment[];
+            page?: ClientPaymentPage["page"];
+            summary?: ClientPaymentPage["summary"];
             message?: string;
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível carregar os pagamentos.");
-        return result.payments ?? [];
+        return {
+            payments: result.payments ?? [],
+            page: result.page ?? { limit: 20, hasMore: false },
+            summary: result.summary ?? { paymentCount: 0, totalAmountCents: 0, paidAmountCents: 0, remainingAmountCents: 0 }
+        };
     }
 
     async generatePaymentPix(

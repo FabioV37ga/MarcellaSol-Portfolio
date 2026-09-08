@@ -9,6 +9,8 @@ import { generatePixBrCode, type PixReceiver } from "../services/pix-br-code.js"
 import { chargePartStatus, chargeStatus, FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../domain/financial-domain.js";
 
 const PIX_ANALYSIS_WINDOW_MS = 5 * 60 * 60 * 1000;
+const DEFAULT_PAYMENT_PAGE_SIZE = 20;
+const MAX_PAYMENT_PAGE_SIZE = 100;
 
 export interface PaymentFields {
     title?: unknown;
@@ -128,14 +130,18 @@ export class ClientPaymentService {
         };
     }
 
-    async list(clientId: string) {
+    async list(clientId: string, cursorValue?: unknown, limitValue?: unknown) {
         await this.requireClient(clientId);
-        return (await this.payments.findByClientId(clientId)).map(paymentResponse);
+        const options = paymentPageOptions(cursorValue, limitValue);
+        const { page, summary } = await loadPaymentPage(this.payments, clientId, options);
+        return paymentPageResponse(page, summary, options.limit, paymentResponse);
     }
 
-    async listForClient(clientId: string) {
+    async listForClient(clientId: string, cursorValue?: unknown, limitValue?: unknown) {
         await this.requireClient(clientId);
-        return (await this.payments.findByClientId(clientId)).map(clientPaymentResponse);
+        const options = paymentPageOptions(cursorValue, limitValue);
+        const { page, summary } = await loadPaymentPage(this.payments, clientId, options);
+        return paymentPageResponse(page, summary, options.limit, clientPaymentResponse);
     }
 
     async create(clientId: string, fields: PaymentFields, actor: PaymentActor) {
@@ -399,6 +405,64 @@ function paymentResponse(payment: ClientPaymentObject) {
         installments: payment.installments.map(item => ({ number: item.number, ...responsePaymentPart(item) })),
         createdAt: payment.createdAt,
         updatedAt: payment.updatedAt
+    };
+}
+
+function paymentPageOptions(cursorValue: unknown, limitValue: unknown) {
+    const parsedLimit = typeof limitValue === "string" && /^\d+$/.test(limitValue) ? Number(limitValue) : DEFAULT_PAYMENT_PAGE_SIZE;
+    if (parsedLimit < 1 || parsedLimit > MAX_PAYMENT_PAGE_SIZE) {
+        throw new ApplicationError(`O limite deve estar entre 1 e ${MAX_PAYMENT_PAGE_SIZE}`, 400);
+    }
+    if (cursorValue === undefined || cursorValue === "") return { limit: parsedLimit };
+    if (typeof cursorValue !== "string") throw new ApplicationError("Cursor de paginação inválido", 400);
+    try {
+        const decoded = JSON.parse(Buffer.from(cursorValue, "base64url").toString("utf8")) as { createdAt?: unknown; id?: unknown };
+        const createdAt = typeof decoded.createdAt === "string" ? new Date(decoded.createdAt) : new Date(NaN);
+        if (!Number.isFinite(createdAt.getTime()) || typeof decoded.id !== "string" || !mongoose.isValidObjectId(decoded.id)) throw new Error();
+        return { limit: parsedLimit, cursor: { createdAt, id: new mongoose.Types.ObjectId(decoded.id) } };
+    } catch {
+        throw new ApplicationError("Cursor de paginação inválido", 400);
+    }
+}
+
+function paymentPageResponse<T>(
+    page: { records: ClientPaymentObject[]; hasMore: boolean },
+    summary: { paymentCount: number; totalAmountCents: number; paidAmountCents: number; remainingAmountCents: number },
+    limit: number,
+    presenter: (payment: ClientPaymentObject) => T
+) {
+    const last = page.records[page.records.length - 1];
+    const nextCursor = page.hasMore && last
+        ? Buffer.from(JSON.stringify({ createdAt: last.createdAt.toISOString(), id: last._id.toString() })).toString("base64url")
+        : undefined;
+    return { payments: page.records.map(presenter), page: { limit, hasMore: page.hasMore,
+        ...(nextCursor ? { nextCursor } : {}) }, summary };
+}
+
+async function loadPaymentPage(
+    repository: ClientPaymentRepository,
+    clientId: string,
+    options: ReturnType<typeof paymentPageOptions>
+) {
+    const compatible = repository as ClientPaymentRepository & {
+        findByClientId?: (id: string) => Promise<ClientPaymentObject[]>;
+    };
+    if (typeof compatible.findPageByClientId === "function" && typeof compatible.summarizeByClientId === "function") {
+        const [page, summary] = await Promise.all([
+            compatible.findPageByClientId(clientId, options), compatible.summarizeByClientId(clientId)
+        ]);
+        return { page, summary };
+    }
+    const records = await compatible.findByClientId?.(clientId) ?? [];
+    const responses = records.map(paymentResponse);
+    return {
+        page: { records, hasMore: false },
+        summary: {
+            paymentCount: records.length,
+            totalAmountCents: responses.reduce((total, payment) => total + payment.finalAmountCents, 0),
+            paidAmountCents: responses.reduce((total, payment) => total + payment.paidAmountCents, 0),
+            remainingAmountCents: responses.reduce((total, payment) => total + payment.remainingAmountCents, 0)
+        }
     };
 }
 

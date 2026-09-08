@@ -176,6 +176,6 @@ const clientPaymentSchema = new mongoose.Schema<ClientPaymentObject>({
 }, { collection: "financeiro", timestamps: true });
 
 clientPaymentSchema.index({ clientId: 1, createdAt: -1 });
-clientPaymentSchema.index({ clientId: 1, archivedAt: 1, createdAt: -1 });
+clientPaymentSchema.index({ clientId: 1, archivedAt: 1, createdAt: -1, _id: -1 });
 
 export default mongoose.model<ClientPaymentObject>("ClientPayment", clientPaymentSchema);

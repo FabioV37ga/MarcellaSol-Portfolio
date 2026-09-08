@@ -10,6 +10,8 @@ export function getClientFinancialElements() {
         back: requiredElement<HTMLButtonElement>("#client-financial-back"),
         highlight: requiredElement<HTMLElement>("#client-financial-highlight-content"),
         list: requiredElement<HTMLElement>("#client-financial-payments-list"),
+        paginationStatus: requiredElement<HTMLElement>("#client-financial-pagination-status"),
+        loadMore: requiredElement<HTMLButtonElement>("#client-financial-load-more"),
         loading: requiredElement<HTMLElement>("#client-financial-loading"),
         empty: requiredElement<HTMLElement>("#client-financial-empty"),
         feedback: requiredElement<HTMLElement>("#client-financial-feedback"),

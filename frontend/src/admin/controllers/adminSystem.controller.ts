@@ -11,7 +11,8 @@ export default class AdminSystem {
 
     constructor(
         token: string,
-        private readonly name: string
+        private readonly name: string,
+        private readonly restoreCurrentRoute = false
     ) {
         void this.initialize({ token });
     }
@@ -27,6 +28,6 @@ export default class AdminSystem {
         const navigate = (route: AdminRoute, id?: string) => this.router?.navigate(route, { id });
         const clientCreation = new ClientCreationFlow(view, this.api, session, navigate);
         modules = new AdminSystemModules(view, models, clientCreation, this.api, session, navigate);
-        this.router.start();
+        this.router.start(this.restoreCurrentRoute);
     }
 }

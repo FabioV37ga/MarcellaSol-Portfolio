@@ -83,6 +83,8 @@ function financialElements(): ClientFinancialElements {
         titleName: value("#financial-title-name"),
         back: value("#financial-back"),
         paymentsList: value("#financial-payments-list"),
+        paginationStatus: value("#financial-pagination-status"),
+        loadMore: value("#financial-load-more"),
         newPayment: value("#financial-new-payment"),
         feedback: value("#financial-feedback"),
         dialog: value("#financial-payment-dialog"),
@@ -103,6 +105,7 @@ function financialView(): string {
         <span id="financial-client-name"></span><span id="financial-title-name"></span>
         <button id="financial-back"></button><button id="financial-new-payment"></button>
         <p id="financial-feedback"></p><div id="financial-payments-list"></div>
+        <span id="financial-pagination-status"></span><button id="financial-load-more"></button>
         <dialog id="financial-payment-dialog"><form id="financial-payment-form">
             <h2 id="financial-payment-dialog-title"></h2>
             <input id="financial-payment-title" required>

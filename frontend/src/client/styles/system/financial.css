@@ -107,6 +107,9 @@
 .client-financial-empty { padding: 30px 12px; border: 1px dashed var(--borderGray); border-radius: 9px; text-align: center; }
 .client-financial-feedback { min-height: 18px; color: var(--orange); }
 .client-financial-payments-list { display: grid; gap: 16px; margin-top: 18px; }
+.client-financial-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 18px; color: var(--gray); font-size: 11px; }
+.client-financial-pagination button { min-height: 36px; padding: 0 16px; border: 1px solid var(--orange); border-radius: 8px; background: #fff; color: var(--orange); }
+.client-financial-pagination button:disabled { cursor: wait; opacity: .6; }
 
 .client-financial-payment {
     min-width: 0;

@@ -149,6 +149,19 @@ button:disabled { cursor: wait; opacity: .6; }
     gap: 16px;
 }
 
+.financial-pagination,
+.client-financial-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 18px;
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.financial-pagination button { min-height: 36px; padding: 0 16px; background: #fff; color: var(--orange); }
+
 .financial-payment-card {
     padding: 16px;
     border: 1px solid var(--borderGray);

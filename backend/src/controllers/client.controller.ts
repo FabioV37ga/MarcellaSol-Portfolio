@@ -86,10 +86,12 @@ export class ClientController {
         }
     };
 
-    payments = async (_request: Request, response: Response): Promise<Response> => {
+    payments = async (request: Request, response: Response): Promise<Response> => {
         try {
             const principal = authenticatedPrincipal(response);
-            return response.status(200).json({ payments: await this.paymentService.listForClient(principal.subject) });
+            return response.status(200).json(await this.paymentService.listForClient(
+                principal.subject, request.query.cursor, request.query.limit
+            ));
         } catch (error: unknown) {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
             console.error("Erro ao carregar pagamentos do cliente:", error instanceof Error ? error.name : "UnknownError");

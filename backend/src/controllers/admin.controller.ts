@@ -201,7 +201,7 @@ export class AdminController {
     clientPayments = async (request: Request, response: Response): Promise<Response> => {
         try {
             const clientId = this.routeParameter(request.params.id);
-            return response.status(200).json({ payments: await this.payments.list(clientId) });
+            return response.status(200).json(await this.payments.list(clientId, request.query.cursor, request.query.limit));
         } catch (error: unknown) {
             return this.paymentError(error, response);
         }

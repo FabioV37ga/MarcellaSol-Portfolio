@@ -358,14 +358,14 @@ export class AdminSystemModules {
         u(elements.back).off("click").on("click", () => this.navigate("client-management", clientId));
 
         try {
-            const [client, payments] = await Promise.all([
+            const [client, paymentPage] = await Promise.all([
                 this.api.loadClient(this.session, clientId),
                 this.api.loadPayments(this.session, clientId)
             ]);
             if (requestId !== this.clientFinancialRequestId) return;
             elements.clientName.textContent = client.name;
             elements.titleName.textContent = client.name;
-            manager = new ClientFinancialManager(elements, this.api, this.session, clientId, payments);
+            manager = new ClientFinancialManager(elements, this.api, this.session, clientId, paymentPage);
         } catch (error) {
             if (requestId !== this.clientFinancialRequestId) return;
             console.error("Erro ao carregar financeiro do cliente:", error);

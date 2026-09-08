@@ -12,6 +12,8 @@ export interface ClientFinancialElements {
     titleName: HTMLElement;
     back: HTMLButtonElement;
     paymentsList: HTMLElement;
+    paginationStatus: HTMLElement;
+    loadMore: HTMLButtonElement;
     newPayment: HTMLButtonElement;
     feedback: HTMLElement;
     dialog: HTMLDialogElement;
@@ -34,6 +36,8 @@ export function getClientFinancialElements(): ClientFinancialElements {
         titleName: requiredElement("#financial-title-name"),
         back: requiredElement("#financial-back"),
         paymentsList: requiredElement("#financial-payments-list"),
+        paginationStatus: requiredElement("#financial-pagination-status"),
+        loadMore: requiredElement("#financial-load-more"),
         newPayment: requiredElement("#financial-new-payment"),
         feedback: requiredElement("#financial-feedback"),
         dialog: requiredElement("#financial-payment-dialog"),

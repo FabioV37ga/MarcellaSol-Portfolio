@@ -206,8 +206,9 @@ test("consulta financeira usa exclusivamente o cliente recebido da sessão", asy
 
     const result = await service.list(clientId);
     assert.deepEqual(queriedIds, [clientId]);
-    assert.equal(result[0].paidAmountCents, 55000);
-    assert.equal(result[0].remainingAmountCents, 45000);
+    assert.equal(result.payments[0].paidAmountCents, 55000);
+    assert.equal(result.payments[0].remainingAmountCents, 45000);
+    assert.equal(result.summary.paidAmountCents, 55000);
 });
 
 test("resposta financeira do cliente omite identificadores e cálculos internos", async () => {
@@ -238,10 +239,46 @@ test("resposta financeira do cliente omite identificadores e cálculos internos"
         }]; } }
     );
 
-    const [payment] = await service.listForClient(clientId);
+    const { payments: [payment] } = await service.listForClient(clientId);
     assert.equal(payment.clientId, undefined);
     assert.equal(payment.version, undefined);
     assert.equal(payment.financedAmountCents, undefined);
+});
+
+test("listagem financeira devolve paginação explícita e resumo independente da página", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const createdAt = new Date("2026-09-08T12:00:00.000Z");
+    const record = {
+        _id: { toString: () => "507f1f77bcf86cd799439012" }, clientId: { toString: () => clientId },
+        title: "Primeira página", totalAmountCents: 10000, installmentCount: 1,
+        firstDueDate: "2026-09-08", downPaymentPercentage: 0, discountPercentage: 0,
+        interestPercentage: 0, discountAmountCents: 0,
+        downPayment: { amountCents: 0, isPaid: false, dueDate: "2026-09-08" },
+        financedAmountCents: 10000, interestAmountCents: 0, installmentTotalCents: 10000,
+        finalAmountCents: 10000, installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-08" }],
+        createdAt, updatedAt: createdAt
+    };
+    const service = new ClientPaymentService(TEST_PIX_RECEIVER, { async findById() { return { _id: clientId }; } }, {
+        async findPageByClientId(id, options) {
+            assert.equal(id, clientId);
+            assert.equal(options.limit, 1);
+            return { records: [record], hasMore: true };
+        },
+        async summarizeByClientId() {
+            return { paymentCount: 12, totalAmountCents: 120000, paidAmountCents: 40000, remainingAmountCents: 80000 };
+        }
+    });
+    const result = await service.list(clientId, undefined, "1");
+    assert.equal(result.payments.length, 1);
+    assert.equal(result.page.hasMore, true);
+    assert.ok(result.page.nextCursor);
+    assert.equal(result.summary.paymentCount, 12);
+});
+
+test("listagem financeira rejeita cursor inválido", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const service = new ClientPaymentService(TEST_PIX_RECEIVER, { async findById() { return { _id: clientId }; } }, {});
+    await assert.rejects(() => service.list(clientId, "cursor-invalido"), /Cursor de paginação inválido/);
 });
 
 test("edição financeira exige versão atual e registra auditoria", async () => {
