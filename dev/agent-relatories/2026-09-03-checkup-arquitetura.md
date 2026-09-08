@@ -527,7 +527,7 @@ Além da validação estrutural do HTML, inventário e equivalência com o Mongo
 
 A retenção adotada remove somente o código Pix persistido 30 dias após o fim da janela de análise. A execução `financial:prune-pix` é somente leitura sem `--apply`, permitindo validar a quantidade afetada antes de qualquer alteração nos dados reais.
 
-### 7. Modularizar arquivos grandes por oportunidade
+### 7. Modularizar arquivos grandes por oportunidade — em andamento desde 08/09/2026
 
 Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transversal imediata:
 
@@ -535,6 +535,8 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 - extrair o financeiro de `ClientSystemModules`;
 - extrair listagem e gestão de clientes de `AdminSystemModules` quando esses fluxos forem alterados;
 - separar cálculo, apresentação e Pix em componentes próprios.
+
+Primeira extração concluída: paginação, apresentação, geração de Pix, timers e descarte da tela financeira do cliente foram movidos de `ClientSystemModules` para `ClientFinancialModule`. O módulo geral caiu de 466 para 298 linhas e voltou a concentrar apenas a coordenação das telas. As próximas extrações permanecem vinculadas a alterações funcionais nos respectivos fluxos, evitando uma refatoração transversal de alto risco.
 
 ### 8. Organizar testes, contratos e nomenclaturas
 
