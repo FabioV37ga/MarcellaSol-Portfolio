@@ -386,7 +386,7 @@ Assim, `type` parece simultaneamente categoria técnica, domínio e filtro opera
 
 Direção recomendada: decidir se `type` representa domínio, grupo de carregamento ou espécie de template. Depois, definir enum e validar combinações permitidas com `permission` e `viewName`; se não possuir função real, removê-lo mediante migração.
 
-#### ARQ-033 — integração das views ainda não valida selectors no pipeline
+#### ARQ-033 — integração das views ainda não valida selectors no pipeline — resolvido em 08/09/2026
 
 Prioridade: **média**
 Tipo: tooling/integração
@@ -395,9 +395,9 @@ O script agora valida JSON, ObjectId, campos obrigatórios, nomes conhecidos, ti
 
 Limitações atuais:
 
-- não valida IDs/classes exigidos pelos selectors;
+O validador agora extrai diretamente dos módulos TypeScript os IDs e classes usados por `requiredElement`, `required`, Umbrella JS e `querySelector`/`querySelectorAll`. Cada contrato é conferido contra a view correspondente, sem duplicar manualmente os selectors no script.
 
-A automação cobre o contrato documental e o drift. Ainda não garante que mudanças nos selectors TypeScript permaneçam compatíveis com IDs e classes do HTML.
+O pipeline rejeita views que removam um ID ou classe exigidos. Testes negativos cobrem os dois casos. A associação entre módulos e views também deve permanecer completa para todo o inventário conhecido.
 
 #### ARQ-034 — endpoints de diagnóstico permanecem fora do fluxo esperado — resolvido em 08/09/2026
 
@@ -511,11 +511,9 @@ Os campos de projeção mantêm `isPaid` e o mesmo formato esperado pelas telas 
 
 O backend separa liveness (`/api/health`) de readiness (`/api/ready`), retornando `503` nesta última quando o MongoDB não está disponível. A rota autenticada `/api/test` é registrada apenas fora de produção. O utilitário de diagnóstico, suas chamadas, logs e elementos inseridos no DOM foram removidos da página pública.
 
-### 5. Completar o controle das views persistidas
+### 5. Completar o controle das views persistidas — concluído em 08/09/2026
 
-A automação documental, a equivalência entre repositório e MongoDB e a validação obrigatória no build foram concluídas. Ainda se deve:
-
-- validar HTML e os IDs/classes exigidos pelos selectors;
+Além da validação estrutural do HTML, inventário e equivalência com o MongoDB, o pipeline agora extrai automaticamente os IDs e classes utilizados pelos selectors TypeScript e confirma sua presença na view correspondente. Assim, uma alteração incompatível falha antes do build e da sincronização.
 
 ### 6. Melhorar a paginação e o armazenamento financeiro
 

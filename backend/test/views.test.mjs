@@ -55,3 +55,31 @@ test("rejeita HTML com mais de um elemento raiz", async t => {
         return true;
     });
 });
+
+test("rejeita view sem ID exigido pelo selector TypeScript", async t => {
+    const directory = await fixtureCopy();
+    t.after(() => rm(directory, { recursive: true, force: true }));
+    const filename = path.join(directory, "client-financial-client-view.json");
+    const document = JSON.parse(await readFile(filename, "utf8"));
+    document.view = document.view.replace('id="client-pix-copy"', 'id="client-pix-copy-removed"');
+    await writeFile(filename, JSON.stringify(document));
+
+    await assert.rejects(validate(directory), error => {
+        assert.match(error.stderr, /selectors ausentes no HTML: #client-pix-copy/);
+        return true;
+    });
+});
+
+test("rejeita view sem classe exigida pelo selector TypeScript", async t => {
+    const directory = await fixtureCopy();
+    t.after(() => rm(directory, { recursive: true, force: true }));
+    const filename = path.join(directory, "admin-base-view.json");
+    const document = JSON.parse(await readFile(filename, "utf8"));
+    document.view = document.view.replace("expand-menu", "expand-menu-removed");
+    await writeFile(filename, JSON.stringify(document));
+
+    await assert.rejects(validate(directory), error => {
+        assert.match(error.stderr, /selectors ausentes no HTML: \.expand-menu/);
+        return true;
+    });
+});

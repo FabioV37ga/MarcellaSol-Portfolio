@@ -21,6 +21,12 @@ interface StoredView {
     view: string;
 }
 
+interface SelectorSource {
+    file: string;
+    functionName?: string;
+    idsOnly?: boolean;
+}
+
 const knownViews = new Map<string, string>([
     ["admin:base", "system"],
     ["admin:home", "system"],
@@ -40,6 +46,29 @@ const knownViews = new Map<string, string>([
 ]);
 const uniqueIndexName = "views_permission_viewName_unique";
 
+// Apenas associa módulos às views. Os selectors são extraídos do TypeScript,
+// portanto IDs e classes não ficam duplicados neste script.
+const selectorSources = new Map<string, SelectorSource[]>([
+    ["admin:base", [{ file: "src/admin/selectors/base.selector.ts" }]],
+    ["admin:home", [{ file: "src/admin/selectors/home.selector.ts.ts" }]],
+    ["admin:client", [{ file: "src/admin/selectors/clients.selector.ts" }]],
+    ["admin:new-client", [{ file: "src/admin/selectors/new-client.selector.ts" }]],
+    ["admin:client-management", [{ file: "src/admin/selectors/client-management.selector.ts" }]],
+    ["admin:client-proposals", [{ file: "src/admin/modules/admin-client-proposals.module.ts", idsOnly: true }]],
+    ["admin:client-financial", [
+        { file: "src/admin/selectors/client-financial.selector.ts" },
+        { file: "src/admin/ui/client-financial-manager.ts", idsOnly: true }
+    ]],
+    ["admin:briefing-home", [{ file: "src/admin/selectors/newClient/briefing.selector.ts", functionName: "getBriefingHome" }]],
+    ["admin:briefing-investment", [{ file: "src/admin/selectors/newClient/briefing.selector.ts", functionName: "getBriefingInvestment" }]],
+    ["admin:briefing-rooms", [{ file: "src/admin/selectors/newClient/briefing.selector.ts", functionName: "getBriefingRooms" }]],
+    ["admin:briefing-added-room", []],
+    ["client:base", [{ file: "src/client/selectors/base.selector.ts" }]],
+    ["client:home", [{ file: "src/client/selectors/home.selector.ts" }]],
+    ["client:stages-approvals", [{ file: "src/client/selectors/stages-approvals.selector.ts" }]],
+    ["client:financial", [{ file: "src/client/selectors/financial.selector.ts" }]]
+]);
+
 const applyChanges = process.argv.includes("--apply");
 const validateOnly = process.argv.includes("--validate-only");
 
@@ -56,7 +85,7 @@ function checksum(view: Pick<ViewFile, "permission" | "viewName" | "type" | "vie
     })).digest("hex");
 }
 
-function validateHtml(html: string, filename: string): void {
+function validateHtml(html: string, filename: string, selectors: string[]): void {
     const errors: ParserError[] = [];
     const fragment = parseFragment(html, { onParseError: error => errors.push(error) });
     if (errors.length > 0) {
@@ -70,9 +99,36 @@ function validateHtml(html: string, filename: string): void {
     if (roots.length !== 1) {
         throw new Error(`${filename}: view deve possuir exatamente um elemento HTML raiz; encontrados ${roots.length}.`);
     }
+    validateSelectorTokens(fragment as HtmlNode, selectors, filename);
 }
 
-function validateViewFile(value: unknown, filename: string): ViewFile {
+interface HtmlNode {
+    attrs?: Array<{ name: string; value: string }>;
+    childNodes?: HtmlNode[];
+}
+
+function validateSelectorTokens(root: HtmlNode, selectors: string[], filename: string): void {
+    const ids = new Set<string>();
+    const classes = new Set<string>();
+    const visit = (node: HtmlNode): void => {
+        for (const attribute of node.attrs ?? []) {
+            if (attribute.name === "id") ids.add(attribute.value);
+            if (attribute.name === "class") attribute.value.split(/\s+/).filter(Boolean).forEach(value => classes.add(value));
+        }
+        (node.childNodes ?? []).forEach(visit);
+    };
+    visit(root);
+
+    const missing = selectors.filter(selector => {
+        const token = selector.slice(1);
+        return selector.startsWith("#") ? !ids.has(token) : !classes.has(token);
+    });
+    if (missing.length > 0) {
+        throw new Error(`${filename}: selectors ausentes no HTML: ${missing.join(", ")}.`);
+    }
+}
+
+function validateViewFile(value: unknown, filename: string, selectors: string[]): ViewFile {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
         throw new Error(`${filename}: o conteúdo deve ser um objeto JSON.`);
     }
@@ -95,7 +151,7 @@ function validateViewFile(value: unknown, filename: string): ViewFile {
     if (view.type.trim() !== expectedType) {
         throw new Error(`${filename}: type inválido para ${key}; esperado "${expectedType}".`);
     }
-    validateHtml(view.view, filename);
+    validateHtml(view.view, filename, selectors);
     return view;
 }
 
@@ -117,6 +173,7 @@ async function databaseDirectory(): Promise<string> {
 }
 
 async function loadFiles(directory: string): Promise<Array<{ filename: string; data: ViewFile }>> {
+    const requirements = await loadSelectorRequirements();
     const filenames = (await readdir(directory))
         .filter(filename => filename.endsWith("-view.json"))
         .sort((left, right) => left.localeCompare(right));
@@ -130,7 +187,11 @@ async function loadFiles(directory: string): Promise<Array<{ filename: string; d
         } catch {
             throw new Error(`${filename}: JSON inválido.`);
         }
-        return { filename, data: validateViewFile(parsed, filename) };
+        const candidate = parsed as Partial<ViewFile>;
+        const key = typeof candidate.permission === "string" && typeof candidate.viewName === "string"
+            ? `${candidate.permission.trim().toLowerCase()}:${candidate.viewName.trim().toLowerCase()}`
+            : "";
+        return { filename, data: validateViewFile(parsed, filename, requirements.get(key) ?? []) };
     }));
 
     const identities = new Set<string>();
@@ -147,6 +208,65 @@ async function loadFiles(directory: string): Promise<Array<{ filename: string; d
         throw new Error(`Views obrigatórias ausentes em dev/database: ${missing.join(", ")}.`);
     }
     return loaded;
+}
+
+async function loadSelectorRequirements(): Promise<Map<string, string[]>> {
+    const candidates = [path.resolve(process.cwd(), "frontend"), path.resolve(process.cwd(), "../frontend")];
+    let frontendRoot: string | undefined;
+    for (const candidate of candidates) {
+        try {
+            await access(path.join(candidate, "src"));
+            frontendRoot = candidate;
+            break;
+        } catch {
+            // Compatível com execução pela raiz ou por backend/.
+        }
+    }
+    if (!frontendRoot) throw new Error("Diretório frontend/src não encontrado.");
+    const missingMappings = [...knownViews.keys()].filter(key => !selectorSources.has(key));
+    if (missingMappings.length > 0) {
+        throw new Error(`Mapeamento de selectors ausente para: ${missingMappings.join(", ")}.`);
+    }
+    const requirements = new Map<string, string[]>();
+    for (const [viewIdentity, sources] of selectorSources) {
+        const selectors = new Set<string>();
+        for (const source of sources) {
+            const filename = path.join(frontendRoot, source.file);
+            const code = source.functionName
+                ? functionSource(await readFile(filename, "utf8"), source.functionName, source.file)
+                : await readFile(filename, "utf8");
+            extractSelectors(code)
+                .filter(selector => !source.idsOnly || selector.startsWith("#"))
+                .forEach(selector => selectors.add(selector));
+        }
+        requirements.set(viewIdentity, [...selectors].sort());
+    }
+    return requirements;
+}
+
+function functionSource(code: string, functionName: string, filename: string): string {
+    const start = code.indexOf(`function ${functionName}`);
+    if (start < 0) throw new Error(`${filename}: função ${functionName} não encontrada.`);
+    const nextFunction = code.indexOf("\nfunction ", start + 1);
+    const nextInterface = code.indexOf("\ninterface ", start + 1);
+    const candidates = [nextFunction, nextInterface].filter(index => index >= 0);
+    return code.slice(start, candidates.length > 0 ? Math.min(...candidates) : code.length);
+}
+
+function extractSelectors(code: string): string[] {
+    const selectors = new Set<string>();
+    const callPatterns = [
+        /\bu\s*\(\s*["'`]([^"'`]+)["'`]/g,
+        /\brequiredElement(?:<[^>]+>)?\s*\(\s*["'`]([^"'`]+)["'`]/g,
+        /\brequired(?:<[^>]+>)?\s*\([^,]+,\s*["'`]([^"'`]+)["'`]/g,
+        /\.querySelector(?:All)?(?:<[^>]+>)?\s*\(\s*["'`]([^"'`]+)["'`]/g
+    ];
+    for (const pattern of callPatterns) {
+        for (const match of code.matchAll(pattern)) {
+            for (const token of match[1].match(/#[A-Za-z][\w-]*|\.[A-Za-z][\w-]*/g) ?? []) selectors.add(token);
+        }
+    }
+    return [...selectors];
 }
 
 async function main(): Promise<void> {
