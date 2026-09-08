@@ -491,16 +491,21 @@ A classificação temporal e a seleção de destaque foram retiradas dos templat
 
 O prazo de cinco horas agora é representado por `analysisWindowEndsAt` no modelo, na auditoria e nos DTOs. A interface usa “janela de análise” e informa explicitamente que seu encerramento não cancela o código Pix. Registros antigos com `expiresAt` continuam legíveis pelo backend, sem expor o nome legado nas respostas.
 
-### 3. Preparar o domínio antes de integrar banco ou PSP
+### 3. Preparar o domínio antes de integrar banco ou PSP — concluído em 08/09/2026
 
-Antes de automatizar pagamentos, será necessário:
+O fluxo visível permanece manual, mas a cobrança operacional passou a ser apenas uma projeção do estado atual. Confirmações geram recibos identificados e desfazer uma confirmação gera uma reversão compensatória ligada ao recibo original, sem apagar o histórico.
 
-- separar o plano de cobrança dos recebimentos confirmados;
-- implementar idempotência e identificadores externos;
-- projetar webhook autenticado e reconciliação;
-- definir estados explícitos de pagamento;
-- definir moeda, timezone e políticas de alteração, cancelamento e reembolso;
-- manter eventos financeiros imutáveis e fora do documento operacional principal.
+Novos eventos são gravados na coleção append-only `financial_events`, fora do documento `financeiro`, na mesma transação MongoDB que atualiza a projeção. A coleção possui chaves únicas de evento e idempotência, além de campos e índices reservados para IDs de evento e transação de um provedor futuro. Eventos legados embutidos continuam sendo lidos para preservar o bloqueio das condições financeiras.
+
+O domínio agora declara explicitamente:
+
+- moeda `BRL` e fuso `America/Sao_Paulo`;
+- estados de cobrança `open`, `partially-paid`, `paid` e `cancelled`;
+- estados de parte `pending` e `paid`;
+- cancelamento por arquivamento e reversão por lançamento compensatório;
+- contratos internos para webhook autenticado e reconciliação, sem criar endpoint público antes da escolha do PSP.
+
+Os campos de projeção mantêm `isPaid` e o mesmo formato esperado pelas telas atuais. Identificadores internos dos recibos não são expostos pela API.
 
 ### 4. Corrigir os diagnósticos de produção
 
@@ -518,7 +523,6 @@ A automação documental, a equivalência entre repositório e MongoDB e a valid
 
 - substituir o limite silencioso de 200 registros por paginação explícita;
 - fornecer separadamente o resumo ou destaque financeiro atual;
-- mover o histórico para uma coleção append-only;
 - definir retenção para tentativas Pix cuja janela de análise terminou.
 
 ### 7. Modularizar arquivos grandes por oportunidade

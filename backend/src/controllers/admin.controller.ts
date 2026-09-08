@@ -353,7 +353,7 @@ export class AdminController {
         if (error instanceof mongoose.Error.ValidationError || error instanceof mongoose.Error.CastError) {
             return response.status(400).json({ message: "Dados do pagamento inválidos" });
         }
-        console.error("Erro ao processar pagamento:", error instanceof Error ? error.name : "UnknownError");
+        console.error("Erro ao processar pagamento:", error);
         return response.status(500).json({ message: "Erro interno ao processar pagamento" });
     }
 

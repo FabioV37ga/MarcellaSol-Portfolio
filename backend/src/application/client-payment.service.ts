@@ -6,6 +6,7 @@ import { ClientPaymentRepository } from "../repositories/client-payment.reposito
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
 import { generatePixBrCode, type PixReceiver } from "../services/pix-br-code.js";
+import { chargePartStatus, chargeStatus, FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../domain/financial-domain.js";
 
 const PIX_ANALYSIS_WINDOW_MS = 5 * 60 * 60 * 1000;
 
@@ -140,11 +141,19 @@ export class ClientPaymentService {
     async create(clientId: string, fields: PaymentFields, actor: PaymentActor) {
         await this.requireClient(clientId);
         const title = paymentTitle(fields.title);
-        const schedule = calculatePaymentSchedule(fields);
+        const schedule = calculatePaymentSchedule({
+            ...fields,
+            downPaymentIsPaid: undefined,
+            paidInstallmentNumbers: undefined
+        });
         return paymentResponse(await this.payments.create({
             clientId: new mongoose.Types.ObjectId(clientId),
             title,
             ...schedule,
+            currency: FINANCIAL_CURRENCY,
+            timeZone: FINANCIAL_TIME_ZONE,
+            status: "open",
+            hasReceiptHistory: false,
             events: [auditEvent("created", actor, { after: termsSnapshot(title, schedule) })]
         }));
     }
@@ -217,9 +226,13 @@ export class ClientPaymentService {
         const event = auditEvent("manual-status-change", actor, {
             partType: "down-payment",
             previousIsPaid: existing.downPayment.isPaid,
-            isPaid
+            isPaid,
+            ...(isPaid
+                ? { receiptId: randomUUID() }
+                : { reversesReceiptId: existing.downPayment.settlementReceiptId ?? legacyReceiptId(paymentId, "down-payment") })
         });
-        const updated = await this.payments.setDownPaymentPaid(paymentId, clientId, version, isPaid, event);
+        const nextStatus = statusAfterChange(existing, "down-payment", undefined, isPaid);
+        const updated = await this.payments.setDownPaymentPaid(paymentId, clientId, version, isPaid, event, nextStatus);
         if (!updated) throw conflictError();
         return paymentResponse(updated);
     }
@@ -240,9 +253,13 @@ export class ClientPaymentService {
             partType: "installment",
             installmentNumber: number,
             previousIsPaid: installment.isPaid,
-            isPaid
+            isPaid,
+            ...(isPaid
+                ? { receiptId: randomUUID() }
+                : { reversesReceiptId: installment.settlementReceiptId ?? legacyReceiptId(paymentId, "installment", number) })
         });
-        const updated = await this.payments.setInstallmentPaid(paymentId, clientId, version, number, isPaid, event);
+        const nextStatus = statusAfterChange(existing, "installment", number, isPaid);
+        const updated = await this.payments.setInstallmentPaid(paymentId, clientId, version, number, isPaid, event, nextStatus);
         if (!updated) throw conflictError();
         return paymentResponse(updated);
     }
@@ -314,7 +331,8 @@ export class ClientPaymentService {
 }
 
 function hasConfirmedReceiptHistory(payment: ClientPaymentObject): boolean {
-    return payment.downPayment.isPaid
+    return payment.hasReceiptHistory === true
+        || payment.downPayment.isPaid
         || payment.installments.some(item => item.isPaid)
         || (payment.events ?? []).some(event => event.isPaid === true
             || event.after?.downPaymentIsPaid === true
@@ -358,6 +376,9 @@ function paymentResponse(payment: ClientPaymentObject) {
     return {
         id: payment._id.toString(),
         version: payment.__v ?? 0,
+        currency: payment.currency ?? FINANCIAL_CURRENCY,
+        timeZone: payment.timeZone ?? FINANCIAL_TIME_ZONE,
+        status: payment.status ?? chargeStatus([payment.downPayment, ...payment.installments], payment.archivedAt),
         clientId: payment.clientId.toString(),
         title: payment.title,
         totalAmountCents: payment.totalAmountCents,
@@ -367,7 +388,7 @@ function paymentResponse(payment: ClientPaymentObject) {
         discountPercentage: payment.discountPercentage,
         interestPercentage: payment.interestPercentage,
         discountAmountCents: payment.discountAmountCents,
-        downPayment: payment.downPayment,
+        downPayment: responsePaymentPart(payment.downPayment),
         financedAmountCents: payment.financedAmountCents,
         interestAmountCents: payment.interestAmountCents,
         installmentTotalCents: payment.installmentTotalCents,
@@ -375,7 +396,7 @@ function paymentResponse(payment: ClientPaymentObject) {
         paidAmountCents,
         remainingAmountCents: Math.max(0, payment.finalAmountCents - paidAmountCents),
         financialTermsLocked: hasConfirmedReceiptHistory(payment),
-        installments: payment.installments,
+        installments: payment.installments.map(item => ({ number: item.number, ...responsePaymentPart(item) })),
         createdAt: payment.createdAt,
         updatedAt: payment.updatedAt
     };
@@ -410,9 +431,40 @@ function publicPaymentPart(part: PaymentPart) {
     return {
         amountCents: part.amountCents,
         isPaid: part.isPaid,
+        status: chargePartStatus(part),
         dueDate: part.dueDate,
         ...(hasActivePix ? { pix: { generatedAt: part.pix!.generatedAt, analysisWindowEndsAt } } : {})
     };
+}
+
+function responsePaymentPart(part: PaymentPart) {
+    return {
+        amountCents: part.amountCents,
+        isPaid: part.isPaid,
+        status: chargePartStatus(part),
+        dueDate: part.dueDate,
+        ...(part.paidAt ? { paidAt: part.paidAt } : {}),
+        ...(part.settlementSource ? { settlementSource: part.settlementSource } : {}),
+        ...(part.pix ? { pix: part.pix } : {})
+    };
+}
+
+function statusAfterChange(
+    payment: ClientPaymentObject,
+    partType: "down-payment" | "installment",
+    installmentNumber: number | undefined,
+    isPaid: boolean
+) {
+    const parts = [payment.downPayment, ...payment.installments].map(part => ({ ...part }));
+    const index = partType === "down-payment"
+        ? 0
+        : payment.installments.findIndex(item => item.number === installmentNumber) + 1;
+    parts[index].isPaid = isPaid;
+    return chargeStatus(parts);
+}
+
+function legacyReceiptId(paymentId: string, partType: "down-payment" | "installment", installmentNumber?: number): string {
+    return `legacy:${paymentId}:${partType}:${installmentNumber ?? 0}`;
 }
 
 function pixPartType(value: unknown): "down-payment" | "installment" {

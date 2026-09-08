@@ -1,8 +1,95 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { calculatePaymentSchedule, ClientPaymentService, monthlyDueDate } from "../dist/src/application/client-payment.service.js";
+import { chargePartStatus, chargeStatus, FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../dist/src/domain/financial-domain.js";
+import ClientPayment from "../dist/src/models/clientPayment.js";
 
 const TEST_PIX_RECEIVER = { key: "test@example.com", name: "TEST RECEIVER", city: "SAO PAULO" };
+
+test("domínio financeiro possui moeda, fuso e estados explícitos", () => {
+    assert.equal(FINANCIAL_CURRENCY, "BRL");
+    assert.equal(FINANCIAL_TIME_ZONE, "America/Sao_Paulo");
+    assert.equal(chargePartStatus({ amountCents: 1000, isPaid: false }), "pending");
+    assert.equal(chargeStatus([{ amountCents: 1000, isPaid: false }]), "open");
+    assert.equal(chargeStatus([
+        { amountCents: 1000, isPaid: true },
+        { amountCents: 1000, isPaid: false }
+    ]), "partially-paid");
+    assert.equal(chargeStatus([{ amountCents: 1000, isPaid: true }]), "paid");
+    assert.equal(chargeStatus([{ amountCents: 1000, isPaid: true }], new Date()), "cancelled");
+});
+
+test("confirmação manual cria recibo e reversão compensatória sem mudar o contrato visual", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const paymentId = "507f1f77bcf86cd799439012";
+    const calls = [];
+    const existing = {
+        _id: { toString: () => paymentId }, __v: 0,
+        clientId: { toString: () => clientId }, title: "Projeto",
+        totalAmountCents: 10000, installmentCount: 1, firstDueDate: "2026-09-03",
+        downPaymentPercentage: 0, discountPercentage: 0, interestPercentage: 0,
+        discountAmountCents: 0, downPayment: { amountCents: 0, isPaid: false, dueDate: "2026-09-03" },
+        financedAmountCents: 10000, interestAmountCents: 0, installmentTotalCents: 10000,
+        finalAmountCents: 10000,
+        installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-03" }],
+        events: [], createdAt: new Date(), updatedAt: new Date()
+    };
+    const repository = {
+        async findByIdAndClientId() { return existing; },
+        async setInstallmentPaid(_id, _clientId, version, number, isPaid, event, status) {
+            calls.push({ version, number, isPaid, event, status });
+            existing.__v += 1;
+            existing.installments[0] = {
+                ...existing.installments[0], isPaid,
+                ...(isPaid ? { settlementReceiptId: event.receiptId } : {})
+            };
+            existing.status = status;
+            return existing;
+        }
+    };
+    const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
+        { async findById() { return { _id: clientId }; } },
+        repository
+    );
+    const actor = { id: "admin-1", sessionId: "session-1", role: "admin" };
+
+    const paid = await service.setInstallmentPaid(clientId, paymentId, 1, true, 0, actor);
+    assert.equal(paid.installments[0].isPaid, true);
+    assert.equal(paid.status, "paid");
+    assert.match(calls[0].event.receiptId, /^[0-9a-f-]{36}$/);
+
+    const receiptId = calls[0].event.receiptId;
+    const reversed = await service.setInstallmentPaid(clientId, paymentId, 1, false, 1, actor);
+    assert.equal(reversed.installments[0].isPaid, false);
+    assert.equal(reversed.status, "open");
+    assert.equal(calls[1].event.reversesReceiptId, receiptId);
+    assert.equal(calls[1].event.receiptId, undefined);
+});
+
+test("resposta de criação serializa subdocumentos Mongoose sem expor o recibo interno", async () => {
+    const clientId = "507f1f77bcf86cd799439011";
+    const service = new ClientPaymentService(
+        TEST_PIX_RECEIVER,
+        { async findById() { return { _id: clientId }; } },
+        {
+            async create(data) {
+                return new ClientPayment({ _id: "507f1f77bcf86cd799439012", ...data });
+            }
+        }
+    );
+    const response = await service.create(clientId, {
+        title: "Projeto",
+        totalAmount: "100.00",
+        installmentCount: 1,
+        firstDueDate: "2026-09-03"
+    }, { id: "admin-1", sessionId: "session-1", role: "admin" });
+
+    assert.doesNotThrow(() => JSON.stringify(response));
+    assert.equal(response.installments[0].settlementReceiptId, undefined);
+    assert.equal(response.currency, "BRL");
+    assert.equal(response.timeZone, "America/Sao_Paulo");
+});
 
 test("cálculo financeiro distribui centavos sem perder valor", () => {
     const schedule = calculatePaymentSchedule({

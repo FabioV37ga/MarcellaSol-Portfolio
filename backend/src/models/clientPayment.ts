@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import type { ChargeStatus } from "../domain/financial-domain.js";
+import { FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../domain/financial-domain.js";
 
 export interface PaymentPart {
     amountCents: number;
@@ -6,6 +8,7 @@ export interface PaymentPart {
     dueDate: string;
     paidAt?: Date;
     settlementSource?: "manual" | "pix";
+    settlementReceiptId?: string;
     pix?: PixPaymentRequest;
 }
 
@@ -50,6 +53,8 @@ export interface PaymentAuditEvent {
     pixAnalysisWindowEndsAt?: Date;
     pixExpiresAt?: Date;
     hadConfirmedReceiptHistory?: boolean;
+    receiptId?: string;
+    reversesReceiptId?: string;
 }
 
 export interface ClientPaymentObject {
@@ -70,6 +75,10 @@ export interface ClientPaymentObject {
     finalAmountCents: number;
     installments: PaymentInstallment[];
     events: PaymentAuditEvent[];
+    currency: typeof FINANCIAL_CURRENCY;
+    timeZone: typeof FINANCIAL_TIME_ZONE;
+    status: ChargeStatus;
+    hasReceiptHistory: boolean;
     archivedAt?: Date;
     __v: number;
     createdAt: Date;
@@ -94,6 +103,7 @@ const paymentPartSchema = new mongoose.Schema<PaymentPart>({
     dueDate: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
     paidAt: { type: Date },
     settlementSource: { type: String, enum: ["manual", "pix"] },
+    settlementReceiptId: { type: String },
     pix: { type: pixPaymentRequestSchema }
 }, { _id: false });
 
@@ -104,6 +114,7 @@ const installmentSchema = new mongoose.Schema<PaymentInstallment>({
     dueDate: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
     paidAt: { type: Date },
     settlementSource: { type: String, enum: ["manual", "pix"] },
+    settlementReceiptId: { type: String },
     pix: { type: pixPaymentRequestSchema }
 }, { _id: false });
 
@@ -135,7 +146,9 @@ const auditEventSchema = new mongoose.Schema<PaymentAuditEvent>({
     pixTxid: { type: String, minlength: 1, maxlength: 25, match: /^(?:[A-Za-z0-9]+|\*{3})$/ },
     pixAnalysisWindowEndsAt: { type: Date },
     pixExpiresAt: { type: Date },
-    hadConfirmedReceiptHistory: { type: Boolean }
+    hadConfirmedReceiptHistory: { type: Boolean },
+    receiptId: { type: String },
+    reversesReceiptId: { type: String }
 }, { _id: false });
 
 const clientPaymentSchema = new mongoose.Schema<ClientPaymentObject>({
@@ -155,6 +168,10 @@ const clientPaymentSchema = new mongoose.Schema<ClientPaymentObject>({
     finalAmountCents: { type: Number, required: true, min: 0, validate: Number.isInteger },
     installments: { type: [installmentSchema], required: true },
     events: { type: [auditEventSchema], required: true, default: [] },
+    currency: { type: String, enum: [FINANCIAL_CURRENCY], required: true, default: FINANCIAL_CURRENCY },
+    timeZone: { type: String, enum: [FINANCIAL_TIME_ZONE], required: true, default: FINANCIAL_TIME_ZONE },
+    status: { type: String, enum: ["open", "partially-paid", "paid", "cancelled"], required: true, default: "open" },
+    hasReceiptHistory: { type: Boolean, required: true, default: false },
     archivedAt: { type: Date }
 }, { collection: "financeiro", timestamps: true });
 
