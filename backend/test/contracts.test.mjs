@@ -61,3 +61,23 @@ test("status de proposta são compatíveis entre backend e frontends", async () 
     assert.deepEqual(stringUnion(admin, "ProposalStatus"), [...proposalStatuses]);
     assert.deepEqual(stringUnion(client, "ClientProposalStatus"), [...proposalStatuses]);
 });
+
+test("admin e cliente reutilizam o contrato financeiro compartilhado", async () => {
+    const [shared, admin, client] = await Promise.all([
+        readFile(path.resolve("../frontend/src/shared/financial/payment-contract.ts"), "utf8"),
+        readFile(path.resolve("../frontend/src/admin/infrastructure/admin-system.api.ts"), "utf8"),
+        readFile(path.resolve("../frontend/src/client/infrastructure/client-system.api.ts"), "utf8")
+    ]);
+    assert.match(shared, /interface ClientPaymentContract/);
+    assert.match(shared, /interface PaymentPageContract/);
+    assert.match(admin, /AdminPaymentContract/);
+    assert.match(admin, /PaymentPageContract/);
+    assert.match(client, /ClientPaymentContract/);
+    assert.match(client, /PaymentPageContract/);
+});
+
+test("views usam a taxonomia compartilhada de tipos", async () => {
+    const source = await readFile(path.resolve("../frontend/src/shared/contracts/database-view.ts"), "utf8");
+    assert.match(source, /\["system", "briefing", "client", "financial"\] as const/);
+    assert.match(source, /type: DatabaseViewType/);
+});

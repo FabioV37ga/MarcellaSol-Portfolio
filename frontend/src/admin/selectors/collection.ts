@@ -1,5 +1,5 @@
 import { baseElements } from "./base.selector.js"
-import { homeElements } from "./home.selector.ts.js"
+import type { homeElements } from "./home.selector.js";
 import { clientsElements } from "./clients.selector.js"
 import { newClientElements } from "./new-client.selector.js"
 

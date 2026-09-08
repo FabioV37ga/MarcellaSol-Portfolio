@@ -2,6 +2,12 @@ import { config } from "@/utils/connection.js";
 import type { ClientBriefingResponse } from "@/shared/briefing/briefing.types.js";
 import type { DbView } from "../templates/interface.js";
 import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
+import type {
+    ClientPaymentContract,
+    PaymentInstallmentContract,
+    PaymentPageContract,
+    PaymentPartContract
+} from "@/shared/financial/payment-contract.js";
 
 export type ClientSystemResponse = { view: DbView[] } & ClientBriefingResponse;
 
@@ -31,41 +37,16 @@ export interface ClientProposalDecision {
     currentStageKey: ProjectStageKey;
 }
 
-export interface ClientPaymentPart {
-    amountCents: number;
-    isPaid: boolean;
-    dueDate?: string;
-    pix?: { generatedAt: string; analysisWindowEndsAt: string };
-}
+export interface ClientPaymentPart extends PaymentPartContract {}
 
-export interface ClientPaymentInstallment extends ClientPaymentPart {
-    number: number;
-}
+export interface ClientPaymentInstallment extends PaymentInstallmentContract {}
 
-export interface ClientPayment {
-    id: string;
-    title: string;
-    totalAmountCents: number;
-    installmentCount: number;
-    firstDueDate?: string;
-    downPaymentPercentage: number;
-    discountPercentage: number;
-    interestPercentage: number;
-    discountAmountCents: number;
+export interface ClientPayment extends ClientPaymentContract {
     downPayment: ClientPaymentPart;
-    finalAmountCents: number;
-    paidAmountCents: number;
-    remainingAmountCents: number;
     installments: ClientPaymentInstallment[];
-    createdAt: string;
-    updatedAt: string;
 }
 
-export interface ClientPaymentPage {
-    payments: ClientPayment[];
-    page: { limit: number; hasMore: boolean; nextCursor?: string };
-    summary: { paymentCount: number; totalAmountCents: number; paidAmountCents: number; remainingAmountCents: number };
-}
+export interface ClientPaymentPage extends PaymentPageContract<ClientPayment> {}
 
 export interface ClientPixResponse {
     payment: ClientPayment;

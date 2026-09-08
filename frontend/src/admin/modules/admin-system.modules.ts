@@ -1,7 +1,7 @@
 import u from "umbrellajs";
 import { getBaseElements, type baseElements } from "../selectors/base.selector.js";
 import { getClientsElements, type clientsElements } from "../selectors/clients.selector.js";
-import { getHomeElements, type homeElements } from "../selectors/home.selector.ts.js";
+import { getHomeElements, type homeElements } from "../selectors/home.selector.js";
 import { getNewClientElements, type newClientElements } from "../selectors/new-client.selector.js";
 import type { system } from "../templates/interface.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";

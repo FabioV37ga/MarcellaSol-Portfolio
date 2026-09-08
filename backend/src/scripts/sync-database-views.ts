@@ -5,11 +5,13 @@ import path from "node:path";
 import mongoose from "mongoose";
 import { parseFragment, type ParserError } from "parse5";
 
+type ViewType = "system" | "briefing" | "client" | "financial";
+
 interface ViewFile {
     _id: { $oid: string };
     viewName: string;
     permission: string;
-    type: string;
+    type: ViewType;
     view: string;
 }
 
@@ -17,7 +19,7 @@ interface StoredView {
     _id: mongoose.Types.ObjectId;
     viewName: string;
     permission: string;
-    type: string;
+    type: ViewType;
     view: string;
 }
 
@@ -27,7 +29,7 @@ interface SelectorSource {
     idsOnly?: boolean;
 }
 
-const knownViews = new Map<string, string>([
+const knownViews = new Map<string, ViewType>([
     ["admin:base", "system"],
     ["admin:home", "system"],
     ["admin:client", "system"],
@@ -50,7 +52,7 @@ const uniqueIndexName = "views_permission_viewName_unique";
 // portanto IDs e classes não ficam duplicados neste script.
 const selectorSources = new Map<string, SelectorSource[]>([
     ["admin:base", [{ file: "src/admin/selectors/base.selector.ts" }]],
-    ["admin:home", [{ file: "src/admin/selectors/home.selector.ts.ts" }]],
+    ["admin:home", [{ file: "src/admin/selectors/home.selector.ts" }]],
     ["admin:client", [{ file: "src/admin/selectors/clients.selector.ts" }]],
     ["admin:new-client", [{ file: "src/admin/selectors/new-client.selector.ts" }]],
     ["admin:client-management", [{ file: "src/admin/selectors/client-management.selector.ts" }]],
@@ -318,7 +320,7 @@ async function main(): Promise<void> {
                 _id: new mongoose.Types.ObjectId(data._id.$oid),
                 viewName: data.viewName.trim(),
                 permission: data.permission.trim(),
-                type: data.type.trim(),
+                type: data.type,
                 view: data.view
             } } });
             console.log(`[CRIAR] ${key} <- ${filename}`);
@@ -327,7 +329,7 @@ async function main(): Promise<void> {
 
         const changed = existing.viewName !== data.viewName.trim()
             || existing.permission !== data.permission.trim()
-            || existing.type !== data.type.trim()
+            || existing.type !== data.type
             || existing.view !== data.view;
         if (!changed) {
             unchanged += 1;
@@ -339,7 +341,7 @@ async function main(): Promise<void> {
             update: { $set: {
                 viewName: data.viewName.trim(),
                 permission: data.permission.trim(),
-                type: data.type.trim(),
+                type: data.type,
                 view: data.view
             } }
         } });

@@ -1,4 +1,4 @@
-import { homeElements } from "@/admin/selectors/home.selector.ts.js";
+import type { homeElements } from "@/admin/selectors/home.selector.js";
 import type { baseElements } from "./base.selector.js";
 
 export interface ClientElementCollection {

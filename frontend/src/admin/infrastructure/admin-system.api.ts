@@ -2,6 +2,12 @@ import { config } from "@/utils/connection.js";
 import type { NewClientPayload } from "@/shared/briefing/briefing.types.js";
 import type { dbView } from "../templates/interface.js";
 import type { ProjectStage, ProjectStageKey, ProjectStageStatus } from "@/shared/project-stages.js";
+import type {
+    AdminPaymentContract,
+    PaymentInstallmentContract,
+    PaymentPageContract,
+    PaymentPartContract
+} from "@/shared/financial/payment-contract.js";
 
 export interface AdminSession {
     token: string;
@@ -59,46 +65,16 @@ export interface ProposalFields {
     attachments?: File[];
 }
 
-export interface PaymentPart {
-    amountCents: number;
-    isPaid: boolean;
-    dueDate?: string;
-}
+export interface PaymentPart extends PaymentPartContract {}
 
-export interface PaymentInstallment extends PaymentPart {
-    number: number;
-}
+export interface PaymentInstallment extends PaymentInstallmentContract {}
 
-export interface ClientPayment {
-    id: string;
-    version: number;
-    clientId: string;
-    title: string;
-    totalAmountCents: number;
-    installmentCount: number;
-    firstDueDate?: string;
-    downPaymentPercentage: number;
-    discountPercentage: number;
-    interestPercentage: number;
-    discountAmountCents: number;
+export interface ClientPayment extends AdminPaymentContract {
     downPayment: PaymentPart;
-    financedAmountCents: number;
-    interestAmountCents: number;
-    installmentTotalCents: number;
-    finalAmountCents: number;
-    paidAmountCents: number;
-    remainingAmountCents: number;
-    financialTermsLocked: boolean;
     installments: PaymentInstallment[];
-    createdAt: string;
-    updatedAt: string;
 }
 
-export interface PaymentPage {
-    payments: ClientPayment[];
-    page: { limit: number; hasMore: boolean; nextCursor?: string };
-    summary: { paymentCount: number; totalAmountCents: number; paidAmountCents: number; remainingAmountCents: number };
-}
+export interface PaymentPage extends PaymentPageContract<ClientPayment> {}
 
 export interface PaymentFields {
     title: string;

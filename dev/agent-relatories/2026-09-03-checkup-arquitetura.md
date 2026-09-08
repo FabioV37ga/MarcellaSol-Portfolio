@@ -538,11 +538,13 @@ Essa melhoria deve acompanhar futuras alterações, sem uma refatoração transv
 
 Primeira extração concluída: paginação, apresentação, geração de Pix, timers e descarte da tela financeira do cliente foram movidos de `ClientSystemModules` para `ClientFinancialModule`. O módulo geral caiu de 466 para 298 linhas e voltou a concentrar apenas a coordenação das telas. As próximas extrações permanecem vinculadas a alterações funcionais nos respectivos fluxos, evitando uma refatoração transversal de alto risco.
 
-### 8. Organizar testes, contratos e nomenclaturas
+### 8. Organizar testes, contratos e nomenclaturas — parcialmente concluído em 08/09/2026
 
 - adicionar testes DOM, MongoDB e HTTP;
 - compartilhar ou gerar contratos financeiros entre backend e frontend;
 - normalizar nomes como `beated`, `Cancelled` e `home.selector.ts.ts`;
 - definir uma taxonomia clara para o campo `type` das views.
+
+Concluído sem alteração de dados persistidos: admin e cliente passaram a reutilizar um contrato financeiro comum; `type` das views ganhou a taxonomia explícita `system | briefing | client | financial` no contrato e no sincronizador; `home.selector.ts.ts` foi normalizado para `home.selector.ts`; e testes de contrato verificam essas integrações. A normalização dos valores persistidos `beated` e `Cancelled` ficou deliberadamente separada, pois exige migração compatível das propostas reais e uma janela própria de implantação.
 
 Em síntese, o primeiro trabalho pendente é preparar o domínio antes de integrar banco ou PSP. Em seguida, devem ser tratadas a confiabilidade operacional, paginação e persistência do histórico financeiro.

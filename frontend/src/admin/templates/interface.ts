@@ -1,4 +1,4 @@
-// import html from "nanohtml"
+import type { DatabaseView } from "@/shared/contracts/database-view.js";
 
 export interface system{
     base?: HTMLElement;
@@ -19,10 +19,4 @@ export interface briefing{
     addedRoom?: HTMLElement;
 }
 
-export interface dbView{
-    _id: string;
-    viewName: string;
-    permission: string;
-    view: string;
-}
-
+export type dbView = DatabaseView;
