@@ -4,10 +4,12 @@ import type { DbView } from "../templates/interface.js";
 import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
 import type {
     ClientPaymentContract,
+    PaymentPixResponseContract,
     PaymentInstallmentContract,
     PaymentPageContract,
     PaymentPartContract
 } from "@/shared/financial/payment-contract.js";
+import { parseClientPayment, parsePaymentPage, parsePaymentPixResponse } from "@/shared/financial/payment-contract.js";
 
 export type ClientSystemResponse = { view: DbView[] } & ClientBriefingResponse;
 
@@ -48,18 +50,7 @@ export interface ClientPayment extends ClientPaymentContract {
 
 export interface ClientPaymentPage extends PaymentPageContract<ClientPayment> {}
 
-export interface ClientPixResponse {
-    payment: ClientPayment;
-    pix: {
-        partType: "down-payment" | "installment";
-        installmentNumber?: number;
-        amountCents: number;
-        brCode: string;
-        qrCodeDataUrl: string;
-        generatedAt: string;
-        analysisWindowEndsAt: string;
-    };
-}
+export interface ClientPixResponse extends PaymentPixResponseContract<ClientPayment> {}
 
 export class ClientSystemApi {
     async load(token: string): Promise<ClientSystemResponse | undefined> {
@@ -106,11 +97,7 @@ export class ClientSystemApi {
             message?: string;
         };
         if (!response.ok) throw new Error(result.message ?? "Não foi possível carregar os pagamentos.");
-        return {
-            payments: result.payments ?? [],
-            page: result.page ?? { limit: 20, hasMore: false },
-            summary: result.summary ?? { paymentCount: 0, totalAmountCents: 0, paidAmountCents: 0, remainingAmountCents: 0 }
-        };
+        return parsePaymentPage(result, parseClientPayment) as ClientPaymentPage;
     }
 
     async generatePaymentPix(
@@ -128,7 +115,7 @@ export class ClientSystemApi {
         if (!response.ok || !result.payment || !result.pix) {
             throw new Error(result.message ?? "Não foi possível gerar o código Pix.");
         }
-        return result as ClientPixResponse;
+        return parsePaymentPixResponse(result, parseClientPayment) as ClientPixResponse;
     }
 
     approveProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {

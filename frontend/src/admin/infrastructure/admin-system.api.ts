@@ -4,10 +4,12 @@ import type { dbView } from "../templates/interface.js";
 import type { ProjectStage, ProjectStageKey, ProjectStageStatus } from "@/shared/project-stages.js";
 import type {
     AdminPaymentContract,
+    PaymentPreviewContract,
     PaymentInstallmentContract,
     PaymentPageContract,
     PaymentPartContract
 } from "@/shared/financial/payment-contract.js";
+import { parseAdminPayment, parsePaymentPage, parsePaymentPreview } from "@/shared/financial/payment-contract.js";
 
 export interface AdminSession {
     token: string;
@@ -94,12 +96,7 @@ export type PaymentPreviewFields = Pick<PaymentFields,
     | "downPaymentPercentage" | "discountPercentage" | "interestPercentage"
 >;
 
-export interface PaymentPreview {
-    downPaymentCents: number;
-    firstDueDate: string;
-    installments: Array<{ amountCents: number; dueDate: string }>;
-    finalAmountCents: number;
-}
+export interface PaymentPreview extends PaymentPreviewContract {}
 
 export class AdminSystemApi {
     private authorization(session: AdminSession): HeadersInit {
@@ -112,6 +109,7 @@ export class AdminSystemApi {
         preview?: PaymentPreview;
         page?: PaymentPage["page"];
         summary?: PaymentPage["summary"];
+        highlight?: PaymentPage["highlight"];
     }> {
         const result = await response.json().catch(() => ({})) as {
             payment?: ClientPayment;
@@ -129,11 +127,7 @@ export class AdminSystemApi {
             headers: this.authorization(session)
         });
         const result = await this.paymentRequest(response);
-        return {
-            payments: result.payments ?? [],
-            page: result.page ?? { limit: 20, hasMore: false },
-            summary: result.summary ?? { paymentCount: 0, totalAmountCents: 0, paidAmountCents: 0, remainingAmountCents: 0 }
-        };
+        return parsePaymentPage(result, parseAdminPayment) as PaymentPage;
     }
 
     async previewPayment(
@@ -149,7 +143,7 @@ export class AdminSystemApi {
         });
         const preview = (await this.paymentRequest(response)).preview;
         if (!preview) throw new Error("Resposta inválida ao calcular o pagamento");
-        return preview;
+        return parsePaymentPreview(preview);
     }
 
     async createPayment(session: AdminSession, clientId: string, fields: PaymentFields): Promise<ClientPayment> {
@@ -201,7 +195,7 @@ export class AdminSystemApi {
         );
         const payment = (await this.paymentRequest(response)).payment;
         if (!payment) throw new Error("Resposta inválida ao salvar pagamento");
-        return payment;
+        return parseAdminPayment(payment) as ClientPayment;
     }
 
     async setDownPaymentPaid(
@@ -250,7 +244,7 @@ export class AdminSystemApi {
         );
         const payment = (await this.paymentRequest(response)).payment;
         if (!payment) throw new Error("Resposta inválida ao atualizar pagamento");
-        return payment;
+        return parseAdminPayment(payment) as ClientPayment;
     }
 
     private async proposalRequest(

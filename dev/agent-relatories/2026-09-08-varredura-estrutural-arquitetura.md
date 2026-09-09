@@ -181,6 +181,8 @@ Recomendação:
 
 ### ARQ2-008 — contratos HTTP são TypeScript-only e serializados manualmente
 
+Estado em 09/09/2026: **parcialmente resolvido**. As respostas financeiras consumidas pelo administrador e pelo cliente agora passam por validação runtime compartilhada, incluindo pagamentos, parcelas, paginação, resumo e destaque global. Respostas incompletas ou com tipos divergentes deixam de atravessar a aplicação por simples type assertion. Permanecem como evolução a geração de OpenAPI e a adoção do mesmo padrão nos contratos de propostas e briefing.
+
 Prioridade: **média-alta**  
 Tipo: contrato / confiabilidade
 

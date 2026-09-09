@@ -1,20 +1,3 @@
-16/08
-
-🟩 Tela de gerenciar usuários feita (mobile, falta desktop.)
-
-🟨 Desenvolver tela de inserir nome/login/senha/tipo de usuário
-🟨 Desenvolver tela geração de formulário-briefing (selecionar itens)
-
-🟨 Desenvolver ciclo de geração de usuário p/ fazer salvamento no banco.
-
-Ou seja:
----------------------------------
-input criar usuário → 
-insere campos → continua → 
-define itens do briefing → 
-gera usuário e salva no banco
----------------------------------
-
 regra de negocio de quantidade de rebatidas permitidas (max 2)
 adicionar termo de "concordo que a rebatida usa uma das chances de rebater"
 
@@ -29,8 +12,5 @@ arrumar explicação guarda-roupa - cliente pediu***
 
 financeiro:
 
-2. implementar api de pagamento (pix)
-    - cliente tem acesso a tela de financeiro, onde ele pode gerar o pix e pagar.
-    - o cliente pode adiantar pagamentos de meses seguidos 
-    obs: jaja ela decide
-    
+1. Implementar API pix 
+(por enquanto tá usando uma geração de qr code, sem controle de confirmações)
