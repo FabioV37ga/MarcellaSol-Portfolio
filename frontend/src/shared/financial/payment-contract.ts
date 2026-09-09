@@ -49,8 +49,22 @@ export interface PaymentSummaryContract {
     remainingAmountCents: number;
 }
 
+export interface FinancialHighlightContract {
+    paymentId: string;
+    paymentTitle: string;
+    partType: "down-payment" | "installment";
+    installmentNumber?: number;
+    label: string;
+    amountCents: number;
+    dueDate: string;
+    isPaid: boolean;
+    pix?: PaymentPixWindowContract;
+    hasActivePix: boolean;
+}
+
 export interface PaymentPageContract<TPayment extends ClientPaymentContract> {
     payments: TPayment[];
     page: { limit: number; hasMore: boolean; nextCursor?: string };
     summary: PaymentSummaryContract;
+    highlight?: FinancialHighlightContract;
 }

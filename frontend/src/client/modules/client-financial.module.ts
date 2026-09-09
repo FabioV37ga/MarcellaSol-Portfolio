@@ -5,6 +5,7 @@ import { getClientFinancialElements } from "../selectors/financial.selector.js";
 import type { system } from "../templates/interface.js";
 import { clientPaymentHighlight, clientPaymentItem, type PaymentPartReference } from "../templates/client-payment-item.template.js";
 import { ClientSystemApi, type ClientPayment } from "../infrastructure/client-system.api.js";
+import type { FinancialHighlightContract } from "@/shared/financial/payment-contract.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
 
 export class ClientFinancialModule {
@@ -53,6 +54,7 @@ export class ClientFinancialModule {
         let nextCursor: string | undefined;
         let totalPaymentCount = 0;
         let loadingMore = false;
+        let highlight: FinancialHighlightContract | undefined;
         const scheduleAnalysisWindowRefresh = (): void => {
             window.clearTimeout(this.analysisWindowTimer);
             const analysisWindowEnds = payments.reduce<Array<ClientPayment["downPayment"]>>((parts, payment) => {
@@ -69,7 +71,7 @@ export class ClientFinancialModule {
         };
         const renderPayments = (): void => {
             const openPix = (part: PaymentPartReference): void => { void showPix(part); };
-            elements.highlight.replaceChildren(clientPaymentHighlight(payments, openPix));
+            elements.highlight.replaceChildren(clientPaymentHighlight(highlight, openPix));
             elements.list.replaceChildren();
             elements.empty.hidden = payments.length > 0;
             elements.paginationStatus.textContent = `${payments.length} de ${totalPaymentCount} pagamentos exibidos`;
@@ -110,6 +112,14 @@ export class ClientFinancialModule {
                 if (requestId !== this.requestId || !elements.pixDialog.open) return;
                 const index = payments.findIndex(payment => payment.id === result.payment.id);
                 if (index >= 0) payments[index] = result.payment;
+                if (highlight?.paymentId === result.payment.id
+                    && highlight.partType === part.partType
+                    && highlight.installmentNumber === part.installmentNumber) {
+                    highlight = { ...highlight, pix: {
+                        generatedAt: result.pix.generatedAt,
+                        analysisWindowEndsAt: result.pix.analysisWindowEndsAt
+                    }, hasActivePix: true };
+                }
                 elements.pixQr.src = result.pix.qrCodeDataUrl;
                 elements.pixCode.value = result.pix.brCode;
                 elements.pixLoading.hidden = true;
@@ -158,6 +168,7 @@ export class ClientFinancialModule {
                 payments.push(...page.payments.filter(payment => !known.has(payment.id)));
                 nextCursor = page.page.nextCursor;
                 totalPaymentCount = page.summary.paymentCount;
+                highlight = page.highlight;
                 renderPayments();
             } catch (error) {
                 elements.feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar mais pagamentos.";
@@ -173,6 +184,7 @@ export class ClientFinancialModule {
             payments = page.payments;
             nextCursor = page.page.nextCursor;
             totalPaymentCount = page.summary.paymentCount;
+            highlight = page.highlight;
             elements.loading.hidden = true;
             renderPayments();
         } catch (error) {

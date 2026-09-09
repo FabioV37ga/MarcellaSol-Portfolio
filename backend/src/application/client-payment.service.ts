@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import QRCode from "qrcode";
 import type { ClientPaymentObject, PaymentAuditEvent, PaymentInstallment, PaymentPart, PaymentTermsSnapshot } from "../models/clientPayment.js";
 import { ClientPaymentRepository } from "../repositories/client-payment.repository.js";
+import type { PaymentHighlightCandidate, PaymentHighlightCandidates } from "../repositories/client-payment.repository.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
 import { generatePixBrCode, type PixReceiver } from "../services/pix-br-code.js";
@@ -133,15 +134,15 @@ export class ClientPaymentService {
     async list(clientId: string, cursorValue?: unknown, limitValue?: unknown) {
         await this.requireClient(clientId);
         const options = paymentPageOptions(cursorValue, limitValue);
-        const { page, summary } = await loadPaymentPage(this.payments, clientId, options);
-        return paymentPageResponse(page, summary, options.limit, paymentResponse);
+        const { page, summary, highlight } = await loadPaymentPage(this.payments, clientId, options);
+        return paymentPageResponse(page, summary, highlight, options.limit, paymentResponse);
     }
 
     async listForClient(clientId: string, cursorValue?: unknown, limitValue?: unknown) {
         await this.requireClient(clientId);
         const options = paymentPageOptions(cursorValue, limitValue);
-        const { page, summary } = await loadPaymentPage(this.payments, clientId, options);
-        return paymentPageResponse(page, summary, options.limit, clientPaymentResponse);
+        const { page, summary, highlight } = await loadPaymentPage(this.payments, clientId, options);
+        return paymentPageResponse(page, summary, highlight, options.limit, clientPaymentResponse);
     }
 
     async create(clientId: string, fields: PaymentFields, actor: PaymentActor) {
@@ -428,6 +429,7 @@ function paymentPageOptions(cursorValue: unknown, limitValue: unknown) {
 function paymentPageResponse<T>(
     page: { records: ClientPaymentObject[]; hasMore: boolean },
     summary: { paymentCount: number; totalAmountCents: number; paidAmountCents: number; remainingAmountCents: number },
+    highlight: ReturnType<typeof paymentHighlightResponse> | undefined,
     limit: number,
     presenter: (payment: ClientPaymentObject) => T
 ) {
@@ -436,7 +438,7 @@ function paymentPageResponse<T>(
         ? Buffer.from(JSON.stringify({ createdAt: last.createdAt.toISOString(), id: last._id.toString() })).toString("base64url")
         : undefined;
     return { payments: page.records.map(presenter), page: { limit, hasMore: page.hasMore,
-        ...(nextCursor ? { nextCursor } : {}) }, summary };
+        ...(nextCursor ? { nextCursor } : {}) }, summary, highlight };
 }
 
 async function loadPaymentPage(
@@ -448,10 +450,18 @@ async function loadPaymentPage(
         findByClientId?: (id: string) => Promise<ClientPaymentObject[]>;
     };
     if (typeof compatible.findPageByClientId === "function" && typeof compatible.summarizeByClientId === "function") {
-        const [page, summary] = await Promise.all([
-            compatible.findPageByClientId(clientId, options), compatible.summarizeByClientId(clientId)
+        const now = new Date();
+        const today = dateOnlyInFinancialTimeZone(now);
+        const monthStart = `${today.slice(0, 8)}01`;
+        const [year, month] = today.split("-").map(Number);
+        const nextMonthStart = `${month === 12 ? year + 1 : year}-${String(month === 12 ? 1 : month + 1).padStart(2, "0")}-01`;
+        const [page, summary, candidates] = await Promise.all([
+            compatible.findPageByClientId(clientId, options), compatible.summarizeByClientId(clientId),
+            typeof compatible.findHighlightCandidatesByClientId === "function"
+                ? compatible.findHighlightCandidatesByClientId(clientId, today, monthStart, nextMonthStart)
+                : Promise.resolve(undefined)
         ]);
-        return { page, summary };
+        return { page, summary, highlight: candidates ? selectPaymentHighlight(candidates, today) : undefined };
     }
     const records = await compatible.findByClientId?.(clientId) ?? [];
     const responses = records.map(paymentResponse);
@@ -462,8 +472,68 @@ async function loadPaymentPage(
             totalAmountCents: responses.reduce((total, payment) => total + payment.finalAmountCents, 0),
             paidAmountCents: responses.reduce((total, payment) => total + payment.paidAmountCents, 0),
             remainingAmountCents: responses.reduce((total, payment) => total + payment.remainingAmountCents, 0)
-        }
+        },
+        highlight: selectPaymentHighlightFromRecords(records, new Date())
     };
+}
+
+function selectPaymentHighlight(candidates: PaymentHighlightCandidates, today: string) {
+    const nextWithinWindow = candidates.nextUnpaid
+        && dateOnlyDifference(today, candidates.nextUnpaid.dueDate) <= 28
+        ? candidates.nextUnpaid : undefined;
+    return paymentHighlightResponse(candidates.overdue
+        ?? candidates.currentUnpaid
+        ?? nextWithinWindow
+        ?? candidates.currentLast
+        ?? candidates.latestPast);
+}
+
+function selectPaymentHighlightFromRecords(records: ClientPaymentObject[], now: Date) {
+    const candidates = records.flatMap<PaymentHighlightCandidate>(payment => {
+        const down = payment.downPayment.amountCents > 0 ? [{ paymentId: payment._id, paymentTitle: payment.title,
+            partType: "down-payment" as const, amountCents: payment.downPayment.amountCents,
+            dueDate: payment.downPayment.dueDate ?? payment.firstDueDate, isPaid: payment.downPayment.isPaid,
+            pix: payment.downPayment.pix }] : [];
+        return [...down, ...payment.installments.map(part => ({ paymentId: payment._id, paymentTitle: payment.title,
+            partType: "installment" as const, installmentNumber: part.number, amountCents: part.amountCents,
+            dueDate: part.dueDate, isPaid: part.isPaid, pix: part.pix }))];
+    }).filter(part => typeof part.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(part.dueDate))
+        .sort((left, right) => left.dueDate.localeCompare(right.dueDate));
+    const today = dateOnlyInFinancialTimeZone(now);
+    const month = today.slice(0, 7);
+    const overdue = candidates.find(part => !part.isPaid && part.dueDate < today);
+    const current = candidates.filter(part => part.dueDate.startsWith(month));
+    const currentCandidate = current.find(part => !part.isPaid) ?? current[current.length - 1];
+    const next = candidates.find(part => !part.isPaid && part.dueDate > today);
+    return paymentHighlightResponse(overdue ?? (currentCandidate && !currentCandidate.isPaid ? currentCandidate : undefined)
+        ?? (next && dateOnlyDifference(today, next.dueDate) <= 28 ? next : undefined)
+        ?? currentCandidate ?? [...candidates].reverse().find(part => part.dueDate <= today));
+}
+
+function paymentHighlightResponse(candidate?: PaymentHighlightCandidate) {
+    if (!candidate) return undefined;
+    const analysisWindowEndsAt = pixAnalysisWindowEnd(candidate.pix);
+    const activePix = !candidate.isPaid && candidate.pix && analysisWindowEndsAt && analysisWindowEndsAt.getTime() > Date.now();
+    return {
+        paymentId: candidate.paymentId.toString(), paymentTitle: candidate.paymentTitle,
+        partType: candidate.partType, ...(candidate.installmentNumber === undefined ? {} : { installmentNumber: candidate.installmentNumber }),
+        label: candidate.partType === "down-payment" ? "Entrada" : `Parcela ${candidate.installmentNumber}`,
+        amountCents: candidate.amountCents, dueDate: candidate.dueDate, isPaid: candidate.isPaid,
+        ...(activePix ? { pix: { generatedAt: candidate.pix!.generatedAt, analysisWindowEndsAt } } : {}),
+        hasActivePix: Boolean(activePix)
+    };
+}
+
+function dateOnlyInFinancialTimeZone(date: Date): string {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: FINANCIAL_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit"
+    }).formatToParts(date);
+    const value = (type: "year" | "month" | "day") => parts.find(part => part.type === type)!.value;
+    return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+function dateOnlyDifference(from: string, to: string): number {
+    return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
 }
 
 function clientPaymentResponse(payment: ClientPaymentObject) {

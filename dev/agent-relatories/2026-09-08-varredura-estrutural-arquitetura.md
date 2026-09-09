@@ -73,6 +73,8 @@ Tamanho não é defeito isoladamente. Ele se torna relevante quando o arquivo mu
 
 ### ARQ2-001 — destaque financeiro depende da página carregada
 
+Estado em 08/09/2026: **resolvido**. A API passou a devolver uma projeção de destaque calculada no MongoDB sobre todas as cobranças ativas do cliente. A página continua paginada e o frontend apenas apresenta o candidato oficial, inclusive quando sua cobrança não está entre os cartões carregados.
+
 Prioridade: **alta**  
 Tipo: correção funcional / escalabilidade
 

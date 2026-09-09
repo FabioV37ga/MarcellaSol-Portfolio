@@ -8,6 +8,7 @@ import {
     selectHighlightedPaymentPart,
     type FinancialClock
 } from "../src/shared/financial/payment-presentation.js";
+import { clientPaymentHighlight } from "../src/client/templates/client-payment-item.template.js";
 
 const clock: FinancialClock = () => new Date(2026, 8, 6, 12);
 
@@ -52,6 +53,18 @@ describe("apresentação financeira", () => {
             { number: 2, amountCents: 5000, isPaid: false, dueDate: "2026-10-05" }
         ]);
         expect(selectHighlightedPaymentPart([future], clock)?.installmentNumber).toBe(1);
+    });
+
+    it("renderiza o destaque fornecido pelo backend mesmo sem o pagamento na página", () => {
+        const element = clientPaymentHighlight({
+            paymentId: "payment-outside-page", paymentTitle: "Histórico anterior", partType: "installment",
+            installmentNumber: 7, label: "Parcela 7", amountCents: 12345, dueDate: "2026-09-05",
+            isPaid: false, hasActivePix: false
+        }, undefined, clock);
+
+        expect(element.textContent).toContain("Histórico anterior");
+        expect(element.textContent).toContain("Parcela 7");
+        expect(element.textContent).toContain("R$ 123,45");
     });
 });
 

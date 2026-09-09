@@ -1,9 +1,9 @@
 import type { ClientPayment, ClientPaymentPart } from "../infrastructure/client-system.api.js";
+import type { FinancialHighlightContract } from "@/shared/financial/payment-contract.js";
 import {
     paymentHasActivePix,
     paymentHasOverduePart,
     paymentPartStatus,
-    selectHighlightedPaymentPart,
     systemFinancialClock,
     type FinancialClock
 } from "@/shared/financial/payment-presentation.js";
@@ -15,11 +15,10 @@ export interface PaymentPartReference { paymentId: string; paymentTitle: string;
 type PayHandler = (part: PaymentPartReference) => void;
 
 export function clientPaymentHighlight(
-    payments: ClientPayment[],
+    highlighted: FinancialHighlightContract | undefined,
     onPay?: PayHandler,
     clock: FinancialClock = systemFinancialClock
 ): HTMLElement {
-    const highlighted = selectHighlightedPaymentPart(payments, clock);
     if (!highlighted) return el("p", "client-financial-highlight-empty", "Nenhum vencimento programado no momento.");
     const content = el("article", "client-financial-highlight-payment");
     const main = el("div", "client-financial-highlight-main");

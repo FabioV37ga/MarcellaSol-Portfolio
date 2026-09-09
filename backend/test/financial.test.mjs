@@ -266,6 +266,13 @@ test("listagem financeira devolve paginação explícita e resumo independente d
         },
         async summarizeByClientId() {
             return { paymentCount: 12, totalAmountCents: 120000, paidAmountCents: 40000, remainingAmountCents: 80000 };
+        },
+        async findHighlightCandidatesByClientId() {
+            return { overdue: {
+                paymentId: { toString: () => "507f1f77bcf86cd799439099" },
+                paymentTitle: "Pagamento fora da primeira página", partType: "installment",
+                installmentNumber: 3, amountCents: 25000, dueDate: "2020-01-01", isPaid: false
+            } };
         }
     });
     const result = await service.list(clientId, undefined, "1");
@@ -273,6 +280,8 @@ test("listagem financeira devolve paginação explícita e resumo independente d
     assert.equal(result.page.hasMore, true);
     assert.ok(result.page.nextCursor);
     assert.equal(result.summary.paymentCount, 12);
+    assert.equal(result.highlight.paymentId, "507f1f77bcf86cd799439099");
+    assert.equal(result.highlight.label, "Parcela 3");
 });
 
 test("listagem financeira rejeita cursor inválido", async () => {

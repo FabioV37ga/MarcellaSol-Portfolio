@@ -8,6 +8,24 @@ export type PaymentData = Omit<ClientPaymentObject, "_id" | "createdAt" | "updat
 export type PaymentTermsData = Omit<PaymentData, "clientId" | "events" | "archivedAt" | "currency" | "timeZone" | "status" | "hasReceiptHistory">;
 export interface PaymentPageCursor { createdAt: Date; id: mongoose.Types.ObjectId }
 export interface PaymentPageOptions { limit: number; cursor?: PaymentPageCursor }
+export interface PaymentHighlightCandidate {
+    paymentId: mongoose.Types.ObjectId;
+    paymentTitle: string;
+    partType: "down-payment" | "installment";
+    installmentNumber?: number;
+    amountCents: number;
+    dueDate: string;
+    isPaid: boolean;
+    pix?: PixPaymentRequest;
+}
+
+export interface PaymentHighlightCandidates {
+    overdue?: PaymentHighlightCandidate;
+    currentUnpaid?: PaymentHighlightCandidate;
+    currentLast?: PaymentHighlightCandidate;
+    nextUnpaid?: PaymentHighlightCandidate;
+    latestPast?: PaymentHighlightCandidate;
+}
 
 export class ClientPaymentRepository {
     async findPageByClientId(clientId: string, options: PaymentPageOptions) {
@@ -45,6 +63,52 @@ export class ClientPaymentRepository {
         const paidAmountCents = summary?.paidAmountCents ?? 0;
         return { paymentCount: summary?.paymentCount ?? 0, totalAmountCents, paidAmountCents,
             remainingAmountCents: Math.max(0, totalAmountCents - paidAmountCents) };
+    }
+
+    async findHighlightCandidatesByClientId(
+        clientId: string,
+        today: string,
+        monthStart: string,
+        nextMonthStart: string
+    ): Promise<PaymentHighlightCandidates> {
+        type FacetResult = Record<keyof PaymentHighlightCandidates, PaymentHighlightCandidate[]>;
+        const [result] = await payments.aggregate<FacetResult>([
+            { $match: { clientId: new mongoose.Types.ObjectId(clientId), archivedAt: null } },
+            { $project: {
+                paymentTitle: "$title",
+                parts: { $concatArrays: [
+                    { $cond: [
+                        { $gt: ["$downPayment.amountCents", 0] },
+                        [{ paymentId: "$_id", paymentTitle: "$title", partType: "down-payment",
+                            amountCents: "$downPayment.amountCents", dueDate: { $ifNull: ["$downPayment.dueDate", "$firstDueDate"] },
+                            isPaid: "$downPayment.isPaid", pix: "$downPayment.pix" }],
+                        []
+                    ] },
+                    { $map: { input: "$installments", as: "part", in: {
+                        paymentId: "$_id", paymentTitle: "$title", partType: "installment",
+                        installmentNumber: "$$part.number", amountCents: "$$part.amountCents",
+                        dueDate: "$$part.dueDate", isPaid: "$$part.isPaid", pix: "$$part.pix"
+                    } } }
+                ] }
+            } },
+            { $unwind: "$parts" },
+            { $replaceRoot: { newRoot: "$parts" } },
+            { $match: { dueDate: { $type: "string", $regex: /^\d{4}-\d{2}-\d{2}$/ } } },
+            { $facet: {
+                overdue: [{ $match: { isPaid: false, dueDate: { $lt: today } } }, { $sort: { dueDate: 1, paymentId: 1 } }, { $limit: 1 }],
+                currentUnpaid: [{ $match: { isPaid: false, dueDate: { $gte: monthStart, $lt: nextMonthStart } } }, { $sort: { dueDate: 1, paymentId: 1 } }, { $limit: 1 }],
+                currentLast: [{ $match: { dueDate: { $gte: monthStart, $lt: nextMonthStart } } }, { $sort: { dueDate: -1, paymentId: -1 } }, { $limit: 1 }],
+                nextUnpaid: [{ $match: { isPaid: false, dueDate: { $gt: today } } }, { $sort: { dueDate: 1, paymentId: 1 } }, { $limit: 1 }],
+                latestPast: [{ $match: { dueDate: { $lte: today } } }, { $sort: { dueDate: -1, paymentId: -1 } }, { $limit: 1 }]
+            } }
+        ]);
+        return {
+            overdue: result?.overdue[0],
+            currentUnpaid: result?.currentUnpaid[0],
+            currentLast: result?.currentLast[0],
+            nextUnpaid: result?.nextUnpaid[0],
+            latestPast: result?.latestPast[0]
+        };
     }
 
     findByIdAndClientId(id: string, clientId: string) {
