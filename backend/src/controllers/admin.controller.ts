@@ -128,7 +128,7 @@ export class AdminController {
     generateBriefingReport = async (request: Request, response: Response): Promise<Response> => {
         try {
             const id = Array.isArray(request.params.id) ? request.params.id[0] : request.params.id;
-            return response.status(201).json(await this.briefingReports.generate(id));
+            return response.status(202).json(await this.briefingReports.generate(id));
         } catch (error: unknown) {
             return this.reportError(error, response);
         }

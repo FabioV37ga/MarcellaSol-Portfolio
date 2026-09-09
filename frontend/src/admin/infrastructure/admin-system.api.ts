@@ -42,6 +42,12 @@ export interface ProposalStageMutation extends UpdatedClientProjectStage {
 export interface BriefingReportStatus {
     exists: boolean;
     folderUrl?: string;
+    job?: {
+        id: string;
+        status: "queued" | "running" | "succeeded" | "failed";
+        attempts: number;
+        error?: string;
+    };
 }
 
 export type ProposalStatus = "sent" | "beated" | "resent" | "approved" | "Cancelled";

@@ -16,6 +16,8 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import sharp from "sharp";
+import { ReportJobRepository } from "../repositories/report-job.repository.js";
+import type { ReportJobStatus } from "../models/reportJob.js";
 
 const MAX_REPORT_IMAGES = 20;
 sharp.cache(false);
@@ -23,31 +25,56 @@ sharp.concurrency(1);
 
 export class ClientBriefingReportService {
     private static generationQueue: Promise<void> = Promise.resolve();
-    private readonly generations = new Map<string, Promise<BriefingReportDriveStatus>>();
+    private readonly scheduledJobs = new Set<string>();
 
     constructor(
         private readonly clients = new ClientRepository(),
         private readonly briefings = new ClientBriefingRepository(),
-        private readonly storage: BriefingReportStorage = new GoogleDriveAttachmentStorage()
+        private readonly storage: BriefingReportStorage = new GoogleDriveAttachmentStorage(),
+        private readonly jobs = new ReportJobRepository()
     ) {}
 
-    async status(clientId: string): Promise<BriefingReportDriveStatus> {
+    async status(clientId: string): Promise<BriefingReportDriveStatus & { job?: ReportJobResponse }> {
         const client = await this.getClient(clientId);
-        return this.storage.getBriefingReportStatus(client.driveFolderId);
+        const [driveStatus, job] = await Promise.all([
+            this.storage.getBriefingReportStatus(client.driveFolderId),
+            this.jobs.findLatestByClientId(client._id)
+        ]);
+        if (job?.status === "queued") this.schedule(job._id.toString(), clientId);
+        return { ...driveStatus, ...(job ? { job: reportJobResponse(job) } : {}) };
     }
 
-    generate(clientId: string): Promise<BriefingReportDriveStatus> {
-        const running = this.generations.get(clientId);
-        if (running) return running;
+    async generate(clientId: string): Promise<{ exists: false; job: ReportJobResponse }> {
+        const client = await this.getClient(clientId);
+        const briefing = await this.briefings.findReportSourceByClientId(client._id);
+        if (!briefing) throw new ApplicationError("O cliente ainda não possui um briefing preenchido", 409);
+        const briefingVersion = briefing.updatedAt ?? briefing.submittedAt;
+        let job = await this.jobs.enqueue(client._id, briefingVersion);
+        if (job.status === "succeeded" || job.status === "failed") {
+            job = await this.jobs.requeueTerminal(job._id.toString()) ?? job;
+        }
+        this.schedule(job._id.toString(), clientId);
+        return { exists: false, job: reportJobResponse(job) };
+    }
 
-        const generation = ClientBriefingReportService.generationQueue
-            .then(() => this.generateAndUpload(clientId));
-        ClientBriefingReportService.generationQueue = generation.then(() => undefined, () => undefined);
-        const trackedGeneration = generation.finally(() => {
-            this.generations.delete(clientId);
+    private schedule(jobId: string, clientId: string): void {
+        if (this.scheduledJobs.has(jobId)) return;
+        this.scheduledJobs.add(jobId);
+        const generation = ClientBriefingReportService.generationQueue.then(async () => {
+            const claimed = await this.jobs.claim(jobId);
+            if (!claimed) return;
+            try {
+                await this.generateAndUpload(clientId);
+                await this.jobs.succeed(jobId);
+            } catch (error) {
+                await this.jobs.fail(jobId, sanitizedJobError(error));
+            }
         });
-        this.generations.set(clientId, trackedGeneration);
-        return trackedGeneration;
+        ClientBriefingReportService.generationQueue = generation.then(() => undefined, () => undefined);
+        void generation.then(
+            () => this.scheduledJobs.delete(jobId),
+            () => this.scheduledJobs.delete(jobId)
+        );
     }
 
     private async generateAndUpload(clientId: string): Promise<BriefingReportDriveStatus> {
@@ -122,4 +149,25 @@ export class ClientBriefingReportService {
             driveFolderId: client.driveFolderId
         };
     }
+}
+
+interface ReportJobResponse {
+    id: string;
+    status: ReportJobStatus;
+    attempts: number;
+    error?: string;
+}
+
+function reportJobResponse(job: { _id: unknown; status: ReportJobStatus; attempts: number; error?: string }): ReportJobResponse {
+    return {
+        id: String(job._id),
+        status: job.status,
+        attempts: job.attempts,
+        ...(job.error ? { error: job.error } : {})
+    };
+}
+
+function sanitizedJobError(error: unknown): string {
+    if (error instanceof ApplicationError) return error.message;
+    return "Não foi possível gerar o relatório";
 }
