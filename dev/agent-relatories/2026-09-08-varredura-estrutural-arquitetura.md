@@ -295,6 +295,8 @@ Recomendação: logs JSON estruturados, correlation ID, duração e código de e
 
 ### ARQ2-018 — suíte possui boa cobertura de regras, mas pouca integração real
 
+Estado em 08/09/2026: **parcialmente resolvido**. A primeira camada de integração financeira foi concluída: foram adicionados testes HTTP reais para o contrato paginado administrativo e do cliente, além de uma suíte MongoDB opt-in que valida cursor, aggregation de resumo/destaque e concorrência otimista. A suíte Mongo recusa a conexão normal, exige `TEST_DB_CONNECTION_STRING`, banco nomeado como teste e replica set. Permanecem como evolução os testes de integração dos demais módulos e os fluxos E2E.
+
 Prioridade: **média**  
 Tipo: testes
 
