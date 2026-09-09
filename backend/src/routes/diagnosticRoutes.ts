@@ -1,10 +1,10 @@
 import express from "express";
-import mongoose from "mongoose";
+import { currentMongoDbReadiness, type MongoDbCapabilities } from "../config/mongodb-capabilities.js";
 
-export type DatabaseReadiness = () => boolean;
+export type DatabaseReadiness = () => boolean | MongoDbCapabilities;
 
 export function createDiagnosticRoutes(
-    databaseReady: DatabaseReadiness = () => mongoose.connection.readyState === 1
+    databaseReady: DatabaseReadiness = currentMongoDbReadiness
 ) {
     const router = express.Router();
 
@@ -15,10 +15,16 @@ export function createDiagnosticRoutes(
 
     // Readiness: informa se a aplicação está apta a atender operações com persistência.
     router.get("/api/ready", (_request, response) => {
-        const ready = databaseReady();
+        const state = databaseReady();
+        const connected = typeof state === "boolean" ? state : state.connected;
+        const transactions = typeof state === "boolean" ? state : state.transactions;
+        const ready = connected && transactions;
         response.status(ready ? 200 : 503).json({
             status: ready ? "ready" : "not-ready",
-            dependencies: { mongodb: ready ? "ready" : "unavailable" },
+            dependencies: {
+                mongodb: connected ? "ready" : "unavailable",
+                transactions: transactions ? "ready" : "unavailable"
+            },
             timestamp: new Date().toISOString()
         });
     });

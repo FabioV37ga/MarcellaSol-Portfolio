@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { detectMongoDbCapabilities, setMongoDbCapabilities } from "./mongodb-capabilities.js";
 
 async function connect(uri: string) {
   await mongoose.connect(uri, {
@@ -7,7 +8,13 @@ async function connect(uri: string) {
     socketTimeoutMS: 45000,
   });
 
+  const capabilities = await detectMongoDbCapabilities(mongoose.connection);
+  setMongoDbCapabilities(capabilities);
+
   console.log("✓ Conectado ao MongoDB com sucesso");
+  if (!capabilities.transactions) {
+    console.warn("! MongoDB conectado sem suporte detectável a transações; readiness permanecerá indisponível");
+  }
   return mongoose.connection;
 }
 

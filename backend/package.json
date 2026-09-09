@@ -10,6 +10,7 @@
     "build": "tsc",
     "test": "npm run build && node --test test/*.test.mjs",
     "test:integration:mongodb": "npm run build && RUN_MONGODB_INTEGRATION_TESTS=1 node --test test/financial-mongodb.integration.test.mjs",
+    "mongodb:smoke-transactions": "npm run build && node dist/src/scripts/smoke-mongodb-transactions.js",
     "views:validate": "npm run build && node dist/src/scripts/sync-database-views.js --validate-only",
     "views:check": "npm run build && node dist/src/scripts/sync-database-views.js",
     "views:sync": "npm run build && node dist/src/scripts/sync-database-views.js --apply",

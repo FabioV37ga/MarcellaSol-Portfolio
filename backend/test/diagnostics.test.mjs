@@ -47,6 +47,16 @@ test("readiness retorna 200 quando o banco está disponível", async () => {
     });
 });
 
+test("readiness retorna 503 quando MongoDB não oferece transações", async () => {
+    await withServer(createDiagnosticRoutes(() => ({ connected: true, transactions: false })), async baseUrl => {
+        const response = await fetch(`${baseUrl}/api/ready`);
+        const body = await response.json();
+        assert.equal(response.status, 503);
+        assert.equal(body.dependencies.mongodb, "ready");
+        assert.equal(body.dependencies.transactions, "unavailable");
+    });
+});
+
 test("rota de teste não é montada em produção", async () => {
     await withServer(createOperationalRoutes(true), async baseUrl => {
         assert.equal((await fetch(`${baseUrl}/api/test`)).status, 404);

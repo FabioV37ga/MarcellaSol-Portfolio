@@ -158,6 +158,8 @@ Recomendação:
 
 ### ARQ2-006 — requisito de replica set para transações não está formalizado
 
+Estado em 09/09/2026: **resolvido**. O bootstrap detecta suporte transacional em replica set ou mongos, e o readiness retorna 503 quando a conexão não oferece essa capacidade. O deploy ganhou um smoke test que executa e aborta uma escrita temporária, confirmando que nada foi persistido, além de documentação operacional específica.
+
 Prioridade: **alta**  
 Tipo: infraestrutura
 
