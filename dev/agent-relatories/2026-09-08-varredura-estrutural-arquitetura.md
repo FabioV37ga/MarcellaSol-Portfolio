@@ -91,7 +91,7 @@ Recomendação:
 
 ### ARQ2-002 — `ClientPaymentService` reúne regras de naturezas distintas
 
-Estado em 10/09/2026: **em andamento**. Cálculo e vencimentos foram extraídos para `payment-schedule.ts`; tipos e validações escalares para `payment-input.ts`; DTOs administrativo/público para `payment-presenter.ts`; paginação, cursor opaco, resumo compatível e prioridade do destaque global para `payment-pagination.ts`. A fachada e os reexports públicos foram preservados; a apresentação Pix ainda será separada no próximo recorte.
+Estado em 10/09/2026: **resolvido**. Cálculo e vencimentos foram extraídos para `payment-schedule.ts`; tipos e validações escalares para `payment-input.ts`; DTOs administrativo/público para `payment-presenter.ts`; paginação, cursor opaco, resumo compatível e prioridade do destaque global para `payment-pagination.ts`; criação, validade, QR Code e resposta Pix para `pix-presentation.service.ts`. A fachada e os reexports públicos foram preservados, enquanto `ClientPaymentService` passou a concentrar a orquestração dos casos de uso.
 
 Prioridade: **alta**  
 Tipo: responsabilidade / testabilidade

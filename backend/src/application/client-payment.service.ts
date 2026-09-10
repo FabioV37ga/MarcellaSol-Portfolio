@@ -1,11 +1,10 @@
 import { randomUUID } from "node:crypto";
 import mongoose from "mongoose";
-import QRCode from "qrcode";
-import type { ClientPaymentObject, PaymentAuditEvent, PaymentPart, PaymentTermsSnapshot } from "../models/clientPayment.js";
+import type { ClientPaymentObject, PaymentAuditEvent, PaymentTermsSnapshot } from "../models/clientPayment.js";
 import { ClientPaymentRepository } from "../repositories/client-payment.repository.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
-import { generatePixBrCode, type PixReceiver } from "../services/pix-br-code.js";
+import type { PixReceiver } from "../services/pix-br-code.js";
 import { chargeStatus, FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../domain/financial-domain.js";
 import {
     calculatePaymentSchedule,
@@ -23,15 +22,13 @@ import {
 import {
     clientPaymentResponse,
     hasConfirmedReceiptHistory,
-    paymentResponse,
-    pixAnalysisWindowEnd
+    paymentResponse
 } from "./financial/payment-presenter.js";
 import { loadPaymentPage, paymentPageOptions, paymentPageResponse } from "./financial/payment-pagination.js";
+import { PixPresentationService } from "./financial/pix-presentation.service.js";
 export { calculatePaymentSchedule, monthlyDueDate } from "./financial/payment-schedule.js";
 export type { PaymentSchedule, PaymentSchedulePreview } from "./financial/payment-schedule.js";
 export type { PaymentFields } from "./financial/payment-input.js";
-
-const PIX_ANALYSIS_WINDOW_MS = 5 * 60 * 60 * 1000;
 
 export interface PaymentActor {
     id: string;
@@ -43,7 +40,8 @@ export class ClientPaymentService {
     constructor(
         private readonly pixReceiver: PixReceiver,
         private readonly clients = new ClientRepository(),
-        private readonly payments = new ClientPaymentRepository()
+        private readonly payments = new ClientPaymentRepository(),
+        private readonly pixPresentation = new PixPresentationService(pixReceiver)
     ) { }
 
     preview(fields: PaymentFields): PaymentSchedulePreview {
@@ -219,26 +217,16 @@ export class ClientPaymentService {
         if (part.amountCents < 1) throw new ApplicationError("Este pagamento não possui valor para Pix", 400);
 
         const now = new Date();
-        const currentAnalysisWindowEnd = part.pix ? pixAnalysisWindowEnd(part.pix) : undefined;
-        if (part.pix && part.pix.txid === "***" && currentAnalysisWindowEnd
-            && currentAnalysisWindowEnd.getTime() > now.getTime()) {
-            return pixResponse(existing, partType, installmentNumber, part, await pixQrCode(part.pix.brCode));
+        if (this.pixPresentation.isReusable(part.pix, now)) {
+            return this.pixPresentation.present(existing, partType, installmentNumber, part);
         }
 
-        const txid = "***";
-        const generatedAt = now;
-        const analysisWindowEndsAt = new Date(now.getTime() + PIX_ANALYSIS_WINDOW_MS);
-        const pix = {
-            txid,
-            brCode: generatePixBrCode(part.amountCents, txid, this.pixReceiver),
-            generatedAt,
-            analysisWindowEndsAt
-        };
+        const pix = this.pixPresentation.createAttempt(part.amountCents, now);
         const event = auditEvent("pix-code-generated", actor, {
             partType,
             ...(installmentNumber === undefined ? {} : { installmentNumber }),
-            pixTxid: txid,
-            pixAnalysisWindowEndsAt: analysisWindowEndsAt
+            pixTxid: pix.txid,
+            pixAnalysisWindowEndsAt: pix.analysisWindowEndsAt
         });
         const version = existing.__v ?? 0;
         const updated = partType === "down-payment"
@@ -248,7 +236,7 @@ export class ClientPaymentService {
         const updatedPart = partType === "down-payment"
             ? updated.downPayment
             : updated.installments.find(item => item.number === installmentNumber)!;
-        return pixResponse(updated, partType, installmentNumber, updatedPart, await pixQrCode(pix.brCode));
+        return this.pixPresentation.present(updated, partType, installmentNumber, updatedPart);
     }
 
     private async requireClient(clientId: string): Promise<void> {
@@ -309,31 +297,6 @@ function statusAfterChange(
 
 function legacyReceiptId(paymentId: string, partType: "down-payment" | "installment", installmentNumber?: number): string {
     return `legacy:${paymentId}:${partType}:${installmentNumber ?? 0}`;
-}
-
-async function pixQrCode(brCode: string): Promise<string> {
-    return QRCode.toDataURL(brCode, { errorCorrectionLevel: "M", margin: 2, width: 320 });
-}
-
-function pixResponse(
-    payment: ClientPaymentObject,
-    partType: "down-payment" | "installment",
-    installmentNumber: number | undefined,
-    part: PaymentPart,
-    qrCodeDataUrl: string
-) {
-    return {
-        payment: clientPaymentResponse(payment),
-        pix: {
-            partType,
-            ...(installmentNumber === undefined ? {} : { installmentNumber }),
-            amountCents: part.amountCents,
-            brCode: part.pix!.brCode,
-            qrCodeDataUrl,
-            generatedAt: part.pix!.generatedAt,
-            analysisWindowEndsAt: pixAnalysisWindowEnd(part.pix!)!
-        }
-    };
 }
 
 function conflictError(): ApplicationError {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { crc16, generatePixBrCode } from "../dist/src/services/pix-br-code.js";
 import { ClientPaymentService } from "../dist/src/application/client-payment.service.js";
+import { PixPresentationService } from "../dist/src/application/financial/pix-presentation.service.js";
 
 const TEST_PIX_RECEIVER = { key: "test@example.com", name: "TEST RECEIVER", city: "SAO PAULO" };
 
@@ -11,6 +12,53 @@ test("BR Code Pix inclui chave, valor exato e CRC válido", () => {
     assert.match(payload, /5406123\.45/);
     assert.match(payload, /62070503\*\*\*/);
     assert.equal(payload.slice(-4), crc16(payload.slice(0, -4)));
+});
+
+test("apresentação Pix isola criação, validade e QR Code do serviço financeiro", async () => {
+    const generatedAt = new Date("2026-09-10T12:00:00.000Z");
+    const generatedQrCodes = [];
+    const presentation = new PixPresentationService(TEST_PIX_RECEIVER, async brCode => {
+        generatedQrCodes.push(brCode);
+        return "data:image/png;base64,test";
+    });
+    const pix = presentation.createAttempt(12345, generatedAt);
+
+    assert.equal(pix.generatedAt, generatedAt);
+    assert.equal(pix.analysisWindowEndsAt.toISOString(), "2026-09-10T17:00:00.000Z");
+    assert.equal(presentation.isReusable(pix, new Date("2026-09-10T16:59:59.999Z")), true);
+    assert.equal(presentation.isReusable(pix, new Date("2026-09-10T17:00:00.000Z")), false);
+
+    const payment = {
+        _id: { toString: () => "507f1f77bcf86cd799439012" },
+        __v: 0,
+        clientId: { toString: () => "507f1f77bcf86cd799439011" },
+        title: "Projeto",
+        totalAmountCents: 12345,
+        installmentCount: 0,
+        firstDueDate: "2026-09-10",
+        downPaymentPercentage: 100,
+        discountPercentage: 0,
+        interestPercentage: 0,
+        discountAmountCents: 0,
+        downPayment: { amountCents: 12345, isPaid: false, dueDate: "2026-09-10", pix },
+        financedAmountCents: 0,
+        interestAmountCents: 0,
+        installmentTotalCents: 0,
+        finalAmountCents: 12345,
+        installments: [],
+        events: [],
+        currency: "BRL",
+        timeZone: "America/Sao_Paulo",
+        status: "open",
+        hasReceiptHistory: false,
+        createdAt: generatedAt,
+        updatedAt: generatedAt
+    };
+    const response = await presentation.present(payment, "down-payment", undefined, payment.downPayment);
+
+    assert.equal(response.pix.amountCents, 12345);
+    assert.equal(response.pix.qrCodeDataUrl, "data:image/png;base64,test");
+    assert.deepEqual(generatedQrCodes, [pix.brCode]);
 });
 
 test("Pix da parcela usa seu valor e abre uma janela de análise por cinco horas", async () => {
