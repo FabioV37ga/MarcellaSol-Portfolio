@@ -13,7 +13,7 @@ export class ReportJobRepository {
     requeueTerminal(id: string) {
         return reportJobs.findOneAndUpdate(
             { _id: id, status: { $in: ["succeeded", "failed"] } },
-            { $set: { status: "queued" }, $unset: { error: 1, startedAt: 1, finishedAt: 1 } },
+            { $set: { status: "queued" }, $unset: { error: 1, workerId: 1, startedAt: 1, finishedAt: 1 } },
             { new: true, runValidators: true }
         );
     }
@@ -22,25 +22,32 @@ export class ReportJobRepository {
         return reportJobs.findOne({ clientId }).sort({ createdAt: -1 });
     }
 
-    claim(id: string) {
+    claimNext(workerId: string) {
         return reportJobs.findOneAndUpdate(
-            { _id: id, status: "queued" },
-            { $set: { status: "running", startedAt: new Date() }, $inc: { attempts: 1 }, $unset: { error: 1, finishedAt: 1 } },
-            { new: true, runValidators: true }
+            { status: "queued" },
+            { $set: { status: "running", workerId, startedAt: new Date() }, $inc: { attempts: 1 }, $unset: { error: 1, finishedAt: 1 } },
+            { new: true, runValidators: true, sort: { createdAt: 1 } }
+        );
+    }
+
+    recoverInterrupted(staleBefore: Date) {
+        return reportJobs.updateMany(
+            { status: "running", startedAt: { $lt: staleBefore } },
+            { $set: { status: "queued" }, $unset: { workerId: 1, startedAt: 1 } }
         );
     }
 
     succeed(id: string) {
         return reportJobs.updateOne(
             { _id: id, status: "running" },
-            { $set: { status: "succeeded", finishedAt: new Date() }, $unset: { error: 1 } }
+            { $set: { status: "succeeded", finishedAt: new Date() }, $unset: { error: 1, workerId: 1 } }
         );
     }
 
     fail(id: string, error: string) {
         return reportJobs.updateOne(
             { _id: id, status: "running" },
-            { $set: { status: "failed", error: error.slice(0, 500), finishedAt: new Date() } }
+            { $set: { status: "failed", error: error.slice(0, 500), finishedAt: new Date() }, $unset: { workerId: 1 } }
         );
     }
 }

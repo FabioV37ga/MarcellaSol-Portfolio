@@ -18,8 +18,7 @@ function dependencies(job) {
                 calls.push(["enqueue", receivedClientId.toString(), version.toISOString()]);
                 return job;
             },
-            async requeueTerminal() { calls.push(["requeue"]); return { ...job, status: "queued" }; },
-            async claim() { calls.push(["claim"]); return null; }
+            async requeueTerminal() { calls.push(["requeue"]); return { ...job, status: "queued" }; }
         }
     };
 }
@@ -32,8 +31,7 @@ test("solicitação de relatório persiste job idempotente e retorna sem aguarda
     const result = await service.generate(clientId.toString());
     assert.deepEqual(result, { exists: false, job: { id: "job-1", status: "queued", attempts: 0 } });
     assert.deepEqual(deps.calls[0], ["enqueue", clientId.toString(), briefingVersion.toISOString()]);
-    await new Promise(resolve => setImmediate(resolve));
-    assert.equal(deps.calls.filter(call => call[0] === "claim").length, 1);
+    assert.equal(deps.calls.some(call => call[0] === "claim"), false);
 });
 
 test("nova solicitação recoloca job terminal na fila", async () => {

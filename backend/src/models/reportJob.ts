@@ -7,6 +7,7 @@ export interface ReportJobDocument {
     briefingVersion: Date;
     status: ReportJobStatus;
     attempts: number;
+    workerId?: string;
     error?: string;
     startedAt?: Date;
     finishedAt?: Date;
@@ -19,6 +20,7 @@ const reportJobSchema = new mongoose.Schema<ReportJobDocument>({
     briefingVersion: { type: Date, required: true },
     status: { type: String, enum: ["queued", "running", "succeeded", "failed"], required: true, default: "queued", index: true },
     attempts: { type: Number, required: true, default: 0, min: 0 },
+    workerId: { type: String, maxlength: 100 },
     error: { type: String, maxlength: 500 },
     startedAt: Date,
     finishedAt: Date
