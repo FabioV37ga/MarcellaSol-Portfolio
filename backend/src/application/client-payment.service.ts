@@ -10,12 +10,20 @@ import { generatePixBrCode, type PixReceiver } from "../services/pix-br-code.js"
 import { chargePartStatus, chargeStatus, FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../domain/financial-domain.js";
 import {
     calculatePaymentSchedule,
-    type PaymentFields,
     type PaymentSchedule,
     type PaymentSchedulePreview
 } from "./financial/payment-schedule.js";
+import {
+    integerInRange,
+    paidValue,
+    paymentTitle,
+    paymentVersion,
+    pixPartType,
+    type PaymentFields
+} from "./financial/payment-input.js";
 export { calculatePaymentSchedule, monthlyDueDate } from "./financial/payment-schedule.js";
-export type { PaymentFields, PaymentSchedule, PaymentSchedulePreview } from "./financial/payment-schedule.js";
+export type { PaymentSchedule, PaymentSchedulePreview } from "./financial/payment-schedule.js";
+export type { PaymentFields } from "./financial/payment-input.js";
 
 const PIX_ANALYSIS_WINDOW_MS = 5 * 60 * 60 * 1000;
 const DEFAULT_PAYMENT_PAGE_SIZE = 20;
@@ -514,13 +522,6 @@ function legacyReceiptId(paymentId: string, partType: "down-payment" | "installm
     return `legacy:${paymentId}:${partType}:${installmentNumber ?? 0}`;
 }
 
-function pixPartType(value: unknown): "down-payment" | "installment" {
-    if (value !== "down-payment" && value !== "installment") {
-        throw new ApplicationError("O tipo do pagamento é inválido", 400);
-    }
-    return value;
-}
-
 async function pixQrCode(brCode: string): Promise<string> {
     return QRCode.toDataURL(brCode, { errorCorrectionLevel: "M", margin: 2, width: 320 });
 }
@@ -548,33 +549,6 @@ function pixResponse(
 
 function pixAnalysisWindowEnd(pix: PaymentPart["pix"]): Date | undefined {
     return pix?.analysisWindowEndsAt ?? pix?.expiresAt;
-}
-
-function paymentTitle(value: unknown): string {
-    if (typeof value !== "string" || !value.trim()) throw new ApplicationError("O título é obrigatório", 400);
-    const title = value.trim();
-    if (title.length > 160) throw new ApplicationError("O título deve ter no máximo 160 caracteres", 400);
-    return title;
-}
-
-function integerInRange(value: unknown, label: string, minimum: number, maximum: number): number {
-    const parsed = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
-    if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
-        throw new ApplicationError(`${label} deve ser um número inteiro entre ${minimum} e ${maximum}`, 400);
-    }
-    return parsed;
-}
-
-function paidValue(value: unknown): boolean {
-    if (typeof value !== "boolean") throw new ApplicationError("O status de pagamento deve ser verdadeiro ou falso", 400);
-    return value;
-}
-
-function paymentVersion(value: unknown): number {
-    if (!Number.isInteger(value) || (value as number) < 0) {
-        throw new ApplicationError("A versão do pagamento é obrigatória", 400);
-    }
-    return value as number;
 }
 
 function conflictError(): ApplicationError {

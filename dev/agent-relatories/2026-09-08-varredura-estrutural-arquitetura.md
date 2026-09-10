@@ -91,7 +91,7 @@ Recomendação:
 
 ### ARQ2-002 — `ClientPaymentService` reúne regras de naturezas distintas
 
-Estado em 10/09/2026: **em andamento**. O cálculo do cronograma financeiro, distribuição de centavos, vencimentos mensais e preservação dos estados pagos foi extraído para `application/financial/payment-schedule.ts`. A fachada e os reexports públicos foram preservados; parsing geral, presenters, paginação e Pix ainda serão separados nos próximos recortes.
+Estado em 10/09/2026: **em andamento**. O cálculo do cronograma financeiro, distribuição de centavos, vencimentos mensais e preservação dos estados pagos foi extraído para `application/financial/payment-schedule.ts`. Tipos de entrada e validações escalares de título, versão, parcela, baixa e parte Pix foram movidos para `application/financial/payment-input.ts`. A fachada e os reexports públicos foram preservados; presenters, paginação e apresentação Pix ainda serão separados nos próximos recortes.
 
 Prioridade: **alta**  
 Tipo: responsabilidade / testabilidade

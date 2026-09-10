@@ -1,18 +1,7 @@
 import type { ClientPaymentObject, PaymentInstallment, PaymentPart } from "../../models/clientPayment.js";
 import { ApplicationError } from "../errors/application-error.js";
-
-export interface PaymentFields {
-    title?: unknown;
-    totalAmount?: unknown;
-    installmentCount?: unknown;
-    firstDueDate?: unknown;
-    downPaymentPercentage?: unknown;
-    discountPercentage?: unknown;
-    interestPercentage?: unknown;
-    downPaymentIsPaid?: unknown;
-    paidInstallmentNumbers?: unknown;
-    version?: unknown;
-}
+import { integerInRange, paidValue, type PaymentFields } from "./payment-input.js";
+export type { PaymentFields } from "./payment-input.js";
 
 export interface PaymentSchedule {
     totalAmountCents: number;
@@ -125,19 +114,6 @@ function percentageBasisPoints(value: unknown, label: string): number {
 
 function percentageOf(amountCents: number, basisPoints: number): number {
     return Math.round(amountCents * basisPoints / 10_000);
-}
-
-function integerInRange(value: unknown, label: string, minimum: number, maximum: number): number {
-    const parsed = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
-    if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
-        throw new ApplicationError(`${label} deve ser um número inteiro entre ${minimum} e ${maximum}`, 400);
-    }
-    return parsed;
-}
-
-function paidValue(value: unknown): boolean {
-    if (typeof value !== "boolean") throw new ApplicationError("O status de pagamento deve ser verdadeiro ou falso", 400);
-    return value;
 }
 
 function suppliedPaidValue(value: unknown, fallback = false): boolean {
