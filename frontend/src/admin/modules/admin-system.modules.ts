@@ -7,7 +7,7 @@ import type { system } from "../templates/interface.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";
 import type { AdminSystemView } from "../views/adminSystem.view.js";
 import type { ClientCreationFlow } from "./client-creation.flow.js";
-import type { AdminSession, AdminSystemApi, BriefingReportStatus } from "../infrastructure/admin-system.api.js";
+import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
 import { clientListItem } from "../templates/client-list-item.template.js";
 import { getClientManagementElements } from "../selectors/client-management.selector.js";
 import { logoutSession } from "@/shared/session/logout.js";
@@ -381,7 +381,7 @@ export class AdminSystemModules {
         try {
             const status = await this.api.loadBriefingReportStatus(this.session, clientId);
             if (requestId !== this.clientManagementRequestId) return;
-            this.bindBriefingReportAction(clientId, elements, status, requestId);
+            this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl, requestId);
         } catch (error) {
             if (requestId !== this.clientManagementRequestId) return;
             console.error("Erro ao verificar relatório do briefing:", error);
@@ -400,7 +400,8 @@ export class AdminSystemModules {
     private bindBriefingReportAction(
         clientId: string,
         elements: ReturnType<typeof getClientManagementElements>,
-        status: BriefingReportStatus,
+        exists: boolean,
+        folderUrl: string | undefined,
         requestId: number
     ): void {
         const button = elements.briefingReport;
@@ -410,29 +411,15 @@ export class AdminSystemModules {
         u(button).off("click");
         button.onclick = null;
 
-        if (status.exists && status.folderUrl) {
+        if (exists && folderUrl) {
             elements.briefingReportLabel.textContent = "Acessar";
             button.onclick = () => {
-                window.open(status.folderUrl, "_blank", "noopener,noreferrer");
+                window.open(folderUrl, "_blank", "noopener,noreferrer");
             };
             return;
         }
 
-        if (status.job?.status === "queued" || status.job?.status === "running") {
-            button.disabled = true;
-            button.classList.add("client-management-report-loading");
-            elements.briefingReportLabel.textContent = status.job.status === "queued"
-                ? "Relatório na fila..."
-                : "Gerando relatório...";
-            window.setTimeout(() => {
-                if (requestId === this.clientManagementRequestId) {
-                    void this.mountBriefingReport(clientId, elements, requestId);
-                }
-            }, 1500);
-            return;
-        }
-
-        elements.briefingReportLabel.textContent = status.job?.status === "failed" ? "Tentar novamente" : "Gerar relatório";
+        elements.briefingReportLabel.textContent = "Gerar relatório";
         button.onclick = () => {
             button.disabled = true;
             button.classList.add("client-management-report-loading");
@@ -440,7 +427,7 @@ export class AdminSystemModules {
             void this.api.generateBriefingReport(this.session, clientId)
                 .then(status => {
                     if (requestId !== this.clientManagementRequestId) return;
-                    this.bindBriefingReportAction(clientId, elements, status, requestId);
+                    this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl, requestId);
                 })
                 .catch(error => {
                     if (requestId !== this.clientManagementRequestId) return;

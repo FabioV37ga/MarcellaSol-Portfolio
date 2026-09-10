@@ -125,8 +125,6 @@ Recomendação: criar uma composition root única que construa repositories, gat
 
 ### ARQ2-004 — geração de PDF e integrações externas permanecem síncronas
 
-Estado em 09/09/2026: **parcialmente resolvido**. A solicitação administrativa persiste um job idempotente por cliente e versão do briefing, responde HTTP 202 e expõe os estados `queued/running/succeeded/failed`. O processamento de Puppeteer, imagens e Drive foi removido do processo web e transferido para um worker dedicado com reivindicação atômica, concorrência 1, encerramento seguro e recuperação de jobs interrompidos. Permanecem como evolução observabilidade mais rica e políticas de tentativas automáticas.
-
 Prioridade: **alta**  
 Tipo: operação / escalabilidade
 

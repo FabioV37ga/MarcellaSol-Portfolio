@@ -17,9 +17,7 @@
     "drive:share-existing": "npm run build && node dist/src/scripts/share-existing-briefing-emails.js",
     "financial:prune-pix": "npm run build && node dist/src/scripts/prune-expired-pix-attempts.js",
     "start": "node dist/src/server.js",
-    "prod": "npm run build && npm start",
-    "worker:reports": "tsx --watch src/report-worker.ts",
-    "start:worker:reports": "node dist/src/report-worker.js"
+    "prod": "npm run build && npm start"
   },
   "author": "Fabio Veiga",
   "license": "ISC",

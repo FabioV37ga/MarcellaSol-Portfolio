@@ -8,8 +8,6 @@ export interface ClientBriefingDocument {
     driveFolderId?: string;
     attachments: Record<string, unknown>[];
     submittedAt: Date;
-    createdAt?: Date;
-    updatedAt?: Date;
 }
 
 const clientBriefingSchema = new mongoose.Schema<ClientBriefingDocument>({
