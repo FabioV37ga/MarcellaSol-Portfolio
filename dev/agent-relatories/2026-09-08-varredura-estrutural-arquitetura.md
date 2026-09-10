@@ -91,6 +91,8 @@ Recomendação:
 
 ### ARQ2-002 — `ClientPaymentService` reúne regras de naturezas distintas
 
+Estado em 10/09/2026: **em andamento**. O cálculo do cronograma financeiro, distribuição de centavos, vencimentos mensais e preservação dos estados pagos foi extraído para `application/financial/payment-schedule.ts`. A fachada e os reexports públicos foram preservados; parsing geral, presenters, paginação e Pix ainda serão separados nos próximos recortes.
+
 Prioridade: **alta**  
 Tipo: responsabilidade / testabilidade
 
@@ -435,7 +437,9 @@ Não há evidência atual que justifique microserviços. Um monólito modular co
 3. introduzir schemas runtime para financeiro;
 4. formalizar requisito e smoke test de transações.
 
-### Fase 2 — operações demoradas e consistência
+### Fase 2 — operações demoradas e consistência — desconsiderada para a infraestrutura atual
+
+Decisão em 10/09/2026: esta fase foi retirada do plano ativo após avaliação do consumo e da instabilidade operacional observados na VPS básica. A geração de relatório permanece síncrona. Os itens abaixo ficam apenas como referência futura e não entram na contagem vigente.
 
 1. criar job persistido para relatório PDF;
 2. mover Puppeteer para worker com concorrência limitada;

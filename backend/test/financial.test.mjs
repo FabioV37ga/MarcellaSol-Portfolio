@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculatePaymentSchedule, ClientPaymentService, monthlyDueDate } from "../dist/src/application/client-payment.service.js";
+import { ClientPaymentService } from "../dist/src/application/client-payment.service.js";
+import { calculatePaymentSchedule, monthlyDueDate } from "../dist/src/application/financial/payment-schedule.js";
 import { chargePartStatus, chargeStatus, FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../dist/src/domain/financial-domain.js";
 import ClientPayment from "../dist/src/models/clientPayment.js";
 
