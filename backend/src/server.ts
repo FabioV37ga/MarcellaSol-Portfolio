@@ -1,6 +1,8 @@
 import { loadApplicationConfig } from "./config/application-config.js";
+import { configureOutboundNetwork } from "./config/outbound-network.js";
 
 try {
+    configureOutboundNetwork();
     const config = loadApplicationConfig();
     console.log(`✓ Configuração validada e carregada de ${config.environmentPath}`);
     const { startServer } = await import("./bootstrap.js");

@@ -1,6 +1,9 @@
 import { Readable } from "node:stream";
 import { drive, type drive_v3 } from "@googleapis/drive";
 import { OAuth2Client } from "google-auth-library";
+import { configureOutboundNetwork } from "../config/outbound-network.js";
+
+configureOutboundNetwork();
 
 const FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 
