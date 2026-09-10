@@ -101,7 +101,7 @@ const slideUp: AnimationObject = {
     animation: (element: HTMLElement, delay: number) => {
         slideUp.isPlaying = true;
         return animate(element, {
-            display:  'flex',
+            display: 'flex',
             translateY: ['100%', '0%'],
             // marginBottom: ['-150px', '0px'],
             duration: 600,
@@ -182,5 +182,5 @@ const showFinalPicture: AnimationObject = {
 
 
 export const welcome = { fadeOut, darken, brighten }
-export const strategies =  { showTitleSpan, hideTitle, slideUp, appear }
+export const strategies = { showTitleSpan, hideTitle, slideUp, appear }
 export const ending = { hideVideo, showThanks, showFinalPicture }

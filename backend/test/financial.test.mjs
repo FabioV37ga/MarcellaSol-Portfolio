@@ -217,27 +217,31 @@ test("resposta financeira do cliente omite identificadores e cálculos internos"
     const service = new ClientPaymentService(
         TEST_PIX_RECEIVER,
         { async findById() { return { _id: clientId }; } },
-        { async findByClientId() { return [{
-            _id: { toString: () => "507f1f77bcf86cd799439012" },
-            __v: 4,
-            clientId: { toString: () => clientId },
-            title: "Projeto",
-            totalAmountCents: 10000,
-            installmentCount: 1,
-            firstDueDate: "2026-09-03",
-            downPaymentPercentage: 0,
-            discountPercentage: 0,
-            interestPercentage: 0,
-            discountAmountCents: 0,
-            downPayment: { amountCents: 0, isPaid: false, dueDate: "2026-09-03" },
-            financedAmountCents: 10000,
-            interestAmountCents: 0,
-            installmentTotalCents: 10000,
-            finalAmountCents: 10000,
-            installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-03" }],
-            createdAt: new Date(),
-            updatedAt: new Date()
-        }]; } }
+        {
+            async findByClientId() {
+                return [{
+                    _id: { toString: () => "507f1f77bcf86cd799439012" },
+                    __v: 4,
+                    clientId: { toString: () => clientId },
+                    title: "Projeto",
+                    totalAmountCents: 10000,
+                    installmentCount: 1,
+                    firstDueDate: "2026-09-03",
+                    downPaymentPercentage: 0,
+                    discountPercentage: 0,
+                    interestPercentage: 0,
+                    discountAmountCents: 0,
+                    downPayment: { amountCents: 0, isPaid: false, dueDate: "2026-09-03" },
+                    financedAmountCents: 10000,
+                    interestAmountCents: 0,
+                    installmentTotalCents: 10000,
+                    finalAmountCents: 10000,
+                    installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-03" }],
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }];
+            }
+        }
     );
 
     const { payments: [payment] } = await service.listForClient(clientId);
@@ -269,11 +273,13 @@ test("listagem financeira devolve paginação explícita e resumo independente d
             return { paymentCount: 12, totalAmountCents: 120000, paidAmountCents: 40000, remainingAmountCents: 80000 };
         },
         async findHighlightCandidatesByClientId() {
-            return { overdue: {
-                paymentId: { toString: () => "507f1f77bcf86cd799439099" },
-                paymentTitle: "Pagamento fora da primeira página", partType: "installment",
-                installmentNumber: 3, amountCents: 25000, dueDate: "2020-01-01", isPaid: false
-            } };
+            return {
+                overdue: {
+                    paymentId: { toString: () => "507f1f77bcf86cd799439099" },
+                    paymentTitle: "Pagamento fora da primeira página", partType: "installment",
+                    installmentNumber: 3, amountCents: 25000, dueDate: "2020-01-01", isPaid: false
+                }
+            };
         }
     });
     const result = await service.list(clientId, undefined, "1");

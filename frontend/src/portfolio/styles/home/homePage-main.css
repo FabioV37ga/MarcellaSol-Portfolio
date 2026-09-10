@@ -56,7 +56,7 @@
     background-color: var(--highlight-color);
 }
 
-.homePage-about-content h1 span{
+.homePage-about-content h1 span {
     font-family: 'awelier-light', serif;
 }
 
@@ -149,14 +149,14 @@
     font-family: 'confort';
 }
 
-#viewProject{
+#viewProject {
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
 }
 
-#viewProjectText{
+#viewProjectText {
     font-family: 'confort';
     font-size: 7px;
     height: 4px;
@@ -164,7 +164,7 @@
     color: #d6d6d6;
 }
 
-#viewProject::before{
+#viewProject::before {
     content: '';
     position: absolute;
     height: 1px;
@@ -175,12 +175,12 @@
     /* left: 1px; */
 }
 
-#viewProjectArrow{
+#viewProjectArrow {
     margin-left: 8px;
     color: #d6d6d6
 }
 
-.homePage-projectList{
+.homePage-projectList {
     width: 100%;
     height: 130px;
     /* background: red; */
@@ -189,13 +189,13 @@
     margin-top: 10px;
 }
 
-.homePage-projectList-content{
+.homePage-projectList-content {
     width: calc(100% - 50px);
     height: 100%;
     /* background: blue */
 }
 
-.projectList-header{
+.projectList-header {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -203,21 +203,21 @@
     margin-bottom: 10px;
 }
 
-.projectList-header h3{
+.projectList-header h3 {
     font-family: 'confort';
     font-size: 7px;
     text-transform: uppercase;
     color: var(--highlight-color);
 }
 
-#viewAllProjects{
+#viewAllProjects {
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
 }
 
-#viewAllProjects .viewAllProjectsButton::after{
+#viewAllProjects .viewAllProjectsButton::after {
     content: '';
     position: absolute;
     height: 1px;
@@ -227,7 +227,7 @@
     bottom: -2px;
 }
 
-.viewAllProjectsButton{
+.viewAllProjectsButton {
     font-family: 'confort';
     font-size: 6px;
     text-transform: uppercase;
@@ -235,20 +235,20 @@
     position: relative;
 }
 
-.viewAllProjectsArrow{
+.viewAllProjectsArrow {
     font-size: 10px;
     color: var(--highlight-color);
     margin-left: 7px;
 }
 
-.projectList-container{
+.projectList-container {
     width: 100%;
     height: 80px;
     display: flex;
     justify-content: space-between;
 }
 
-.projectList-project{
+.projectList-project {
     width: calc(33% - 7px);
     height: 100%;
     /* background: green; */
@@ -259,13 +259,13 @@
     border-left: 1px solid #40404017;
 }
 
-.projectImage{
+.projectImage {
     height: 65%;
     width: 100%;
     background: pink
 }
 
-.projectInfo{
+.projectInfo {
     height: 35%;
     width: 90%;
     display: flex;
@@ -274,14 +274,14 @@
     align-items: flex-start;
 }
 
-.projectInfo h4{
+.projectInfo h4 {
     margin-top: 5px;
     font-family: 'confort';
     font-size: 7px;
     text-transform: uppercase;
 }
 
-.projectInfo p{
+.projectInfo p {
     /* margin-top: 5px; */
     font-family: 'confort';
     font-size: 7px;

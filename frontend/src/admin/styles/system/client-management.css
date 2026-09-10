@@ -68,7 +68,7 @@
     background: white;
 }
 
-.client-management-window + .client-management-window {
+.client-management-window+.client-management-window {
     margin-top: 12px;
 }
 

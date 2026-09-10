@@ -17,7 +17,7 @@ export class AdminClientProposalsModule {
         private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute, id?: string) => void,
         private readonly getNavButton: () => HTMLElement | undefined
-    ) {}
+    ) { }
 
     async mount(clientId?: string): Promise<void> {
         if (!clientId) {

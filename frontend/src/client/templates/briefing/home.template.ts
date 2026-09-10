@@ -1,6 +1,6 @@
 import html from 'nanohtml'
 
-export function home(){
+export function home() {
     return html`
     <div class="form-page-00">
         <h1 class="briefing-title">Bem-vindo(a) ao seu briefing.</h1>

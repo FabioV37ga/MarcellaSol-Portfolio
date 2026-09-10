@@ -13,7 +13,7 @@ export interface CachedBriefingDraft {
 }
 
 export class BriefingDraftRepository {
-    constructor(private readonly storageKey: string) {}
+    constructor(private readonly storageKey: string) { }
 
     save(draft: CachedBriefingDraft): void {
         try {

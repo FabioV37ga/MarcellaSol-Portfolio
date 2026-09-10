@@ -44,7 +44,7 @@ export class ClientPaymentService {
         private readonly pixReceiver: PixReceiver,
         private readonly clients = new ClientRepository(),
         private readonly payments = new ClientPaymentRepository()
-    ) {}
+    ) { }
 
     preview(fields: PaymentFields): PaymentSchedulePreview {
         const schedule = calculatePaymentSchedule(fields);

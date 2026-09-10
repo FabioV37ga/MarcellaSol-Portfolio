@@ -67,16 +67,16 @@ export interface ProposalFields {
     attachments?: File[];
 }
 
-export interface PaymentPart extends PaymentPartContract {}
+export interface PaymentPart extends PaymentPartContract { }
 
-export interface PaymentInstallment extends PaymentInstallmentContract {}
+export interface PaymentInstallment extends PaymentInstallmentContract { }
 
 export interface ClientPayment extends AdminPaymentContract {
     downPayment: PaymentPart;
     installments: PaymentInstallment[];
 }
 
-export interface PaymentPage extends PaymentPageContract<ClientPayment> {}
+export interface PaymentPage extends PaymentPageContract<ClientPayment> { }
 
 export interface PaymentFields {
     title: string;
@@ -96,7 +96,7 @@ export type PaymentPreviewFields = Pick<PaymentFields,
     | "downPaymentPercentage" | "discountPercentage" | "interestPercentage"
 >;
 
-export interface PaymentPreview extends PaymentPreviewContract {}
+export interface PaymentPreview extends PaymentPreviewContract { }
 
 export class AdminSystemApi {
     private authorization(session: AdminSession): HeadersInit {

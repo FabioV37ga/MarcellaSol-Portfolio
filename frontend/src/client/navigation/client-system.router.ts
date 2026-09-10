@@ -16,7 +16,7 @@ const clientRoutes = new Set<ClientRoute>(["base", "home", "stages-approvals", "
 export class ClientSystemRouter {
     private listening = false;
 
-    constructor(private readonly render: (route: ClientRoute, briefingStep?: number) => void) {}
+    constructor(private readonly render: (route: ClientRoute, briefingStep?: number) => void) { }
 
     start(initialRoute: ClientRoute, restoreCurrentRoute = false): void {
         if (!this.listening) {
@@ -27,16 +27,20 @@ export class ClientSystemRouter {
         if (initialRoute === "base") this.navigate("base", { pushHistory: false });
         const target = restored ?? (initialRoute === "base" ? { page: "home" as const } : { page: initialRoute });
         this.navigate(target.page, { pushHistory: false, briefingStep: target.briefingStep });
-        window.history.replaceState({ scope: "client", page: target.page,
-            ...(target.briefingStep === undefined ? {} : { briefingStep: target.briefingStep }) } satisfies ClientPageState, "");
+        window.history.replaceState({
+            scope: "client", page: target.page,
+            ...(target.briefingStep === undefined ? {} : { briefingStep: target.briefingStep })
+        } satisfies ClientPageState, "");
     }
 
     navigate(route: ClientRoute, options: NavigationOptions = {}): void {
         this.render(route, options.briefingStep);
 
         if ((options.pushHistory ?? true) && this.shouldPush(route)) {
-            window.history.pushState({ scope: "client", page: route,
-                ...(options.briefingStep === undefined ? {} : { briefingStep: options.briefingStep }) } satisfies ClientPageState, "");
+            window.history.pushState({
+                scope: "client", page: route,
+                ...(options.briefingStep === undefined ? {} : { briefingStep: options.briefingStep })
+            } satisfies ClientPageState, "");
         }
     }
 

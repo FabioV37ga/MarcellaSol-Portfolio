@@ -1,6 +1,6 @@
 import html from 'nanohtml'
 
-export function routine(){
+export function routine() {
     return html`
         <div class="form-page-03">
                 <h1 class="briefing-title">Rotina</h1>

@@ -30,7 +30,7 @@
     box-sizing: border-box;
 }
 
-.briefing-app{
+.briefing-app {
     width: 100%;
 
 }
@@ -165,13 +165,13 @@ label {
     box-shadow: var(--briefing-shadow);
 }
 
-.form-page-container > div {
+.form-page-container>div {
     display: flex;
     flex-direction: column;
     min-height: 560px;
 }
 
-.form-page-container > div[hidden] {
+.form-page-container>div[hidden] {
     display: none;
 }
 
@@ -224,9 +224,9 @@ label {
     border: 0;
 }
 
-.briefing-input-box > label,
-.briefing-input-box > legend,
-.briefing-input-box > p {
+.briefing-input-box>label,
+.briefing-input-box>legend,
+.briefing-input-box>p {
     display: block;
     margin: 0 0 7px;
     padding: 0;
@@ -234,15 +234,15 @@ label {
     font-weight: 700;
 }
 
-.briefing-input-box > small,
-.briefing-input-box > span {
+.briefing-input-box>small,
+.briefing-input-box>span {
     display: block;
     margin: -3px 0 8px;
     color: var(--briefing-muted);
     font-size: 10px;
 }
 
-.briefing-input-box > textarea + small {
+.briefing-input-box>textarea+small {
     margin: -23px 10px 0 0;
     text-align: right;
 }
@@ -251,7 +251,7 @@ label {
 .briefing-input-half,
 .briefing-input-medium,
 .briefing-input-big,
-.briefing-input-box > div:not([class]),
+.briefing-input-box>div:not([class]),
 .briefing-select-box select {
     width: 100%;
     min-height: 46px;
@@ -334,7 +334,7 @@ input[type="file"]::file-selector-button {
     accent-color: var(--briefing-accent);
 }
 
-.briefing-input-box.is-not-considered > :not(.briefing-ignore-option):not(label:first-child) {
+.briefing-input-box.is-not-considered> :not(.briefing-ignore-option):not(label:first-child) {
     opacity: .45;
 }
 
@@ -355,19 +355,19 @@ input[type="file"]::file-selector-button {
     grid-column: 1 / -1;
 }
 
-.form-page-03 fieldset:first-of-type > .briefing-input-row {
+.form-page-03 fieldset:first-of-type>.briefing-input-row {
     display: grid;
     grid-template-columns: 120px minmax(0, 1fr);
     align-items: center;
 }
 
-.form-page-03 fieldset:first-of-type > .briefing-input-row > label {
+.form-page-03 fieldset:first-of-type>.briefing-input-row>label {
     text-align: center;
 }
 
-.briefing-input-flex-box > *,
-.briefing-input-row > *,
-.row-content > * {
+.briefing-input-flex-box>*,
+.briefing-input-row>*,
+.row-content>* {
     flex: 1 1 0;
 }
 
@@ -379,7 +379,7 @@ input[type="file"]::file-selector-button {
     padding-right: 48px;
 }
 
-.briefing-area-input > span {
+.briefing-area-input>span {
     position: absolute;
     top: 50%;
     right: 14px;
@@ -393,7 +393,7 @@ input[type="file"]::file-selector-button {
     min-width: 0;
 }
 
-.briefing-property-details > .briefing-input-box {
+.briefing-property-details>.briefing-input-box {
     min-width: 0;
 }
 
@@ -410,7 +410,7 @@ input[type="file"]::file-selector-button {
 }
 
 .button-option,
-.briefing-options > label {
+.briefing-options>label {
     position: relative;
     display: flex;
     min-height: 44px;
@@ -429,45 +429,45 @@ input[type="file"]::file-selector-button {
 }
 
 .button-option:hover,
-.briefing-options > label:hover {
+.briefing-options>label:hover {
     border-color: var(--briefing-accent);
     transform: translateY(-1px);
 }
 
 .button-option:has(input:checked),
-.briefing-options > label:has(input:checked) {
+.briefing-options>label:has(input:checked) {
     border-color: var(--briefing-accent);
     background: var(--briefing-accent-soft);
     box-shadow: inset 0 0 0 1px var(--briefing-accent);
 }
 
-.briefing-options > label:has(.image-placeholder),
-.briefing-options > label:has(.briefing-option-image) {
+.briefing-options>label:has(.image-placeholder),
+.briefing-options>label:has(.briefing-option-image) {
     flex-direction: column;
     justify-content: flex-start;
     padding: 7px;
 }
 
-.briefing-options > label > input,
-.button-option > input {
+.briefing-options>label>input,
+.button-option>input {
     accent-color: var(--briefing-accent);
 }
 
-.briefing-select-box > input {
+.briefing-select-box>input {
     position: absolute;
     width: 1px;
     height: 1px;
     opacity: 0;
 }
 
-.briefing-select-box > input:checked + .button-option {
+.briefing-select-box>input:checked+.button-option {
     border-color: var(--briefing-accent);
     background: var(--briefing-accent-soft);
     box-shadow: inset 0 0 0 1px var(--briefing-accent);
 }
 
-.form-page-01 .button-option > input,
-.form-page-02 .button-option > input {
+.form-page-01 .button-option>input,
+.form-page-02 .button-option>input {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -491,15 +491,15 @@ input[type="file"]::file-selector-button {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.form-page-06 .briefing-options > label > input,
-.briefing-maintenance-options > label > input {
+.form-page-06 .briefing-options>label>input,
+.briefing-maintenance-options>label>input {
     position: absolute;
     width: 1px;
     height: 1px;
     opacity: 0;
 }
 
-.briefing-maintenance-options > label {
+.briefing-maintenance-options>label {
     flex-direction: column;
 }
 
@@ -514,8 +514,8 @@ input[type="file"]::file-selector-button {
     font-size: 10px;
 }
 
-.briefing-options > label:has(.image-placeholder) > input,
-.briefing-options > label:has(.briefing-option-image) > input {
+.briefing-options>label:has(.image-placeholder)>input,
+.briefing-options>label:has(.briefing-option-image)>input {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -527,7 +527,7 @@ input[type="file"]::file-selector-button {
     gap: 16px;
 }
 
-.briefing-style-options > label {
+.briefing-style-options>label {
     overflow: hidden;
     gap: 3px;
     padding: 0 0 14px;
@@ -535,7 +535,7 @@ input[type="file"]::file-selector-button {
     background: var(--briefing-surface);
 }
 
-.briefing-style-options > label:has(input:checked)::after {
+.briefing-style-options>label:has(input:checked)::after {
     content: "✓";
     position: absolute;
     top: 8px;
@@ -572,8 +572,8 @@ input[type="file"]::file-selector-button {
     padding-bottom: 13px;
 }
 
-.briefing-style-options.briefing-wood-options > label,
-.briefing-style-options.briefing-wood-options > label:has(input:checked) {
+.briefing-style-options.briefing-wood-options>label,
+.briefing-style-options.briefing-wood-options>label:has(input:checked) {
     min-height: 0;
     overflow: visible;
     padding: 0;
@@ -589,12 +589,12 @@ input[type="file"]::file-selector-button {
     object-fit: cover;
 }
 
-.briefing-wood-options > label:has(input:checked) .briefing-option-image {
+.briefing-wood-options>label:has(input:checked) .briefing-option-image {
     border-color: var(--briefing-accent);
     box-shadow: 0 0 0 2px var(--briefing-accent-soft);
 }
 
-.briefing-style-options.briefing-wood-options > label:has(input:checked)::after {
+.briefing-style-options.briefing-wood-options>label:has(input:checked)::after {
     top: auto;
     right: 50%;
     bottom: -12px;
@@ -624,7 +624,7 @@ input[type="file"]::file-selector-button {
     object-fit: contain;
 }
 
-.briefing-shape-options > label > span {
+.briefing-shape-options>label>span {
     max-width: 14ch;
     margin-top: 8px;
     color: var(--briefing-ink);
@@ -741,7 +741,7 @@ input[type="file"]::file-selector-button {
     gap: 14px;
 }
 
-.briefing-elements-options > label {
+.briefing-elements-options>label {
     min-height: 126px;
     flex-direction: column;
     gap: 9px;
@@ -752,7 +752,7 @@ input[type="file"]::file-selector-button {
     line-height: 1.35;
 }
 
-.briefing-elements-options > label > input {
+.briefing-elements-options>label>input {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -838,7 +838,7 @@ input[type="file"]::file-selector-button {
     min-height: 38px;
 }
 
-.briefing-environment-option > span:last-child {
+.briefing-environment-option>span:last-child {
     color: var(--briefing-accent);
     font-size: 22px;
 }
@@ -861,7 +861,7 @@ input[type="file"]::file-selector-button {
     margin-bottom: 8px;
 }
 
-.form-page-10 .briefing-options > label {
+.form-page-10 .briefing-options>label {
     min-height: 38px;
     justify-content: flex-start;
     padding: 8px 11px;
@@ -875,7 +875,7 @@ input[type="file"]::file-selector-button {
     margin: 0;
 }
 
-.form-page-10 .briefing-options > .briefing-other-option {
+.form-page-10 .briefing-options>.briefing-other-option {
     min-height: auto;
     padding: 2px 0;
     border: 0;
@@ -883,7 +883,7 @@ input[type="file"]::file-selector-button {
     box-shadow: none;
 }
 
-.form-page-10 .briefing-options > .briefing-other-option:hover {
+.form-page-10 .briefing-options>.briefing-other-option:hover {
     border-color: transparent;
     transform: none;
 }
@@ -902,7 +902,7 @@ input[type="file"]::file-selector-button {
     gap: 10px;
 }
 
-.form-page-10 .briefing-other-row > label {
+.form-page-10 .briefing-other-row>label {
     display: inline-flex;
     align-items: center;
     justify-content: flex-start;
@@ -918,7 +918,7 @@ input[type="file"]::file-selector-button {
 }
 
 .form-page-10 .briefing-other-field small,
-.form-page-10 .briefing-input-box > .briefing-other-input + small {
+.form-page-10 .briefing-input-box>.briefing-other-input+small {
     position: relative;
     display: block;
     margin: -23px 10px 0 0;
@@ -934,9 +934,9 @@ input[type="file"]::file-selector-button {
     }
 }
 
-.form-page-16 > .briefing-input-box,
-.form-page-16 > fieldset.briefing-input-box,
-.form-page-17 > .briefing-input-box {
+.form-page-16>.briefing-input-box,
+.form-page-16>fieldset.briefing-input-box,
+.form-page-17>.briefing-input-box {
     margin-bottom: 16px;
     padding: 18px;
     border: 1px solid var(--briefing-border);
@@ -958,10 +958,10 @@ input[type="file"]::file-selector-button {
     border-top: 1px solid var(--briefing-border);
 }
 
-.form-page-16 .briefing-bathroom-users > label,
-.form-page-16 .briefing-bathroom-storage > label,
-.form-page-17 .briefing-bathroom-users > label,
-.form-page-17 .briefing-bathroom-storage > label {
+.form-page-16 .briefing-bathroom-users>label,
+.form-page-16 .briefing-bathroom-storage>label,
+.form-page-17 .briefing-bathroom-users>label,
+.form-page-17 .briefing-bathroom-storage>label {
     min-height: 42px;
     justify-content: flex-start;
     padding: 9px 12px;
@@ -984,8 +984,8 @@ input[type="file"]::file-selector-button {
     margin: 9px 0 0 calc(50% + 6px);
 }
 
-.form-page-16 > .briefing-input-box:has(textarea),
-.form-page-17 > .briefing-input-box:has(textarea) {
+.form-page-16>.briefing-input-box:has(textarea),
+.form-page-17>.briefing-input-box:has(textarea) {
     margin-top: 8px;
     padding: 18px;
 }
@@ -997,6 +997,7 @@ input[type="file"]::file-selector-button {
 }
 
 @media (max-width: 480px) {
+
     .form-page-16 .briefing-bathroom-users,
     .form-page-16 .briefing-bathroom-storage,
     .form-page-17 .briefing-bathroom-users,
@@ -1010,8 +1011,8 @@ input[type="file"]::file-selector-button {
     gap: 10px 12px;
 }
 
-.form-page-15 .briefing-bedroom-essentials > label,
-.form-page-15 .briefing-bedroom-essentials > label:has(.image-placeholder) {
+.form-page-15 .briefing-bedroom-essentials>label,
+.form-page-15 .briefing-bedroom-essentials>label:has(.image-placeholder) {
     min-height: 76px;
     flex-direction: row;
     justify-content: flex-start;
@@ -1020,7 +1021,7 @@ input[type="file"]::file-selector-button {
     text-align: left;
 }
 
-.form-page-15 .briefing-bedroom-essentials > label > input[type="checkbox"] {
+.form-page-15 .briefing-bedroom-essentials>label>input[type="checkbox"] {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1060,7 +1061,7 @@ input[type="file"]::file-selector-button {
     margin-top: 14px;
 }
 
-.form-page-15 .briefing-bedroom-storage > label {
+.form-page-15 .briefing-bedroom-storage>label {
     min-height: 32px;
     justify-content: flex-start;
     padding: 4px 0;
@@ -1070,7 +1071,7 @@ input[type="file"]::file-selector-button {
     text-align: left;
 }
 
-.form-page-15 .briefing-bedroom-storage > label:hover {
+.form-page-15 .briefing-bedroom-storage>label:hover {
     border-color: transparent;
     transform: none;
 }
@@ -1092,8 +1093,8 @@ input[type="file"]::file-selector-button {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .form-page-15 .briefing-bedroom-essentials > label,
-    .form-page-15 .briefing-bedroom-essentials > label:has(.image-placeholder) {
+    .form-page-15 .briefing-bedroom-essentials>label,
+    .form-page-15 .briefing-bedroom-essentials>label:has(.image-placeholder) {
         padding: 9px;
     }
 
@@ -1134,7 +1135,7 @@ input[type="file"]::file-selector-button {
     gap: 28px;
 }
 
-.form-page-12 .briefing-kitchen-binary > label {
+.form-page-12 .briefing-kitchen-binary>label {
     min-height: auto;
     justify-content: flex-start;
     padding: 4px 0;
@@ -1144,7 +1145,7 @@ input[type="file"]::file-selector-button {
     text-align: left;
 }
 
-.form-page-12 .briefing-kitchen-binary > label:hover {
+.form-page-12 .briefing-kitchen-binary>label:hover {
     border-color: transparent;
     transform: none;
 }
@@ -1165,8 +1166,8 @@ input[type="file"]::file-selector-button {
     gap: 9px 12px;
 }
 
-.form-page-12 .briefing-kitchen-appliances > label,
-.form-page-12 .briefing-kitchen-accessories > label {
+.form-page-12 .briefing-kitchen-appliances>label,
+.form-page-12 .briefing-kitchen-accessories>label {
     min-height: 44px;
     justify-content: flex-start;
     padding: 9px 12px;
@@ -1208,14 +1209,14 @@ input[type="file"]::file-selector-button {
     gap: 10px 14px;
 }
 
-.form-page-13 .briefing-balcony-uses > label {
+.form-page-13 .briefing-balcony-uses>label {
     min-height: 58px;
     justify-content: flex-start;
     padding: 12px 16px;
     text-align: left;
 }
 
-.form-page-13 .briefing-balcony-uses > label > input[type="checkbox"] {
+.form-page-13 .briefing-balcony-uses>label>input[type="checkbox"] {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1245,7 +1246,7 @@ input[type="file"]::file-selector-button {
     gap: 28px;
 }
 
-.form-page-13 .briefing-balcony-glazing > label {
+.form-page-13 .briefing-balcony-glazing>label {
     min-height: 38px;
     justify-content: flex-start;
     padding: 4px 0;
@@ -1255,7 +1256,7 @@ input[type="file"]::file-selector-button {
     text-align: left;
 }
 
-.form-page-13 .briefing-balcony-glazing > label:hover {
+.form-page-13 .briefing-balcony-glazing>label:hover {
     border-color: transparent;
     transform: none;
 }
@@ -1273,7 +1274,7 @@ input[type="file"]::file-selector-button {
     gap: 6px;
 }
 
-.form-page-13 .briefing-balcony-integration > label {
+.form-page-13 .briefing-balcony-integration>label {
     min-height: 38px;
     justify-content: flex-start;
     padding: 4px 0;
@@ -1283,7 +1284,7 @@ input[type="file"]::file-selector-button {
     text-align: left;
 }
 
-.form-page-13 .briefing-balcony-integration > label:hover {
+.form-page-13 .briefing-balcony-integration>label:hover {
     border-color: transparent;
     transform: none;
 }
@@ -1314,7 +1315,7 @@ input[type="file"]::file-selector-button {
     margin-top: 16px;
 }
 
-.form-page-14 .briefing-options > label {
+.form-page-14 .briefing-options>label {
     min-height: 32px;
     justify-content: flex-start;
     padding: 4px 0;
@@ -1324,7 +1325,7 @@ input[type="file"]::file-selector-button {
     text-align: left;
 }
 
-.form-page-14 .briefing-options > label:hover {
+.form-page-14 .briefing-options>label:hover {
     border-color: transparent;
     transform: none;
 }
@@ -1336,7 +1337,7 @@ input[type="file"]::file-selector-button {
     margin: 0 5px 0 0;
 }
 
-.form-page-14 .briefing-input-box > .briefing-input {
+.form-page-14 .briefing-input-box>.briefing-input {
     width: calc(50% - 11px);
     margin: 5px 0 0 calc(50% + 11px);
 }
@@ -1351,7 +1352,7 @@ input[type="file"]::file-selector-button {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .form-page-14 .briefing-input-box > .briefing-input {
+    .form-page-14 .briefing-input-box>.briefing-input {
         width: calc(50% - 6px);
         margin-left: calc(50% + 6px);
     }
@@ -1366,7 +1367,7 @@ input[type="file"]::file-selector-button {
     gap: 8px 12px;
 }
 
-.form-page-11 .briefing-dining-options > label {
+.form-page-11 .briefing-dining-options>label {
     min-height: 42px;
     justify-content: flex-start;
     padding: 9px 12px;
@@ -1397,7 +1398,7 @@ input[type="file"]::file-selector-button {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .form-page-11 .briefing-dining-options > label {
+    .form-page-11 .briefing-dining-options>label {
         padding-inline: 9px;
     }
 }
@@ -1496,8 +1497,8 @@ input[type="file"]::file-selector-button {
     display: none;
 }
 
-.form-page-18.is-submitting > :not(.briefing-submission-loading),
-.form-page-18.is-submit-success > :not(.briefing-success-message) {
+.form-page-18.is-submitting> :not(.briefing-submission-loading),
+.form-page-18.is-submit-success> :not(.briefing-success-message) {
     display: none;
 }
 
@@ -1621,7 +1622,7 @@ input[type="file"]::file-selector-button {
         border-radius: 9px;
     }
 
-    .form-page-container > div {
+    .form-page-container>div {
         min-height: calc(100vh - 190px);
     }
 
@@ -1688,7 +1689,7 @@ input[type="file"]::file-selector-button {
 
 
     .form-page-02 .row-content,
-    .form-page-03 fieldset:first-of-type > .briefing-input-row {
+    .form-page-03 fieldset:first-of-type>.briefing-input-row {
         grid-template-columns: 1fr;
     }
 

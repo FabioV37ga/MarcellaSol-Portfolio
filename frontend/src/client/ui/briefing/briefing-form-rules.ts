@@ -1,7 +1,7 @@
 type BriefingField = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 export class BriefingFormRules {
-    constructor(private readonly template: HTMLElement) {}
+    constructor(private readonly template: HTMLElement) { }
 
     preparePage(page: HTMLElement): void {
         this.configureRequiredFields(page);

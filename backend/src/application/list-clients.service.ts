@@ -30,7 +30,7 @@ export class ListClientsService {
     constructor(
         private readonly clients = new ClientRepository(),
         private readonly briefings = new ClientBriefingRepository()
-    ) {}
+    ) { }
 
     async execute(): Promise<AdminClientListItem[]> {
         const clients = await this.clients.findAllForAdmin();

@@ -33,7 +33,7 @@ export class AdminSystemView {
         this.lifecycle.disposeAll();
     }
 
-    styleNavButton(button: HTMLElement){
+    styleNavButton(button: HTMLElement) {
         // console.log("style")
         const selected = u(".desktop-nav-item-selected").first() as HTMLElement
         u(selected).removeClass("desktop-nav-item-selected")

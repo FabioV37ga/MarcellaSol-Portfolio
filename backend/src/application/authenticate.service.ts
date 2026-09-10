@@ -15,7 +15,7 @@ export class AuthenticateService {
         private readonly clients = new ClientRepository(),
         private readonly passwords = new PasswordService(),
         private readonly sessions = new SessionService()
-    ) {}
+    ) { }
 
     async execute(role: "admin", login: string, password: string): Promise<AuthenticationResult<AdminAccount>>;
     async execute(role: "client", login: string, password: string): Promise<AuthenticationResult<ClientAccount>>;

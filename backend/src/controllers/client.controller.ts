@@ -22,7 +22,7 @@ export class ClientController {
         private readonly authenticate = new AuthenticateService(),
         private readonly proposals = new ClientProposalService(),
         private readonly sessions = new SessionService()
-    ) {}
+    ) { }
 
     login = async (request: Request, response: Response): Promise<Response> => {
         try {

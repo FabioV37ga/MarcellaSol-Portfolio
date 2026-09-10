@@ -34,7 +34,7 @@ const adminRoutesRequiringClient = new Set<AdminRoute>(["client-management", "cl
 export class AdminSystemRouter {
     private listening = false;
 
-    constructor(private readonly render: (route: AdminRoute, id?: string) => void) {}
+    constructor(private readonly render: (route: AdminRoute, id?: string) => void) { }
 
     start(restoreCurrentRoute = false): void {
         if (!this.listening) {

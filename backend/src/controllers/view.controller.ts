@@ -7,7 +7,7 @@ export class ViewController {
     constructor(
         private readonly views = new ViewRepository(),
         private readonly clients = new ClientRepository()
-    ) {}
+    ) { }
 
     admin = async (request: Request, response: Response): Promise<Response> => {
         try {

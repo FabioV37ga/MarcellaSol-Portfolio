@@ -9,7 +9,7 @@ export class SessionService {
     constructor(
         private readonly tokens = new SessionTokenService(),
         private readonly sessions: SessionStore = new SessionRepository()
-    ) {}
+    ) { }
 
     async issue(identity: SessionIdentity): Promise<string> {
         const issued = this.tokens.issue(identity);

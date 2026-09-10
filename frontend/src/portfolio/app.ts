@@ -5,7 +5,7 @@ import HomePageController from "./controllers/homePage.controller.js";
 var page = window.location.pathname.split("/").pop()?.replace(".html", "") || "home";
 
 
-if (page == "home"){
+if (page == "home") {
     document.addEventListener("DOMContentLoaded", () => {
         new HomePageController();
     })

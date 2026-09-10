@@ -277,7 +277,7 @@ function balance() {
     `
 }
 
-function needs(){
+function needs() {
     return html`
     <div class="briefing-input-box">
         <p>7. Existe algum desejo especial para o quarto?</p>

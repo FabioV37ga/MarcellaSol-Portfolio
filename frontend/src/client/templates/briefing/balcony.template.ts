@@ -1,6 +1,6 @@
 import html from 'nanohtml'
 
-function askBalconyIntegration(){
+function askBalconyIntegration() {
     return html`
         <div class="briefing-input-box">
                     <p>Desejam integrar a varanda na sala?</p>
@@ -30,7 +30,7 @@ function askBalconyIntegration(){
     `
 }
 
-export function balcony(askBalcony: boolean){
+export function balcony(askBalcony: boolean) {
     return html`
         <div class="form-page-13">
 

@@ -21,35 +21,49 @@ const cutoff = new Date(Date.now() - RETENTION_DAYS * 86_400_000);
 async function run(): Promise<void> {
     await mongoose.connect(databaseUri!, { serverSelectionTimeoutMS: 10000, connectTimeoutMS: 10000, socketTimeoutMS: 45000 });
     const [downPayments, installments] = await Promise.all([
-        payments.countDocuments({ $or: [
-            { "downPayment.pix.analysisWindowEndsAt": { $lte: cutoff } },
-            { "downPayment.pix.analysisWindowEndsAt": { $exists: false }, "downPayment.pix.expiresAt": { $lte: cutoff } }
-        ] }),
+        payments.countDocuments({
+            $or: [
+                { "downPayment.pix.analysisWindowEndsAt": { $lte: cutoff } },
+                { "downPayment.pix.analysisWindowEndsAt": { $exists: false }, "downPayment.pix.expiresAt": { $lte: cutoff } }
+            ]
+        }),
         payments.aggregate<{ count: number }>([
             { $unwind: "$installments" },
-            { $match: { "installments.pix": { $exists: true }, $or: [
-                { "installments.pix.analysisWindowEndsAt": { $lte: cutoff } },
-                { "installments.pix.analysisWindowEndsAt": { $exists: false }, "installments.pix.expiresAt": { $lte: cutoff } }
-            ] } },
+            {
+                $match: {
+                    "installments.pix": { $exists: true }, $or: [
+                        { "installments.pix.analysisWindowEndsAt": { $lte: cutoff } },
+                        { "installments.pix.analysisWindowEndsAt": { $exists: false }, "installments.pix.expiresAt": { $lte: cutoff } }
+                    ]
+                }
+            },
             { $count: "count" }
         ]).then(result => result[0]?.count ?? 0)
     ]);
 
-    console.log(JSON.stringify({ mode: applyChanges ? "apply" : "preview", retentionDays: RETENTION_DAYS,
-        cutoff: cutoff.toISOString(), expiredDownPaymentAttempts: downPayments, expiredInstallmentAttempts: installments }, null, 2));
+    console.log(JSON.stringify({
+        mode: applyChanges ? "apply" : "preview", retentionDays: RETENTION_DAYS,
+        cutoff: cutoff.toISOString(), expiredDownPaymentAttempts: downPayments, expiredInstallmentAttempts: installments
+    }, null, 2));
     if (!applyChanges || downPayments + installments === 0) return;
 
     const [downResult, installmentResult] = await Promise.all([
-        payments.updateMany({ $or: [
-            { "downPayment.pix.analysisWindowEndsAt": { $lte: cutoff } },
-            { "downPayment.pix.analysisWindowEndsAt": { $exists: false }, "downPayment.pix.expiresAt": { $lte: cutoff } }
-        ] }, { $unset: { "downPayment.pix": 1 } }),
+        payments.updateMany({
+            $or: [
+                { "downPayment.pix.analysisWindowEndsAt": { $lte: cutoff } },
+                { "downPayment.pix.analysisWindowEndsAt": { $exists: false }, "downPayment.pix.expiresAt": { $lte: cutoff } }
+            ]
+        }, { $unset: { "downPayment.pix": 1 } }),
         payments.updateMany({ "installments.pix": { $exists: true } },
             { $unset: { "installments.$[expired].pix": 1 } },
-            { arrayFilters: [{ $or: [
-                { "expired.pix.analysisWindowEndsAt": { $lte: cutoff } },
-                { "expired.pix.analysisWindowEndsAt": { $exists: false }, "expired.pix.expiresAt": { $lte: cutoff } }
-            ] }] })
+            {
+                arrayFilters: [{
+                    $or: [
+                        { "expired.pix.analysisWindowEndsAt": { $lte: cutoff } },
+                        { "expired.pix.analysisWindowEndsAt": { $exists: false }, "expired.pix.expiresAt": { $lte: cutoff } }
+                    ]
+                }]
+            })
     ]);
     console.log(JSON.stringify({ modifiedDocuments: downResult.modifiedCount + installmentResult.modifiedCount }, null, 2));
 }

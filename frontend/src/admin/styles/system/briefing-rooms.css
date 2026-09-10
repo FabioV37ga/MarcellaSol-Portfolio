@@ -178,7 +178,7 @@
     color: transparent;
 }
 
-.briefing-room-option input:checked + .briefing-room-checkbox {
+.briefing-room-option input:checked+.briefing-room-checkbox {
     border-color: var(--orange);
     background: var(--orange);
     color: white;

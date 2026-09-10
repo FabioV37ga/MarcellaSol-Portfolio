@@ -20,7 +20,7 @@ export class CreateClientService {
         private readonly clients = new ClientRepository(),
         private readonly passwords = new PasswordService(),
         private readonly folders: ClientFolderStorage = new GoogleDriveAttachmentStorage()
-    ) {}
+    ) { }
 
     async execute(command: CreateClientCommand) {
         if (await this.clients.existsByLogin(command.client.login)) {

@@ -316,13 +316,17 @@ async function main(): Promise<void> {
             if (idCollision) {
                 throw new Error(`${filename}: o _id já pertence a ${identity(idCollision)} no banco.`);
             }
-            operations.push({ insertOne: { document: {
-                _id: new mongoose.Types.ObjectId(data._id.$oid),
-                viewName: data.viewName.trim(),
-                permission: data.permission.trim(),
-                type: data.type,
-                view: data.view
-            } } });
+            operations.push({
+                insertOne: {
+                    document: {
+                        _id: new mongoose.Types.ObjectId(data._id.$oid),
+                        viewName: data.viewName.trim(),
+                        permission: data.permission.trim(),
+                        type: data.type,
+                        view: data.view
+                    }
+                }
+            });
             console.log(`[CRIAR] ${key} <- ${filename}`);
             continue;
         }
@@ -336,15 +340,19 @@ async function main(): Promise<void> {
             console.log(`[IGUAL] ${key}`);
             continue;
         }
-        operations.push({ updateOne: {
-            filter: { _id: existing._id },
-            update: { $set: {
-                viewName: data.viewName.trim(),
-                permission: data.permission.trim(),
-                type: data.type,
-                view: data.view
-            } }
-        } });
+        operations.push({
+            updateOne: {
+                filter: { _id: existing._id },
+                update: {
+                    $set: {
+                        viewName: data.viewName.trim(),
+                        permission: data.permission.trim(),
+                        type: data.type,
+                        view: data.view
+                    }
+                }
+            }
+        });
         console.log(`[ATUALIZAR] ${key} <- ${filename} (${checksum(existing).slice(0, 12)} → ${checksum(data).slice(0, 12)})`);
     }
 

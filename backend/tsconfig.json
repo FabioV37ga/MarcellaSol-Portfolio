@@ -8,12 +8,13 @@
         "strictNullChecks": true,
         "allowSyntheticDefaultImports": true,
         "skipLibCheck": true,
-        "types": ["node"],
+        "types": [
+            "node"
+        ],
         "module": "NodeNext",
         "moduleResolution": "nodenext",
         "target": "ES2020",
         "esModuleInterop": true
-
     },
     "include": [
         "src/**/*",

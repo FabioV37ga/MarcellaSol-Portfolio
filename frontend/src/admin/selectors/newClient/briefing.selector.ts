@@ -1,6 +1,6 @@
 import u from "umbrellajs";
 
-interface briefingHome{
+interface briefingHome {
     root: HTMLElement[],
     cancel: HTMLElement,
     confirm: HTMLElement,
@@ -10,7 +10,7 @@ interface briefingHome{
     peopleAmount: HTMLInputElement
 }
 
-function getBriefingHome(): briefingHome{
+function getBriefingHome(): briefingHome {
     const root = u(".root-index").nodes as HTMLElement[]
     const cancel = u("#generate-briefing-cancel").first() as HTMLElement
     const confirm = u("#generate-briefing-confirm").first() as HTMLElement
@@ -29,15 +29,15 @@ function getBriefingHome(): briefingHome{
     }
 }
 
-interface briefingInvestment{
+interface briefingInvestment {
     root: HTMLElement[],
     cancel: HTMLElement,
     confirm: HTMLElement,
     flexibility: HTMLInputElement
 }
 
-function getBriefingInvestment():briefingInvestment{
-    return{
+function getBriefingInvestment(): briefingInvestment {
+    return {
         root: u(".root-index").nodes as HTMLElement[],
         cancel: u("#briefing-investment-cancel").first() as HTMLElement,
         confirm: u("#briefing-rooms-confirm").first() as HTMLElement,
@@ -46,16 +46,16 @@ function getBriefingInvestment():briefingInvestment{
 }
 
 
-interface briefingRooms{
+interface briefingRooms {
     root: HTMLElement[]
     cancel: HTMLElement
     addRoom: HTMLElement
     roomContainer: HTMLElement;
     addedRooms?: HTMLElement[]
-    confirm?:HTMLElement
+    confirm?: HTMLElement
 }
 
-function getBriefingRooms():briefingRooms{
+function getBriefingRooms(): briefingRooms {
     const root = u(".root-index").nodes as HTMLElement[]
     const cancel = u("#briefing-rooms-cancel").first() as HTMLElement
     const addRoom = u(".briefing-room-add").first() as HTMLElement

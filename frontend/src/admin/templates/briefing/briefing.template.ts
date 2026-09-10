@@ -100,17 +100,17 @@ export function finishItem(
                     ${displaySubtype ? html`<span>${displaySubtype}</span>` : null}
                 </h3>
                 ${selectedOptions.length > 0
-                    ? html`
+            ? html`
                         <ul class="briefing-finish-option-list briefing-finish-option-columns">
                             ${selectedOptions.map(optionName => html`<li>${optionName}</li>`)}
                         </ul>
                     `
-                    : html`
+            : html`
                         <p class="briefing-finish-empty">
                             Nenhuma opção adicional selecionada.
                         </p>
                     `
-                }
+        }
             </div>
         </article>
     `
@@ -199,12 +199,12 @@ export function finishBriefing(
 
                     <div class="briefing-finish-room-list">
                         ${orderedRooms.map(room => finishItem(
-                            room.index,
-                            room.name,
-                            room.options ?? [],
-                            room.type,
-                            room.subtype
-                        ))}
+        room.index,
+        room.name,
+        room.options ?? [],
+        room.type,
+        room.subtype
+    ))}
                     </div>
                 </section>
 

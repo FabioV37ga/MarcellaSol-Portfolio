@@ -1,6 +1,6 @@
 import html from 'nanohtml'
 
-export function preferences_1(){
+export function preferences_1() {
     return html`
         <div class="form-page-06">
 
@@ -382,7 +382,7 @@ export function preferences_1(){
     `
 }
 
-export function preferences_2(){
+export function preferences_2() {
     return html`
         <div class="form-page-07">
 
@@ -613,7 +613,7 @@ export function preferences_2(){
 }
 
 
-export function preferences_3(showCostObservation = true){
+export function preferences_3(showCostObservation = true) {
     return html`
         <div class="form-page-08">
 

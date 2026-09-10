@@ -1,15 +1,12 @@
-.homePage-about{
+.homePage-about {
     height: 240px !important
 }
 
-.homePage-about-content{
+.homePage-about-content {
     display: initial;
     margin-top: 69px
-
 }
 
-.homePage-about-content p{
+.homePage-about-content p {
     margin-top: 35px
 }
-
-

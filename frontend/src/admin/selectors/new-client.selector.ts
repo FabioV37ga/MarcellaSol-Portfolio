@@ -1,6 +1,6 @@
 import u from "umbrellajs";
 
-interface newClientElements{
+interface newClientElements {
     root: HTMLElement,
     cancel: HTMLElement,
     confirm: HTMLElement,
@@ -9,7 +9,7 @@ interface newClientElements{
     passwordField: HTMLInputElement
 }
 
-function getNewClientElements(): newClientElements{
+function getNewClientElements(): newClientElements {
     const root = u(".root-index").first() as HTMLElement
     const cancel = u("#add-client-cancel").first() as HTMLElement
     const confirm = u("#add-client-confirm").first() as HTMLElement
@@ -25,4 +25,4 @@ function getNewClientElements(): newClientElements{
     }
 }
 
-export {getNewClientElements, newClientElements}
+export { getNewClientElements, newClientElements }

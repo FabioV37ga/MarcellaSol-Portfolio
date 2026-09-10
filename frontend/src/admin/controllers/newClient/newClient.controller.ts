@@ -3,7 +3,7 @@ import { Briefing } from "./briefing.controller.js";
 
 export type client = NewClientPayload;
 
-export class newClient{
+export class newClient {
     private sessionToken: string
     private name: string;
     private login: string;
@@ -11,7 +11,7 @@ export class newClient{
     briefing?: BriefingDefinition;
     private briefingController!: Briefing
 
-    constructor(name: string, login: string, password: string, sessionToken: string){
+    constructor(name: string, login: string, password: string, sessionToken: string) {
         this.name = name;
         this.login = login;
         this.password = password
@@ -19,18 +19,18 @@ export class newClient{
         this.sessionToken = sessionToken
     }
 
-    async getModels(){
+    async getModels() {
         return await this.briefingController.getModels(this.name, this.sessionToken)!
     }
-    
-    addUserInteractions(page: string, callback: any){
+
+    addUserInteractions(page: string, callback: any) {
         console.log("we are here - new client bi")
         console.log(page)
         this.briefingController.addUserInteractions(page, callback)
     }
 
-    returnClientObject():client{
-        return{
+    returnClientObject(): client {
+        return {
             _id: '',
             login: this.login,
             password: this.password,

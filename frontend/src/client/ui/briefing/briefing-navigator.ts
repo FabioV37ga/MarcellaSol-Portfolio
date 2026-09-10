@@ -15,7 +15,7 @@ export class BriefingNavigator {
         private readonly template: HTMLElement,
         private readonly pages: HTMLElement[],
         private readonly options: BriefingNavigatorOptions
-    ) {}
+    ) { }
 
     get currentPage(): number {
         return this.activePage;

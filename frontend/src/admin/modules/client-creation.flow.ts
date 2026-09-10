@@ -17,7 +17,7 @@ export class ClientCreationFlow {
         private readonly api: AdminSystemApi,
         private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute) => void
-    ) {}
+    ) { }
 
     async start(name: string, login: string, password: string): Promise<void> {
         if (!name || !login || !password) return;

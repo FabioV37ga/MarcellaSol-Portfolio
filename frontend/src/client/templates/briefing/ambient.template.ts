@@ -26,10 +26,10 @@ function roomSlug(ambient: string) {
         .replace(/-+/g, "-")
 }
 
-function room(ambients: string[]){
+function room(ambients: string[]) {
     var totalRooms = ambients.length - 1
     var model: HTMLElement[] = []
-    for (let i = 0; i <= totalRooms; i++){
+    for (let i = 0; i <= totalRooms; i++) {
         const slug = roomSlug(ambients[i])
         const icon = roomIcons[slug] ?? "imovel"
         model.push(
@@ -49,7 +49,7 @@ function room(ambients: string[]){
     }
     return model
 }
-export function ambient(ambients: string[], residentAmount: number){
+export function ambient(ambients: string[], residentAmount: number) {
     return html`
         <div class="form-page-09">
 

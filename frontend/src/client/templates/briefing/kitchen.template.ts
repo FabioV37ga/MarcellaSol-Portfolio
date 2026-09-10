@@ -1,6 +1,6 @@
 import html from 'nanohtml'
 
-function askResidentAmount(){
+function askResidentAmount() {
     return html`
          <div class="briefing-input-box">
                     <p>Mais de uma pessoa cozinha ao mesmo tempo?</p>
@@ -20,7 +20,7 @@ function askResidentAmount(){
     `
 }
 
-function askFastMeals(){
+function askFastMeals() {
     return html`
          <div class="briefing-input-box">
                     <p>Vocês costumam fazer refeições rápidas na cozinha?</p>
@@ -40,7 +40,7 @@ function askFastMeals(){
     `
 }
 
-export function kitchen(residents: number, fastMeals: boolean){
+export function kitchen(residents: number, fastMeals: boolean) {
     return html`
         <div class="form-page-12">
 

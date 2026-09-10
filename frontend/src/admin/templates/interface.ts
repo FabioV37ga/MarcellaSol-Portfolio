@@ -1,6 +1,6 @@
 import type { DatabaseView } from "@/shared/contracts/database-view.js";
 
-export interface system{
+export interface system {
     base?: HTMLElement;
     home?: HTMLElement;
     client?: HTMLElement;
@@ -12,7 +12,7 @@ export interface system{
     // test: HTMLElement
 }
 
-export interface briefing{
+export interface briefing {
     home?: HTMLElement;
     investment?: HTMLElement
     rooms: HTMLElement;

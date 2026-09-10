@@ -145,6 +145,7 @@
     background: var(--stage-status-color);
     box-shadow: inset 0 0 0 5px var(--lightOrange);
 }
+
 .project-step-completed .project-step-dot {
     border-color: #5f964d;
     background: #5f964d;
@@ -468,9 +469,20 @@
     accent-color: var(--orange);
 }
 
-.client-approval-revision-confirmation span { display: grid; gap: 3px; }
-.client-approval-revision-confirmation strong { font-size: 11px; }
-.client-approval-revision-confirmation small { color: var(--gray); font-size: 10px; font-weight: 400; }
+.client-approval-revision-confirmation span {
+    display: grid;
+    gap: 3px;
+}
+
+.client-approval-revision-confirmation strong {
+    font-size: 11px;
+}
+
+.client-approval-revision-confirmation small {
+    color: var(--gray);
+    font-size: 10px;
+    font-weight: 400;
+}
 
 .client-approval-dialog-feedback {
     min-height: 17px;

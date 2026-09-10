@@ -1,6 +1,6 @@
 import u from "umbrellajs";
 
-interface baseElements{
+interface baseElements {
     mobile_expand_button: HTMLElement,
     desktop_nav_home: HTMLElement,
     desktop_nav_client: HTMLElement,
@@ -36,4 +36,4 @@ function getBaseElements(): baseElements {
     }
 }
 
-export {getBaseElements, baseElements}
+export { getBaseElements, baseElements }

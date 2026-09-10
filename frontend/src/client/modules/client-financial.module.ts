@@ -20,7 +20,7 @@ export class ClientFinancialModule {
         private readonly api: ClientSystemApi,
         private readonly token: string,
         private readonly navigate: (route: ClientRoute) => void
-    ) {}
+    ) { }
 
     dispose(): void {
         this.requestId += 1;
@@ -115,10 +115,12 @@ export class ClientFinancialModule {
                 if (highlight?.paymentId === result.payment.id
                     && highlight.partType === part.partType
                     && highlight.installmentNumber === part.installmentNumber) {
-                    highlight = { ...highlight, pix: {
-                        generatedAt: result.pix.generatedAt,
-                        analysisWindowEndsAt: result.pix.analysisWindowEndsAt
-                    }, hasActivePix: true };
+                    highlight = {
+                        ...highlight, pix: {
+                            generatedAt: result.pix.generatedAt,
+                            analysisWindowEndsAt: result.pix.analysisWindowEndsAt
+                        }, hasActivePix: true
+                    };
                 }
                 elements.pixQr.src = result.pix.qrCodeDataUrl;
                 elements.pixCode.value = result.pix.brCode;

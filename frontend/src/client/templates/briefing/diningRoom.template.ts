@@ -1,6 +1,6 @@
 import html from 'nanohtml'
 
-export function diningRoom(){
+export function diningRoom() {
     return html`
         <div class="form-page-11">
 

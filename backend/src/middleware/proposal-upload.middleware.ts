@@ -13,7 +13,7 @@ export function receiveProposalAttachment(request: Request, response: Response, 
             ? "Cada anexo pode ter no máximo 100 MB"
             : error instanceof multer.MulterError && error.code === "LIMIT_FILE_COUNT"
                 ? "A proposta pode conter no máximo 20 anexos por envio"
-            : error instanceof Error ? error.message : "Não foi possível receber o anexo";
+                : error instanceof Error ? error.message : "Não foi possível receber o anexo";
         response.status(400).json({ message });
     });
 }

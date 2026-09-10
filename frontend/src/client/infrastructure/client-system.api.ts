@@ -39,18 +39,18 @@ export interface ClientProposalDecision {
     currentStageKey: ProjectStageKey;
 }
 
-export interface ClientPaymentPart extends PaymentPartContract {}
+export interface ClientPaymentPart extends PaymentPartContract { }
 
-export interface ClientPaymentInstallment extends PaymentInstallmentContract {}
+export interface ClientPaymentInstallment extends PaymentInstallmentContract { }
 
 export interface ClientPayment extends ClientPaymentContract {
     downPayment: ClientPaymentPart;
     installments: ClientPaymentInstallment[];
 }
 
-export interface ClientPaymentPage extends PaymentPageContract<ClientPayment> {}
+export interface ClientPaymentPage extends PaymentPageContract<ClientPayment> { }
 
-export interface ClientPixResponse extends PaymentPixResponseContract<ClientPayment> {}
+export interface ClientPixResponse extends PaymentPixResponseContract<ClientPayment> { }
 
 export class ClientSystemApi {
     async load(token: string): Promise<ClientSystemResponse | undefined> {

@@ -19,7 +19,7 @@ export interface BriefingFolderAccessResult {
 export class BriefingFolderAccessService {
     constructor(
         private readonly folders: FolderReadAccessStorage = new GoogleDriveAttachmentStorage()
-    ) {}
+    ) { }
 
     async execute(folderId: string | undefined, briefing: unknown): Promise<BriefingFolderAccessResult> {
         const emails = extractResidentEmails(briefing);

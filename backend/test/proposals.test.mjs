@@ -110,7 +110,7 @@ test("criação de proposta avança o cliente e conclui todas as etapas anterior
                 attachmentUrls: ["https://drive.google.com/file/d/arquivo-1/view"]
             };
         },
-        async setProposalFolderTrashed() {}
+        async setProposalFolderTrashed() { }
     };
     const service = new ClientProposalService(clients, proposalRepository, storage);
 

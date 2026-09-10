@@ -21,15 +21,15 @@ const projectStageSchema = new mongoose.Schema<ProjectStage>({
 }, { _id: false });
 
 const clientSchema = new mongoose.Schema<ClientObject>({
-    login: {type: String, required: true},
-    password: {type: String, required: true},
-    name: {type: String, required: true},
-    hasFilledBriefing: {type: Boolean, required: true},
-    driveFolderId: {type: String, required: false},
-    briefing: {type: briefingSchema, required: true},
+    login: { type: String, required: true },
+    password: { type: String, required: true },
+    name: { type: String, required: true },
+    hasFilledBriefing: { type: Boolean, required: true },
+    driveFolderId: { type: String, required: false },
+    briefing: { type: briefingSchema, required: true },
     currentStageKey: { type: String, enum: projectStageKeys, default: "briefing", required: true },
     projectStages: { type: [projectStageSchema], default: [] }
-},{collection: 'clients'}
+}, { collection: 'clients' }
 )
 
 export default mongoose.model<ClientObject>('Client', clientSchema);

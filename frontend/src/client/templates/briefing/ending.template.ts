@@ -1,6 +1,6 @@
 import html from 'nanohtml'
 
-export function ending(){
+export function ending() {
     return html`
         <div class="form-page-18">
 

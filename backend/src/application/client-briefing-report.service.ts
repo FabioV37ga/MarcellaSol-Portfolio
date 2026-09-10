@@ -29,7 +29,7 @@ export class ClientBriefingReportService {
         private readonly clients = new ClientRepository(),
         private readonly briefings = new ClientBriefingRepository(),
         private readonly storage: BriefingReportStorage = new GoogleDriveAttachmentStorage()
-    ) {}
+    ) { }
 
     async status(clientId: string): Promise<BriefingReportDriveStatus> {
         const client = await this.getClient(clientId);

@@ -38,8 +38,12 @@ export function paymentPageResponse<T>(
     const nextCursor = page.hasMore && last
         ? Buffer.from(JSON.stringify({ createdAt: last.createdAt.toISOString(), id: last._id.toString() })).toString("base64url")
         : undefined;
-    return { payments: page.records.map(presenter), page: { limit, hasMore: page.hasMore,
-        ...(nextCursor ? { nextCursor } : {}) }, summary, highlight };
+    return {
+        payments: page.records.map(presenter), page: {
+            limit, hasMore: page.hasMore,
+            ...(nextCursor ? { nextCursor } : {})
+        }, summary, highlight
+    };
 }
 
 export async function loadPaymentPage(
@@ -91,13 +95,17 @@ export function selectPaymentHighlight(candidates: PaymentHighlightCandidates, t
 
 function selectPaymentHighlightFromRecords(records: ClientPaymentObject[], now: Date) {
     const candidates = records.flatMap<PaymentHighlightCandidate>(payment => {
-        const down = payment.downPayment.amountCents > 0 ? [{ paymentId: payment._id, paymentTitle: payment.title,
+        const down = payment.downPayment.amountCents > 0 ? [{
+            paymentId: payment._id, paymentTitle: payment.title,
             partType: "down-payment" as const, amountCents: payment.downPayment.amountCents,
             dueDate: payment.downPayment.dueDate ?? payment.firstDueDate, isPaid: payment.downPayment.isPaid,
-            pix: payment.downPayment.pix }] : [];
-        return [...down, ...payment.installments.map(part => ({ paymentId: payment._id, paymentTitle: payment.title,
+            pix: payment.downPayment.pix
+        }] : [];
+        return [...down, ...payment.installments.map(part => ({
+            paymentId: payment._id, paymentTitle: payment.title,
             partType: "installment" as const, installmentNumber: part.number, amountCents: part.amountCents,
-            dueDate: part.dueDate, isPaid: part.isPaid, pix: part.pix }))];
+            dueDate: part.dueDate, isPaid: part.isPaid, pix: part.pix
+        }))];
     }).filter(part => typeof part.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(part.dueDate))
         .sort((left, right) => left.dueDate.localeCompare(right.dueDate));
     const today = dateOnlyInFinancialTimeZone(now);

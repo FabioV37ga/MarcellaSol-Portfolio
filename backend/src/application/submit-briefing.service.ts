@@ -16,7 +16,7 @@ export interface FileManifestEntry {
     originalName: string;
 }
 
-interface StoredAttachment extends FileManifestEntry, DriveUpload {}
+interface StoredAttachment extends FileManifestEntry, DriveUpload { }
 
 export interface SubmitBriefingCommand {
     clientId: string;
@@ -32,7 +32,7 @@ export class SubmitBriefingService {
         private readonly briefings = new ClientBriefingRepository(),
         private readonly attachments: AttachmentStorage = new GoogleDriveAttachmentStorage(),
         private readonly folderAccess = new BriefingFolderAccessService()
-    ) {}
+    ) { }
 
     async execute(command: SubmitBriefingCommand) {
         const client = await this.clients.findById(command.clientId);

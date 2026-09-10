@@ -12,7 +12,7 @@ export class DeleteClientService {
         private readonly clients = new ClientRepository(),
         private readonly deletion = new ClientDeletionRepository(),
         private readonly storage: ClientRemovalStorage = new GoogleDriveAttachmentStorage()
-    ) {}
+    ) { }
 
     async execute(clientId: string, confirmationName: unknown): Promise<void> {
         if (!mongoose.isValidObjectId(clientId)) throw new ApplicationError("Cliente não encontrado", 404);

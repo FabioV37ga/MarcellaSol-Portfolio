@@ -41,9 +41,11 @@ test("MongoDB integra cursor, resumo, destaque e concorrência otimista", { skip
 
     try {
         const older = await payments.create({ ...base, title: "Antigo vencido", createdAt: new Date("2026-01-01"), updatedAt: new Date("2026-01-01") });
-        await payments.create({ ...base, title: "Novo", downPayment: { ...base.downPayment, isPaid: true },
+        await payments.create({
+            ...base, title: "Novo", downPayment: { ...base.downPayment, isPaid: true },
             installments: [{ ...base.installments[0], isPaid: true }], status: "paid",
-            createdAt: new Date("2026-02-01"), updatedAt: new Date("2026-02-01") });
+            createdAt: new Date("2026-02-01"), updatedAt: new Date("2026-02-01")
+        });
 
         const first = await repository.findPageByClientId(clientId.toString(), { limit: 1 });
         assert.equal(first.records.length, 1);
@@ -60,9 +62,11 @@ test("MongoDB integra cursor, resumo, destaque e concorrência otimista", { skip
         );
         assert.equal(highlight.overdue?.paymentId.toString(), older._id.toString());
 
-        const event = occurrence => ({ eventId: randomUUID(), type: "manual-status-change", actorId: "integration-test",
+        const event = occurrence => ({
+            eventId: randomUUID(), type: "manual-status-change", actorId: "integration-test",
             actorSessionId: randomUUID(), actorRole: "admin", occurredAt: occurrence, partType: "down-payment", isPaid: true,
-            receiptId: randomUUID() });
+            receiptId: randomUUID()
+        });
         const results = await Promise.all([
             repository.setDownPaymentPaid(older._id.toString(), clientId.toString(), 0, true, event(new Date()), "partially-paid"),
             repository.setDownPaymentPaid(older._id.toString(), clientId.toString(), 0, true, event(new Date()), "partially-paid")

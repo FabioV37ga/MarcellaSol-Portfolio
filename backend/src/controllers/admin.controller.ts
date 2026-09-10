@@ -24,7 +24,7 @@ export class AdminController {
         private readonly projectStages = new UpdateClientProjectStageService(),
         private readonly deleteClient = new DeleteClientService(),
         private readonly sessions = new SessionService()
-    ) {}
+    ) { }
 
     login = async (request: Request, response: Response): Promise<Response> => {
         try {
@@ -219,11 +219,13 @@ export class AdminController {
         try {
             const clientId = this.routeParameter(request.params.id);
             const principal = authenticatedPrincipal(response);
-            return response.status(201).json({ payment: await this.payments.create(clientId, request.body, {
-                id: principal.subject,
-                sessionId: principal.sessionId,
-                role: "admin"
-            }) });
+            return response.status(201).json({
+                payment: await this.payments.create(clientId, request.body, {
+                    id: principal.subject,
+                    sessionId: principal.sessionId,
+                    role: "admin"
+                })
+            });
         } catch (error: unknown) {
             return this.paymentError(error, response);
         }
@@ -234,11 +236,13 @@ export class AdminController {
             const clientId = this.routeParameter(request.params.id);
             const paymentId = this.routeParameter(request.params.paymentId);
             const principal = authenticatedPrincipal(response);
-            return response.status(200).json({ payment: await this.payments.edit(clientId, paymentId, request.body, {
-                id: principal.subject,
-                sessionId: principal.sessionId,
-                role: "admin"
-            }) });
+            return response.status(200).json({
+                payment: await this.payments.edit(clientId, paymentId, request.body, {
+                    id: principal.subject,
+                    sessionId: principal.sessionId,
+                    role: "admin"
+                })
+            });
         } catch (error: unknown) {
             return this.paymentError(error, response);
         }

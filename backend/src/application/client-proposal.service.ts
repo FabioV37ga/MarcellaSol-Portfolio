@@ -21,7 +21,7 @@ export class ClientProposalService {
         private readonly clients = new ClientRepository(),
         private readonly proposals = new ClientProposalRepository(),
         private readonly storage: ProposalStorage = new GoogleDriveAttachmentStorage()
-    ) {}
+    ) { }
 
     async list(userId: string) {
         await this.requireClient(userId, false);
