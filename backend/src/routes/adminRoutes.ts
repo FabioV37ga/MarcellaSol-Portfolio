@@ -1,11 +1,11 @@
 import express from "express";
 import { AdminController } from "../controllers/admin.controller.js";
-import { requireAuthentication } from "../middleware/authentication.middleware.js";
+import type { AuthenticationGuard } from "../middleware/authentication.middleware.js";
 import { receiveProposalAttachment } from "../middleware/proposal-upload.middleware.js";
 import { adminLoginRateLimit } from "../middleware/login-rate-limit.middleware.js";
 import { financialMutationRateLimit, financialReadRateLimit } from "../middleware/financial-rate-limit.middleware.js";
 
-export default function adminRoutes(controller: AdminController) {
+export default function adminRoutes(controller: AdminController, requireAuthentication: AuthenticationGuard) {
     const router = express.Router();
 
     router.post("/api/admin/login", adminLoginRateLimit, controller.login);

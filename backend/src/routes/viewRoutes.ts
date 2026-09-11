@@ -1,8 +1,8 @@
 import express from "express";
 import type { ViewController } from "../controllers/view.controller.js";
-import { requireAuthentication } from "../middleware/authentication.middleware.js";
+import type { AuthenticationGuard } from "../middleware/authentication.middleware.js";
 
-export default function createViewRoutes(controller: ViewController) {
+export default function createViewRoutes(controller: ViewController, requireAuthentication: AuthenticationGuard) {
     const router = express.Router();
 
     router.post("/api/view/admin", requireAuthentication("admin"), controller.admin);

@@ -1,11 +1,11 @@
 import express from "express";
 import { ClientController } from "../controllers/client.controller.js";
 import { receiveBriefingFiles } from "../middleware/briefing-upload.middleware.js";
-import { requireAuthentication } from "../middleware/authentication.middleware.js";
+import type { AuthenticationGuard } from "../middleware/authentication.middleware.js";
 import { clientLoginRateLimit } from "../middleware/login-rate-limit.middleware.js";
 import { financialMutationRateLimit, financialReadRateLimit } from "../middleware/financial-rate-limit.middleware.js";
 
-export default function clientRoutes(controller: ClientController) {
+export default function clientRoutes(controller: ClientController, requireAuthentication: AuthenticationGuard) {
     const router = express.Router();
 
     router.post("/api/client/login", clientLoginRateLimit, controller.login);

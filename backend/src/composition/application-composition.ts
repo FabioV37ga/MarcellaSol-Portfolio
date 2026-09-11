@@ -13,6 +13,7 @@ import { UpdateClientProjectStageService } from "../application/update-client-pr
 import { AdminController } from "../controllers/admin.controller.js";
 import { ClientController } from "../controllers/client.controller.js";
 import { ViewController } from "../controllers/view.controller.js";
+import { createAuthenticationGuard, type AuthenticationGuard } from "../middleware/authentication.middleware.js";
 import { AdminRepository } from "../repositories/admin.repository.js";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ClientDeletionRepository } from "../repositories/client-deletion.repository.js";
@@ -30,6 +31,7 @@ export interface ApplicationComposition {
     admin: AdminController;
     client: ClientController;
     views: ViewController;
+    requireAuthentication: AuthenticationGuard;
 }
 
 export function createApplicationComposition(config: ApplicationConfig): ApplicationComposition {
@@ -73,6 +75,7 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             proposalService,
             sessions
         ),
-        views: new ViewController(views, clients)
+        views: new ViewController(views, clients),
+        requireAuthentication: createAuthenticationGuard(sessions)
     };
 }
