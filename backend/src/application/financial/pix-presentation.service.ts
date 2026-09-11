@@ -38,14 +38,15 @@ export class PixPresentationService {
         payment: ClientPaymentObject,
         partType: PixPartType,
         installmentNumber: number | undefined,
-        part: PaymentPart
+        part: PaymentPart,
+        now = new Date()
     ) {
         if (!part.pix) throw new Error("Cannot present a payment part without Pix data");
         const analysisWindowEndsAt = pixAnalysisWindowEnd(part.pix);
         if (!analysisWindowEndsAt) throw new Error("Cannot present Pix data without an analysis window");
 
         return {
-            payment: clientPaymentResponse(payment),
+            payment: clientPaymentResponse(payment, now),
             pix: {
                 partType,
                 ...(installmentNumber === undefined ? {} : { installmentNumber }),

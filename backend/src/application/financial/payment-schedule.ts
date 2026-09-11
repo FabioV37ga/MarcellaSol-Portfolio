@@ -28,7 +28,8 @@ export interface PaymentSchedulePreview {
 
 export function calculatePaymentSchedule(
     fields: PaymentFields,
-    previous?: Pick<ClientPaymentObject, "downPayment" | "installments">
+    previous?: Pick<ClientPaymentObject, "downPayment" | "installments">,
+    calculatedAt = new Date()
 ): PaymentSchedule {
     const totalAmountCents = moneyToCents(fields.totalAmount);
     const installmentCount = integerInRange(fields.installmentCount, "A quantidade de parcelas", 1, 120);
@@ -44,7 +45,6 @@ export function calculatePaymentSchedule(
     const installmentTotalCents = financedAmountCents + interestAmountCents;
     const suppliedPaidNumbers = paidInstallmentNumbers(fields.paidInstallmentNumbers, installmentCount);
     const previousInstallments = new Map(previous?.installments.map(item => [item.number, item]) ?? []);
-    const calculatedAt = new Date();
     const baseAmount = Math.floor(installmentTotalCents / installmentCount);
     const remainder = installmentTotalCents % installmentCount;
     const installments = Array.from({ length: installmentCount }, (_, index) => {

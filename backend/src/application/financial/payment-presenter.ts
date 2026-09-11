@@ -42,7 +42,7 @@ export function paymentResponse(payment: ClientPaymentObject) {
     };
 }
 
-export function clientPaymentResponse(payment: ClientPaymentObject) {
+export function clientPaymentResponse(payment: ClientPaymentObject, now = new Date()) {
     const response = paymentResponse(payment);
     return {
         id: response.id,
@@ -54,11 +54,11 @@ export function clientPaymentResponse(payment: ClientPaymentObject) {
         discountPercentage: response.discountPercentage,
         interestPercentage: response.interestPercentage,
         discountAmountCents: response.discountAmountCents,
-        downPayment: publicPaymentPart(response.downPayment),
+        downPayment: publicPaymentPart(response.downPayment, now),
         finalAmountCents: response.finalAmountCents,
         paidAmountCents: response.paidAmountCents,
         remainingAmountCents: response.remainingAmountCents,
-        installments: response.installments.map(item => ({ number: item.number, ...publicPaymentPart(item) })),
+        installments: response.installments.map(item => ({ number: item.number, ...publicPaymentPart(item, now) })),
         createdAt: response.createdAt,
         updatedAt: response.updatedAt
     };
@@ -68,10 +68,10 @@ export function pixAnalysisWindowEnd(pix: PaymentPart["pix"]): Date | undefined 
     return pix?.analysisWindowEndsAt ?? pix?.expiresAt;
 }
 
-function publicPaymentPart(part: PaymentPart) {
+function publicPaymentPart(part: PaymentPart, now: Date) {
     const analysisWindowEndsAt = part.pix ? pixAnalysisWindowEnd(part.pix) : undefined;
     const hasActivePix = !part.isPaid && part.pix && analysisWindowEndsAt
-        && analysisWindowEndsAt.getTime() > Date.now();
+        && analysisWindowEndsAt.getTime() > now.getTime();
     return {
         amountCents: part.amountCents,
         isPaid: part.isPaid,

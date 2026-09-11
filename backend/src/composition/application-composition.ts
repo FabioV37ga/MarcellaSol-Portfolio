@@ -10,6 +10,8 @@ import { PixPresentationService } from "../application/financial/pix-presentatio
 import { ListClientsService } from "../application/list-clients.service.js";
 import { SubmitBriefingService } from "../application/submit-briefing.service.js";
 import { UpdateClientProjectStageService } from "../application/update-client-project-stage.service.js";
+import { SystemClock } from "../application/ports/clock.js";
+import { RandomUuidGenerator } from "../application/ports/id-generator.js";
 import { AdminController } from "../controllers/admin.controller.js";
 import { ClientController } from "../controllers/client.controller.js";
 import { ViewController } from "../controllers/view.controller.js";
@@ -42,16 +44,20 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
     const views = new ViewRepository();
     const drive = new GoogleDriveAttachmentStorage();
     const passwords = new PasswordService();
+    const clock = new SystemClock();
+    const ids = new RandomUuidGenerator();
     const sessions = new SessionService(new SessionTokenService(), new SessionRepository());
 
     const authenticate = new AuthenticateService(new AdminRepository(), clients, passwords, sessions);
     const folderAccess = new BriefingFolderAccessService(drive);
-    const submitBriefing = new SubmitBriefingService(clients, briefings, drive, folderAccess);
+    const submitBriefing = new SubmitBriefingService(clients, briefings, drive, folderAccess, clock);
     const paymentService = new ClientPaymentService(
         config.pixReceiver,
         clients,
         payments,
-        new PixPresentationService(config.pixReceiver)
+        new PixPresentationService(config.pixReceiver),
+        clock,
+        ids
     );
     const proposalService = new ClientProposalService(clients, proposals, drive);
 

@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import mongoose from "mongoose";
 import type { ClientPaymentObject, PaymentAuditEvent, PaymentTermsSnapshot } from "../models/clientPayment.js";
 import { ClientPaymentRepository } from "../repositories/client-payment.repository.js";
@@ -26,6 +25,8 @@ import {
 } from "./financial/payment-presenter.js";
 import { loadPaymentPage, paymentPageOptions, paymentPageResponse } from "./financial/payment-pagination.js";
 import { PixPresentationService } from "./financial/pix-presentation.service.js";
+import type { Clock } from "./ports/clock.js";
+import type { IdGenerator } from "./ports/id-generator.js";
 export { calculatePaymentSchedule, monthlyDueDate } from "./financial/payment-schedule.js";
 export type { PaymentSchedule, PaymentSchedulePreview } from "./financial/payment-schedule.js";
 export type { PaymentFields } from "./financial/payment-input.js";
@@ -41,11 +42,13 @@ export class ClientPaymentService {
         private readonly pixReceiver: PixReceiver,
         private readonly clients: ClientRepository,
         private readonly payments: ClientPaymentRepository,
-        private readonly pixPresentation: PixPresentationService
+        private readonly pixPresentation: PixPresentationService,
+        private readonly clock: Clock,
+        private readonly ids: IdGenerator
     ) { }
 
     preview(fields: PaymentFields): PaymentSchedulePreview {
-        const schedule = calculatePaymentSchedule(fields);
+        const schedule = calculatePaymentSchedule(fields, undefined, this.clock.now());
         return {
             downPaymentCents: schedule.downPayment.amountCents,
             firstDueDate: schedule.firstDueDate,
@@ -57,15 +60,16 @@ export class ClientPaymentService {
     async list(clientId: string, cursorValue?: unknown, limitValue?: unknown) {
         await this.requireClient(clientId);
         const options = paymentPageOptions(cursorValue, limitValue);
-        const { page, summary, highlight } = await loadPaymentPage(this.payments, clientId, options);
+        const { page, summary, highlight } = await loadPaymentPage(this.payments, clientId, options, this.clock.now());
         return paymentPageResponse(page, summary, highlight, options.limit, paymentResponse);
     }
 
     async listForClient(clientId: string, cursorValue?: unknown, limitValue?: unknown) {
         await this.requireClient(clientId);
         const options = paymentPageOptions(cursorValue, limitValue);
-        const { page, summary, highlight } = await loadPaymentPage(this.payments, clientId, options);
-        return paymentPageResponse(page, summary, highlight, options.limit, clientPaymentResponse);
+        const now = this.clock.now();
+        const { page, summary, highlight } = await loadPaymentPage(this.payments, clientId, options, now);
+        return paymentPageResponse(page, summary, highlight, options.limit, payment => clientPaymentResponse(payment, now));
     }
 
     async create(clientId: string, fields: PaymentFields, actor: PaymentActor) {
@@ -75,7 +79,7 @@ export class ClientPaymentService {
             ...fields,
             downPaymentIsPaid: undefined,
             paidInstallmentNumbers: undefined
-        });
+        }, undefined, this.clock.now());
         return paymentResponse(await this.payments.create({
             clientId: new mongoose.Types.ObjectId(clientId),
             title,
@@ -84,7 +88,7 @@ export class ClientPaymentService {
             timeZone: FINANCIAL_TIME_ZONE,
             status: "open",
             hasReceiptHistory: false,
-            events: [auditEvent("created", actor, { after: termsSnapshot(title, schedule) })]
+            events: [auditEvent("created", actor, { after: termsSnapshot(title, schedule) }, this.ids, this.clock)]
         }));
     }
 
@@ -100,7 +104,7 @@ export class ClientPaymentService {
             ...fields,
             downPaymentIsPaid: undefined,
             paidInstallmentNumbers: undefined
-        }, existing);
+        }, existing, this.clock.now());
         if (hasConfirmedReceiptHistory(existing) && financialTermsChanged(existing, schedule)) {
             throw new ApplicationError(
                 "As condições financeiras não podem ser alteradas depois da confirmação de um recebimento",
@@ -111,7 +115,7 @@ export class ClientPaymentService {
         const event = auditEvent("terms-updated", actor, {
             before: termsSnapshot(existing.title, existing),
             after: termsSnapshot(title, schedule)
-        });
+        }, this.ids, this.clock);
         const updated = await this.payments.update(paymentId, clientId, version, { title, ...schedule }, event);
         if (!updated) throw conflictError();
         return paymentResponse(updated);
@@ -139,7 +143,7 @@ export class ClientPaymentService {
             );
         }
 
-        const event = auditEvent("archived", actor, { hadConfirmedReceiptHistory });
+        const event = auditEvent("archived", actor, { hadConfirmedReceiptHistory }, this.ids, this.clock);
         if (!await this.payments.archive(paymentId, clientId, version, event)) throw conflictError();
     }
 
@@ -158,9 +162,9 @@ export class ClientPaymentService {
             previousIsPaid: existing.downPayment.isPaid,
             isPaid,
             ...(isPaid
-                ? { receiptId: randomUUID() }
+                ? { receiptId: this.ids.generate() }
                 : { reversesReceiptId: existing.downPayment.settlementReceiptId ?? legacyReceiptId(paymentId, "down-payment") })
-        });
+        }, this.ids, this.clock);
         const nextStatus = statusAfterChange(existing, "down-payment", undefined, isPaid);
         const updated = await this.payments.setDownPaymentPaid(paymentId, clientId, version, isPaid, event, nextStatus);
         if (!updated) throw conflictError();
@@ -185,9 +189,9 @@ export class ClientPaymentService {
             previousIsPaid: installment.isPaid,
             isPaid,
             ...(isPaid
-                ? { receiptId: randomUUID() }
+                ? { receiptId: this.ids.generate() }
                 : { reversesReceiptId: installment.settlementReceiptId ?? legacyReceiptId(paymentId, "installment", number) })
-        });
+        }, this.ids, this.clock);
         const nextStatus = statusAfterChange(existing, "installment", number, isPaid);
         const updated = await this.payments.setInstallmentPaid(paymentId, clientId, version, number, isPaid, event, nextStatus);
         if (!updated) throw conflictError();
@@ -216,9 +220,9 @@ export class ClientPaymentService {
         if (part.isPaid) throw new ApplicationError("Este pagamento já foi confirmado", 409);
         if (part.amountCents < 1) throw new ApplicationError("Este pagamento não possui valor para Pix", 400);
 
-        const now = new Date();
+        const now = this.clock.now();
         if (this.pixPresentation.isReusable(part.pix, now)) {
-            return this.pixPresentation.present(existing, partType, installmentNumber, part);
+            return this.pixPresentation.present(existing, partType, installmentNumber, part, now);
         }
 
         const pix = this.pixPresentation.createAttempt(part.amountCents, now);
@@ -227,7 +231,7 @@ export class ClientPaymentService {
             ...(installmentNumber === undefined ? {} : { installmentNumber }),
             pixTxid: pix.txid,
             pixAnalysisWindowEndsAt: pix.analysisWindowEndsAt
-        });
+        }, this.ids, this.clock);
         const version = existing.__v ?? 0;
         const updated = partType === "down-payment"
             ? await this.payments.setDownPaymentPix(paymentId, clientId, version, pix, event)
@@ -236,7 +240,7 @@ export class ClientPaymentService {
         const updatedPart = partType === "down-payment"
             ? updated.downPayment
             : updated.installments.find(item => item.number === installmentNumber)!;
-        return this.pixPresentation.present(updated, partType, installmentNumber, updatedPart);
+        return this.pixPresentation.present(updated, partType, installmentNumber, updatedPart, now);
     }
 
     private async requireClient(clientId: string): Promise<void> {
@@ -320,15 +324,17 @@ function termsSnapshot(title: string, payment: PaymentSchedule | ClientPaymentOb
 function auditEvent(
     type: PaymentAuditEvent["type"],
     actor: PaymentActor,
-    details: Omit<PaymentAuditEvent, "eventId" | "type" | "actorId" | "actorSessionId" | "actorRole" | "occurredAt">
+    details: Omit<PaymentAuditEvent, "eventId" | "type" | "actorId" | "actorSessionId" | "actorRole" | "occurredAt">,
+    ids: IdGenerator,
+    clock: Clock
 ): PaymentAuditEvent {
     return {
-        eventId: randomUUID(),
+        eventId: ids.generate(),
         type,
         actorId: actor.id,
         actorSessionId: actor.sessionId,
         actorRole: actor.role,
-        occurredAt: new Date(),
+        occurredAt: clock.now(),
         ...details
     };
 }

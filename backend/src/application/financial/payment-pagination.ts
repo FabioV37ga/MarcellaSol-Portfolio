@@ -49,13 +49,13 @@ export function paymentPageResponse<T>(
 export async function loadPaymentPage(
     repository: ClientPaymentRepository,
     clientId: string,
-    options: ReturnType<typeof paymentPageOptions>
+    options: ReturnType<typeof paymentPageOptions>,
+    now = new Date()
 ) {
     const compatible = repository as ClientPaymentRepository & {
         findByClientId?: (id: string) => Promise<ClientPaymentObject[]>;
     };
     if (typeof compatible.findPageByClientId === "function" && typeof compatible.summarizeByClientId === "function") {
-        const now = new Date();
         const today = dateOnlyInFinancialTimeZone(now);
         const monthStart = `${today.slice(0, 8)}01`;
         const [year, month] = today.split("-").map(Number);
@@ -66,7 +66,7 @@ export async function loadPaymentPage(
                 ? compatible.findHighlightCandidatesByClientId(clientId, today, monthStart, nextMonthStart)
                 : Promise.resolve(undefined)
         ]);
-        return { page, summary, highlight: candidates ? selectPaymentHighlight(candidates, today) : undefined };
+        return { page, summary, highlight: candidates ? selectPaymentHighlight(candidates, today, now) : undefined };
     }
     const records = await compatible.findByClientId?.(clientId) ?? [];
     const responses = records.map(paymentResponse);
@@ -78,11 +78,11 @@ export async function loadPaymentPage(
             paidAmountCents: responses.reduce((total, payment) => total + payment.paidAmountCents, 0),
             remainingAmountCents: responses.reduce((total, payment) => total + payment.remainingAmountCents, 0)
         },
-        highlight: selectPaymentHighlightFromRecords(records, new Date())
+        highlight: selectPaymentHighlightFromRecords(records, now)
     };
 }
 
-export function selectPaymentHighlight(candidates: PaymentHighlightCandidates, today: string) {
+export function selectPaymentHighlight(candidates: PaymentHighlightCandidates, today: string, now = new Date()) {
     const nextWithinWindow = candidates.nextUnpaid
         && dateOnlyDifference(today, candidates.nextUnpaid.dueDate) <= 28
         ? candidates.nextUnpaid : undefined;
@@ -90,7 +90,7 @@ export function selectPaymentHighlight(candidates: PaymentHighlightCandidates, t
         ?? candidates.currentUnpaid
         ?? nextWithinWindow
         ?? candidates.currentLast
-        ?? candidates.latestPast);
+        ?? candidates.latestPast, now);
 }
 
 function selectPaymentHighlightFromRecords(records: ClientPaymentObject[], now: Date) {
@@ -116,13 +116,14 @@ function selectPaymentHighlightFromRecords(records: ClientPaymentObject[], now: 
     const next = candidates.find(part => !part.isPaid && part.dueDate > today);
     return paymentHighlightResponse(overdue ?? (currentCandidate && !currentCandidate.isPaid ? currentCandidate : undefined)
         ?? (next && dateOnlyDifference(today, next.dueDate) <= 28 ? next : undefined)
-        ?? currentCandidate ?? [...candidates].reverse().find(part => part.dueDate <= today));
+        ?? currentCandidate ?? [...candidates].reverse().find(part => part.dueDate <= today), now);
 }
 
-function paymentHighlightResponse(candidate?: PaymentHighlightCandidate) {
+function paymentHighlightResponse(candidate: PaymentHighlightCandidate | undefined, now = new Date()) {
     if (!candidate) return undefined;
     const analysisWindowEndsAt = pixAnalysisWindowEnd(candidate.pix);
-    const activePix = !candidate.isPaid && candidate.pix && analysisWindowEndsAt && analysisWindowEndsAt.getTime() > Date.now();
+    const activePix = !candidate.isPaid && candidate.pix && analysisWindowEndsAt
+        && analysisWindowEndsAt.getTime() > now.getTime();
     return {
         paymentId: candidate.paymentId.toString(), paymentTitle: candidate.paymentTitle,
         partType: candidate.partType, ...(candidate.installmentNumber === undefined ? {} : { installmentNumber: candidate.installmentNumber }),

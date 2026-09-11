@@ -6,6 +6,7 @@ import { ApplicationError } from "./errors/application-error.js";
 import { BriefingFolderAccessService } from "./briefing-folder-access.service.js";
 import { maskedEmail } from "../services/briefing-emails.js";
 import { projectStagesAfterBriefingSubmission } from "../models/projectStage.js";
+import type { Clock } from "./ports/clock.js";
 
 export interface FileManifestEntry {
     uploadId: string;
@@ -30,7 +31,8 @@ export class SubmitBriefingService {
         private readonly clients: ClientRepository,
         private readonly briefings: ClientBriefingRepository,
         private readonly attachments: AttachmentStorage,
-        private readonly folderAccess: BriefingFolderAccessService
+        private readonly folderAccess: BriefingFolderAccessService,
+        private readonly clock: Clock
     ) { }
 
     async execute(command: SubmitBriefingCommand) {
@@ -49,7 +51,7 @@ export class SubmitBriefingService {
             responses,
             driveFolderId: upload.folderId || undefined,
             attachments: storedAttachments.map(item => ({ ...item })),
-            submittedAt: new Date()
+            submittedAt: this.clock.now()
         });
         await this.clients.markBriefingFilled(
             client._id,

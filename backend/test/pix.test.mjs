@@ -1,10 +1,17 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import test from "node:test";
 import { crc16, generatePixBrCode } from "../dist/src/services/pix-br-code.js";
-import { ClientPaymentService } from "../dist/src/application/client-payment.service.js";
+import { ClientPaymentService as ApplicationClientPaymentService } from "../dist/src/application/client-payment.service.js";
 import { PixPresentationService } from "../dist/src/application/financial/pix-presentation.service.js";
 
 const TEST_PIX_RECEIVER = { key: "test@example.com", name: "TEST RECEIVER", city: "SAO PAULO" };
+
+class ClientPaymentService extends ApplicationClientPaymentService {
+    constructor(receiver, clients = {}, payments = {}, pixPresentation = new PixPresentationService(receiver)) {
+        super(receiver, clients, payments, pixPresentation, { now: () => new Date() }, { generate: randomUUID });
+    }
+}
 
 test("BR Code Pix inclui chave, valor exato e CRC válido", () => {
     const payload = generatePixBrCode(12345, "***", TEST_PIX_RECEIVER);

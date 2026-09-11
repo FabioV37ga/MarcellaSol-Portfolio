@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import test from "node:test";
-import { ClientPaymentService } from "../dist/src/application/client-payment.service.js";
+import { ClientPaymentService as ApplicationClientPaymentService } from "../dist/src/application/client-payment.service.js";
 import { calculatePaymentSchedule, monthlyDueDate } from "../dist/src/application/financial/payment-schedule.js";
+import { PixPresentationService } from "../dist/src/application/financial/pix-presentation.service.js";
 import { chargePartStatus, chargeStatus, FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../dist/src/domain/financial-domain.js";
 import ClientPayment from "../dist/src/models/clientPayment.js";
 
 const TEST_PIX_RECEIVER = { key: "test@example.com", name: "TEST RECEIVER", city: "SAO PAULO" };
+
+class ClientPaymentService extends ApplicationClientPaymentService {
+    constructor(receiver, clients = {}, payments = {}, pixPresentation = new PixPresentationService(receiver)) {
+        super(receiver, clients, payments, pixPresentation, { now: () => new Date() }, { generate: randomUUID });
+    }
+}
 
 test("domínio financeiro possui moeda, fuso e estados explícitos", () => {
     assert.equal(FINANCIAL_CURRENCY, "BRL");
