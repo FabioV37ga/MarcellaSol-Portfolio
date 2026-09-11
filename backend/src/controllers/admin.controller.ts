@@ -16,14 +16,14 @@ import { ClientPaymentService } from "../application/client-payment.service.js";
 export class AdminController {
     constructor(
         private readonly payments: ClientPaymentService,
-        private readonly createClient = new CreateClientService(),
-        private readonly authenticate = new AuthenticateService(),
-        private readonly listClients = new ListClientsService(),
-        private readonly briefingReports = new ClientBriefingReportService(),
-        private readonly proposals = new ClientProposalService(),
-        private readonly projectStages = new UpdateClientProjectStageService(),
-        private readonly deleteClient = new DeleteClientService(),
-        private readonly sessions = new SessionService()
+        private readonly createClient: CreateClientService,
+        private readonly authenticate: AuthenticateService,
+        private readonly listClients: ListClientsService,
+        private readonly briefingReports: ClientBriefingReportService,
+        private readonly proposals: ClientProposalService,
+        private readonly projectStages: UpdateClientProjectStageService,
+        private readonly deleteClient: DeleteClientService,
+        private readonly sessions: SessionService
     ) { }
 
     login = async (request: Request, response: Response): Promise<Response> => {

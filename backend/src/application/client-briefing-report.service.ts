@@ -1,10 +1,7 @@
 import mongoose from "mongoose";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ClientRepository } from "../repositories/client.repository.js";
-import {
-    GoogleDriveAttachmentStorage,
-    type BriefingReportStorage
-} from "../services/attachment-storage.js";
+import type { BriefingReportStorage } from "../services/attachment-storage.js";
 import {
     generateBriefingReportPdf,
     type BriefingReportDocument
@@ -26,9 +23,9 @@ export class ClientBriefingReportService {
     private readonly generations = new Map<string, Promise<BriefingReportDriveStatus>>();
 
     constructor(
-        private readonly clients = new ClientRepository(),
-        private readonly briefings = new ClientBriefingRepository(),
-        private readonly storage: BriefingReportStorage = new GoogleDriveAttachmentStorage()
+        private readonly clients: ClientRepository,
+        private readonly briefings: ClientBriefingRepository,
+        private readonly storage: BriefingReportStorage
     ) { }
 
     async status(clientId: string): Promise<BriefingReportDriveStatus> {

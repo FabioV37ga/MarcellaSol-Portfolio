@@ -2,7 +2,7 @@ import type { BriefingObject } from "../models/briefing.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { PasswordService } from "../services/password.service.js";
 import { ApplicationError } from "./errors/application-error.js";
-import { GoogleDriveAttachmentStorage, type ClientFolderStorage } from "../services/attachment-storage.js";
+import type { ClientFolderStorage } from "../services/attachment-storage.js";
 import { initialProjectStages } from "../models/projectStage.js";
 
 export interface CreateClientCommand {
@@ -17,9 +17,9 @@ export interface CreateClientCommand {
 
 export class CreateClientService {
     constructor(
-        private readonly clients = new ClientRepository(),
-        private readonly passwords = new PasswordService(),
-        private readonly folders: ClientFolderStorage = new GoogleDriveAttachmentStorage()
+        private readonly clients: ClientRepository,
+        private readonly passwords: PasswordService,
+        private readonly folders: ClientFolderStorage
     ) { }
 
     async execute(command: CreateClientCommand) {

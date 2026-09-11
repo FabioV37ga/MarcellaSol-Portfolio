@@ -18,7 +18,7 @@ export interface UpdatedClientProjectStage {
 }
 
 export class UpdateClientProjectStageService {
-    constructor(private readonly clients = new ClientRepository()) { }
+    constructor(private readonly clients: ClientRepository) { }
 
     async execute(clientId: string, stageKey: unknown, status: unknown): Promise<UpdatedClientProjectStage> {
         if (!mongoose.isValidObjectId(clientId)) throw new ApplicationError("Cliente não encontrado", 404);

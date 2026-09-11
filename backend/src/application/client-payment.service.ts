@@ -39,9 +39,9 @@ export interface PaymentActor {
 export class ClientPaymentService {
     constructor(
         private readonly pixReceiver: PixReceiver,
-        private readonly clients = new ClientRepository(),
-        private readonly payments = new ClientPaymentRepository(),
-        private readonly pixPresentation = new PixPresentationService(pixReceiver)
+        private readonly clients: ClientRepository,
+        private readonly payments: ClientPaymentRepository,
+        private readonly pixPresentation: PixPresentationService
     ) { }
 
     preview(fields: PaymentFields): PaymentSchedulePreview {

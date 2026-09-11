@@ -17,11 +17,11 @@ import { ClientPaymentService } from "../application/client-payment.service.js";
 export class ClientController {
     constructor(
         private readonly paymentService: ClientPaymentService,
-        private readonly clients = new ClientRepository(),
-        private readonly submitBriefing = new SubmitBriefingService(),
-        private readonly authenticate = new AuthenticateService(),
-        private readonly proposals = new ClientProposalService(),
-        private readonly sessions = new SessionService()
+        private readonly clients: ClientRepository,
+        private readonly submitBriefing: SubmitBriefingService,
+        private readonly authenticate: AuthenticateService,
+        private readonly proposals: ClientProposalService,
+        private readonly sessions: SessionService
     ) { }
 
     login = async (request: Request, response: Response): Promise<Response> => {

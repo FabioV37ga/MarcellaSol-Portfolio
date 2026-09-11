@@ -1,4 +1,4 @@
-import { SessionRepository, type SessionStore } from "../repositories/session.repository.js";
+import type { SessionStore } from "../repositories/session.repository.js";
 import {
     SessionTokenService,
     type SessionIdentity,
@@ -7,8 +7,8 @@ import {
 
 export class SessionService {
     constructor(
-        private readonly tokens = new SessionTokenService(),
-        private readonly sessions: SessionStore = new SessionRepository()
+        private readonly tokens: SessionTokenService,
+        private readonly sessions: SessionStore
     ) { }
 
     async issue(identity: SessionIdentity): Promise<string> {

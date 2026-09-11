@@ -5,8 +5,8 @@ import { authenticatedPrincipal } from "../middleware/authentication.middleware.
 
 export class ViewController {
     constructor(
-        private readonly views = new ViewRepository(),
-        private readonly clients = new ClientRepository()
+        private readonly views: ViewRepository,
+        private readonly clients: ClientRepository
     ) { }
 
     admin = async (request: Request, response: Response): Promise<Response> => {

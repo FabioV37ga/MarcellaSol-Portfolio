@@ -1,8 +1,5 @@
 import { extractResidentEmails } from "../services/briefing-emails.js";
-import {
-    GoogleDriveAttachmentStorage,
-    type FolderReadAccessStorage
-} from "../services/attachment-storage.js";
+import type { FolderReadAccessStorage } from "../services/attachment-storage.js";
 
 export interface BriefingFolderAccessFailure {
     email: string;
@@ -18,7 +15,7 @@ export interface BriefingFolderAccessResult {
 
 export class BriefingFolderAccessService {
     constructor(
-        private readonly folders: FolderReadAccessStorage = new GoogleDriveAttachmentStorage()
+        private readonly folders: FolderReadAccessStorage
     ) { }
 
     async execute(folderId: string | undefined, briefing: unknown): Promise<BriefingFolderAccessResult> {

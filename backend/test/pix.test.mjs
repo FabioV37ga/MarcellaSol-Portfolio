@@ -83,7 +83,8 @@ test("Pix da parcela usa seu valor e abre uma janela de análise por cinco horas
                 persisted = { number, pix, event };
                 return { ...existing, __v: 1, installments: [{ ...existing.installments[0], pix }] };
             }
-        }
+        },
+        new PixPresentationService(TEST_PIX_RECEIVER)
     );
     const before = Date.now();
     const result = await service.generatePix(clientId, paymentId, "installment", 1, { id: clientId, sessionId: "session-1", role: "client" });
@@ -128,7 +129,8 @@ test("tentativa Pix legada é lida e exposta com a nova janela de análise", asy
         {
             async findByIdAndClientId() { return existing; },
             async setInstallmentPix() { throw new Error("A tentativa ativa não deve ser substituída"); }
-        }
+        },
+        new PixPresentationService(TEST_PIX_RECEIVER)
     );
 
     const result = await service.generatePix(

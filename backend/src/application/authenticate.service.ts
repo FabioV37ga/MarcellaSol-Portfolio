@@ -11,10 +11,10 @@ type AuthenticationResult<T> = { account: T; token: string };
 
 export class AuthenticateService {
     constructor(
-        private readonly admins = new AdminRepository(),
-        private readonly clients = new ClientRepository(),
-        private readonly passwords = new PasswordService(),
-        private readonly sessions = new SessionService()
+        private readonly admins: AdminRepository,
+        private readonly clients: ClientRepository,
+        private readonly passwords: PasswordService,
+        private readonly sessions: SessionService
     ) { }
 
     async execute(role: "admin", login: string, password: string): Promise<AuthenticationResult<AdminAccount>>;

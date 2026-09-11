@@ -1,6 +1,5 @@
 import type { DriveUpload } from "../services/googleDrive.js";
 import type { AttachmentStorage } from "../services/attachment-storage.js";
-import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
@@ -28,10 +27,10 @@ export interface SubmitBriefingCommand {
 
 export class SubmitBriefingService {
     constructor(
-        private readonly clients = new ClientRepository(),
-        private readonly briefings = new ClientBriefingRepository(),
-        private readonly attachments: AttachmentStorage = new GoogleDriveAttachmentStorage(),
-        private readonly folderAccess = new BriefingFolderAccessService()
+        private readonly clients: ClientRepository,
+        private readonly briefings: ClientBriefingRepository,
+        private readonly attachments: AttachmentStorage,
+        private readonly folderAccess: BriefingFolderAccessService
     ) { }
 
     async execute(command: SubmitBriefingCommand) {

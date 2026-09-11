@@ -1,17 +1,14 @@
 import mongoose from "mongoose";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientDeletionRepository } from "../repositories/client-deletion.repository.js";
-import {
-    GoogleDriveAttachmentStorage,
-    type ClientRemovalStorage
-} from "../services/attachment-storage.js";
+import type { ClientRemovalStorage } from "../services/attachment-storage.js";
 import { ApplicationError } from "./errors/application-error.js";
 
 export class DeleteClientService {
     constructor(
-        private readonly clients = new ClientRepository(),
-        private readonly deletion = new ClientDeletionRepository(),
-        private readonly storage: ClientRemovalStorage = new GoogleDriveAttachmentStorage()
+        private readonly clients: ClientRepository,
+        private readonly deletion: ClientDeletionRepository,
+        private readonly storage: ClientRemovalStorage
     ) { }
 
     async execute(clientId: string, confirmationName: unknown): Promise<void> {

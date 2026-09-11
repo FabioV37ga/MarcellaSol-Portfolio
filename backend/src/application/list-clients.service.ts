@@ -28,8 +28,8 @@ export interface AdminClientDetails extends AdminClientListItem {
 
 export class ListClientsService {
     constructor(
-        private readonly clients = new ClientRepository(),
-        private readonly briefings = new ClientBriefingRepository()
+        private readonly clients: ClientRepository,
+        private readonly briefings: ClientBriefingRepository
     ) { }
 
     async execute(): Promise<AdminClientListItem[]> {

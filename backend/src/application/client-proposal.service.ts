@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { ApplicationError } from "./errors/application-error.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientProposalRepository } from "../repositories/client-proposal.repository.js";
-import { GoogleDriveAttachmentStorage, type ProposalStorage } from "../services/attachment-storage.js";
+import type { ProposalStorage } from "../services/attachment-storage.js";
 import {
     normalizedProjectStages,
     projectStageKeys,
@@ -18,9 +18,9 @@ const MAX_CLIENT_COMMENT_LENGTH = 2000;
 
 export class ClientProposalService {
     constructor(
-        private readonly clients = new ClientRepository(),
-        private readonly proposals = new ClientProposalRepository(),
-        private readonly storage: ProposalStorage = new GoogleDriveAttachmentStorage()
+        private readonly clients: ClientRepository,
+        private readonly proposals: ClientProposalRepository,
+        private readonly storage: ProposalStorage
     ) { }
 
     async list(userId: string) {
