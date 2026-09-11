@@ -118,6 +118,8 @@ Essa concentração aumenta o raio de mudança do domínio financeiro. A extraç
 
 ### ARQ2-003 — composição de dependências é parcial e implícita
 
+Estado em 11/09/2026: **em andamento**. O ambiente de produção passou a possuir uma composition root tipada que instancia e compartilha repositories, sessão, senha, armazenamento Drive, casos de uso e controllers. O bootstrap e as rotas de views deixaram de construir dependências isoladas. Os parâmetros padrão dos serviços foram preservados temporariamente para compatibilidade com testes e serão removidos em recortes posteriores, junto à introdução das portas de relógio e geração de identificadores.
+
 Prioridade: **alta**  
 Tipo: arquitetura / testabilidade
 

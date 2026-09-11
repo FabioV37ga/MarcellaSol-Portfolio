@@ -3,9 +3,7 @@ import cors from "cors";
 import type { Server } from "node:http";
 import type { ApplicationConfig } from "./config/application-config.js";
 import connect from "./config/dbConnect.js";
-import { AdminController } from "./controllers/admin.controller.js";
-import { ClientController } from "./controllers/client.controller.js";
-import { ClientPaymentService } from "./application/client-payment.service.js";
+import { createApplicationComposition } from "./composition/application-composition.js";
 import { securityHeaders } from "./middleware/security-headers.middleware.js";
 import routes from "./routes/index.js";
 
@@ -26,11 +24,7 @@ export async function startServer(config: ApplicationConfig): Promise<Server> {
 
     await connect(config.databaseUri);
 
-    const payments = new ClientPaymentService(config.pixReceiver);
-    routes(app, {
-        admin: new AdminController(payments),
-        client: new ClientController(payments)
-    }, config.isProduction);
+    routes(app, createApplicationComposition(config), config.isProduction);
 
     return app.listen(config.port, () => {
         console.log(`✓ Servidor rodando na porta ${config.port}`);
