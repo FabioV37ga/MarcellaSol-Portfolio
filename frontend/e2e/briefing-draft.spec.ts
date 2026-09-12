@@ -58,8 +58,8 @@ async function loginWithRememberedSession(page: Page): Promise<void> {
     await expect(page.locator(".form-page-container")).toBeVisible();
 }
 
-async function moveStoredDraftToLastPage(page: Page): Promise<void> {
-    await page.evaluate(() => {
+async function moveStoredDraftToPage(page: Page, currentPage: number): Promise<void> {
+    await page.evaluate(targetPage => {
         const key = "client-briefing-draft:v1:briefing-e2e";
         const draft = JSON.parse(localStorage.getItem(key) ?? "{}") as {
             version?: number;
@@ -68,11 +68,11 @@ async function moveStoredDraftToLastPage(page: Page): Promise<void> {
         };
         localStorage.setItem(key, JSON.stringify({
             version: draft.version ?? 1,
-            currentPage: 10,
+            currentPage: targetPage,
             fields: draft.fields ?? []
         }));
-        window.history.replaceState({ scope: "client", page: "briefing", briefingStep: 10 }, "");
-    });
+        window.history.replaceState({ scope: "client", page: "briefing", briefingStep: targetPage }, "");
+    }, currentPage);
 }
 
 test("restaura respostas e anexos do briefing depois de recarregar a página", async ({ page }) => {
@@ -133,7 +133,7 @@ test("preserva o rascunho após falha e o limpa somente depois do envio bem-suce
     });
     await expect.poll(() => storedFileCount(page)).toBe(1);
 
-    await moveStoredDraftToLastPage(page);
+    await moveStoredDraftToPage(page, 10);
     await page.reload();
 
     const ending = page.locator("[data-briefing-page-key='ending']");
@@ -187,4 +187,23 @@ test("compõe as páginas dos ambientes configurados na ordem do briefing", asyn
     await expect(roomPages.nth(3)).toHaveAttribute("data-briefing-page-key", "room-7-considerations");
     await expect(page.locator("[data-briefing-page-key='room-7'] .briefing-title"))
         .toHaveText("Cozinha integrada");
+});
+
+test("renderiza e permite selecionar as opções componentizadas de investimento", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+    await moveStoredDraftToPage(page, 4);
+    await page.reload();
+
+    const investment = page.locator("[data-briefing-page-key='investment']");
+    await expect(investment).toBeVisible();
+    await expect(investment.locator("input[name='investment-range']")).toHaveCount(4);
+    await expect(investment.locator("input[name='investment-includes']")).toHaveCount(11);
+
+    await investment.getByText("R$ 250 a R$ 500 mil", { exact: true }).click();
+    await investment.getByText("Marcenaria", { exact: true }).click();
+
+    await expect(investment.locator("input[name='investment-range'][value='250-500-mil']")).toBeChecked();
+    await expect(investment.locator("input[name='investment-includes'][value='marcenaria']")).toBeChecked();
 });

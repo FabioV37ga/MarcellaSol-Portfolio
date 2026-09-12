@@ -1,4 +1,26 @@
 import html from 'nanohtml'
+import { briefingButtonOptions } from './components/briefing-options.template.js'
+
+const investmentRanges = [
+    { value: "ate-250-mil", label: "Até R$ 250 mil" },
+    { value: "250-500-mil", label: "R$ 250 a R$ 500 mil" },
+    { value: "500-mil-1-milhao", label: "R$ 500 mil a R$ 1 milhão" },
+    { value: "acima-1-milhao", label: "Acima de R$ 1 milhão" }
+];
+
+const includedInvestmentItems = [
+    { value: "obra", label: "Obra" },
+    { value: "marcenaria", label: "Marcenaria" },
+    { value: "marmoraria", label: "Marmoraria" },
+    { value: "revestimentos", label: "Revestimentos" },
+    { value: "iluminacao", label: "Iluminação" },
+    { value: "loucas-metais", label: "Louças e metais" },
+    { value: "mobiliario", label: "Mobiliário" },
+    { value: "eletrodomesticos", label: "Eletrodomésticos" },
+    { value: "ar-condicionado", label: "Ar-condicionado" },
+    { value: "cortinas-persianas", label: "Cortinas e persianas" },
+    { value: "decoracao", label: "Decoração" }
+];
 
 function flexibility() {
     return html`
@@ -28,10 +50,7 @@ export function investment(askFlexibility: boolean) {
                     <small>Selecione uma faixa aproximada para o investimento total do projeto.</small>
 
                     <div class="briefing-select-box">
-                        <label class="button-option"><input type="radio" name="investment-range" value="ate-250-mil"> <span>Até R$ 250 mil</span></label>
-                        <label class="button-option"><input type="radio" name="investment-range" value="250-500-mil"> <span>R$ 250 a R$ 500 mil</span></label>
-                        <label class="button-option"><input type="radio" name="investment-range" value="500-mil-1-milhao"> <span>R$ 500 mil a R$ 1 milhão</span></label>
-                        <label class="button-option"><input type="radio" name="investment-range" value="acima-1-milhao"> <span>Acima de R$ 1 milhão</span></label>
+                        ${briefingButtonOptions("radio", "investment-range", investmentRanges)}
                     </div>
                 </fieldset>
 
@@ -53,17 +72,7 @@ export function investment(askFlexibility: boolean) {
                     <small>Selecione os itens que você acha que devem estar cobertos pelo investimento.</small>
 
                     <div class="briefing-select-box briefing-investment-grid">
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="obra"> <span>Obra</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="marcenaria"> <span>Marcenaria</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="marmoraria"> <span>Marmoraria</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="revestimentos"> <span>Revestimentos</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="iluminacao"> <span>Iluminação</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="loucas-metais"> <span>Louças e metais</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="mobiliario"> <span>Mobiliário</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="eletrodomesticos"> <span>Eletrodomésticos</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="ar-condicionado"> <span>Ar-condicionado</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="cortinas-persianas"> <span>Cortinas e persianas</span></label>
-                        <label class="button-option"><input type="checkbox" name="investment-includes" value="decoracao"> <span>Decoração</span></label>
+                        ${briefingButtonOptions("checkbox", "investment-includes", includedInvestmentItems)}
                     </div>
                 </fieldset>
 

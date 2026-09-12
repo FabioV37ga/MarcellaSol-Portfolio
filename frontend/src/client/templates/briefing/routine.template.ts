@@ -1,4 +1,16 @@
 import html from 'nanohtml'
+import { briefingButtonOptions } from './components/briefing-options.template.js'
+
+const projectPriorities = [
+    { value: "conforto", label: "Conforto" },
+    { value: "organizacao", label: "Organização" },
+    { value: "praticidade", label: "Praticidade" },
+    { value: "armazenamento", label: "Armazenamento" },
+    { value: "integracao", label: "Integração" },
+    { value: "privacidade", label: "Privacidade" },
+    { value: "iluminacao", label: "Iluminação" },
+    { value: "estetica", label: "Estética" }
+];
 
 export function routine() {
     return html`
@@ -127,14 +139,7 @@ export function routine() {
                     <small>Selecione até 5 opções.</small>
 
                     <div class="briefing-select-box">
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="conforto"> <span>Conforto</span></label>
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="organizacao"> <span>Organização</span></label>
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="praticidade"> <span>Praticidade</span></label>
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="armazenamento"> <span>Armazenamento</span></label>
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="integracao"> <span>Integração</span></label>
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="privacidade"> <span>Privacidade</span></label>
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="iluminacao"> <span>Iluminação</span></label>
-                        <label class="button-option"><input type="checkbox" name="main-priorities" value="estetica"> <span>Estética</span></label>
+                        ${briefingButtonOptions("checkbox", "main-priorities", projectPriorities)}
                     </div>
                 </fieldset>
 
