@@ -50,16 +50,36 @@ async function storedFileCount(page: Page): Promise<number> {
     }));
 }
 
-test("restaura respostas e anexos do briefing depois de recarregar a página", async ({ page }) => {
-    await mockClientApi(page);
-    await page.goto("/cliente.html");
-
+async function loginWithRememberedSession(page: Page): Promise<void> {
     await page.locator("#client-login").fill("CLIENTE-E2E");
     await page.locator("#client-password").fill("senha-e2e");
     await page.locator("#remember-me").click();
     await page.locator("#client-login-button").click();
-
     await expect(page.locator(".form-page-container")).toBeVisible();
+}
+
+async function moveStoredDraftToLastPage(page: Page): Promise<void> {
+    await page.evaluate(() => {
+        const key = "client-briefing-draft:v1:briefing-e2e";
+        const draft = JSON.parse(localStorage.getItem(key) ?? "{}") as {
+            version?: number;
+            currentPage?: number;
+            fields?: unknown[];
+        };
+        localStorage.setItem(key, JSON.stringify({
+            version: draft.version ?? 1,
+            currentPage: 10,
+            fields: draft.fields ?? []
+        }));
+        window.history.replaceState({ scope: "client", page: "briefing", briefingStep: 10 }, "");
+    });
+}
+
+test("restaura respostas e anexos do briefing depois de recarregar a página", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+
+    await loginWithRememberedSession(page);
     await page.getByText("Começar briefing").click();
 
     const area = page.locator("#property-area");
@@ -85,4 +105,61 @@ test("restaura respostas e anexos do briefing depois de recarregar a página", a
     await expect(page.locator(
         "[data-briefing-page-key='about-property'] [data-briefing-file-cache-status]"
     ).first()).toContainText("planta térrea versão final.pdf");
+});
+
+test("preserva o rascunho após falha e o limpa somente depois do envio bem-sucedido", async ({ page }) => {
+    let attempts = 0;
+    let successfulRequestBody = "";
+    await mockClientApi(page);
+    await page.route("**/api/client/briefing", async route => {
+        attempts += 1;
+        if (attempts === 1) {
+            await route.fulfill({ status: 503, json: { message: "Falha E2E simulada" } });
+            return;
+        }
+
+        successfulRequestBody = route.request().postDataBuffer()?.toString("utf8") ?? "";
+        await route.fulfill({ status: 204, body: "" });
+    });
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+    await page.getByText("Começar briefing").click();
+
+    const attachment = page.locator("[data-briefing-page-key='about-property'] input[type='file']").first();
+    await attachment.setInputFiles({
+        name: "planta térrea versão final.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("arquivo de submissão e2e")
+    });
+    await expect.poll(() => storedFileCount(page)).toBe(1);
+
+    await moveStoredDraftToLastPage(page);
+    await page.reload();
+
+    const ending = page.locator("[data-briefing-page-key='ending']");
+    await expect(ending).toBeVisible();
+    await ending.locator(".briefing-input-medium").nth(0).fill("Mais conforto no dia a dia.");
+    await ending.locator(".briefing-input-medium").nth(1).fill("Um projeto funcional e acolhedor.");
+    await ending.locator("input[type='checkbox'][required]").check();
+
+    page.once("dialog", dialog => dialog.accept());
+    const submitButton = ending.getByRole("button", { name: "Enviar briefing" });
+    await submitButton.click();
+
+    await expect(submitButton).toBeEnabled();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem(
+        "client-briefing-draft:v1:briefing-e2e"
+    ))).not.toBeNull();
+    await expect.poll(() => storedFileCount(page)).toBe(1);
+
+    await submitButton.click();
+
+    await expect(ending.locator(".briefing-success-message")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem(
+        "client-briefing-draft:v1:briefing-e2e"
+    ))).toBeNull();
+    await expect.poll(() => storedFileCount(page)).toBe(0);
+    expect(attempts).toBe(2);
+    expect(successfulRequestBody).toContain("briefing-attachment-0.pdf");
+    expect(successfulRequestBody).toContain("planta térrea versão final.pdf");
 });

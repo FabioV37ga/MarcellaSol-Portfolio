@@ -1,14 +1,13 @@
-import { BriefingApi, type BriefingAttachment } from "../infrastructure/briefing/briefing.api.js";
+import { BriefingApi } from "../infrastructure/briefing/briefing.api.js";
 import { BriefingDraftRepository } from "../infrastructure/briefing/briefing-draft.repository.js";
 import { BriefingFileRepository } from "../infrastructure/briefing/briefing-file.repository.js";
 import { BriefingFormRules } from "../ui/briefing/briefing-form-rules.js";
 import { BriefingNavigator, type BriefingHistoryOptions } from "../ui/briefing/briefing-navigator.js";
 import { BriefingDraftService } from "../ui/briefing/briefing-draft.service.js";
 import { BriefingFileDraftService } from "../ui/briefing/briefing-file-draft.service.js";
+import { BriefingSubmissionFlow } from "../ui/briefing/briefing-submission.flow.js";
 import {
     BriefingAnswerCollector,
-    briefingFileUploadId,
-    isBriefingFieldLogicallyDisabled,
     type CompletedBriefing
 } from "../ui/briefing/briefing-answer-collector.js";
 import type {
@@ -130,6 +129,7 @@ export default class ClientBriefingController {
     private readonly fileDraftService: BriefingFileDraftService;
     private readonly answerCollector: BriefingAnswerCollector;
     private readonly briefingApi = new BriefingApi();
+    private readonly submissionFlow: BriefingSubmissionFlow;
     private readonly formRules: BriefingFormRules;
     private readonly navigator: BriefingNavigator;
 
@@ -143,6 +143,12 @@ export default class ClientBriefingController {
         this.draftService = new BriefingDraftService(new BriefingDraftRepository(this.draftStorageKey));
         this.fileDraftService = new BriefingFileDraftService(this.draftStorageKey, new BriefingFileRepository());
         this.answerCollector = new BriefingAnswerCollector(this.fileDraftService);
+        this.submissionFlow = new BriefingSubmissionFlow(
+            this.briefingApi,
+            this.draftService,
+            this.fileDraftService,
+            this.answerCollector
+        );
         const generatedPages = this.createPages();
         this.template = briefingTemplate(generatedPages);
         this.pages = Array.from(
@@ -332,8 +338,6 @@ export default class ClientBriefingController {
 
                 this.setSubmissionState(page, "loading");
                 await this.submitBriefing();
-                this.clearDraft();
-                await this.fileDraftService.clear(this.template);
                 this.setSubmissionState(page, "success");
             } catch (error) {
                 console.error("Briefing: falha ao enviar respostas.", error);
@@ -355,10 +359,6 @@ export default class ClientBriefingController {
         return this.draftService.restore(this.pages);
     }
 
-    private clearDraft(): void {
-        this.draftService.remove();
-    }
-
     private setSubmissionState(page: HTMLElement, state: "idle" | "loading" | "success"): void {
         const loadingScreen = page.querySelector<HTMLElement>(".briefing-submission-loading");
         const successScreen = page.querySelector<HTMLElement>(".briefing-success-message");
@@ -372,37 +372,15 @@ export default class ClientBriefingController {
     }
 
     public buildCompletedBriefing(): CompletedBriefing {
-        return this.answerCollector.collect(this.pages, this.briefing.description);
+        return this.submissionFlow.buildCompletedBriefing(this.pages, this.briefing.description);
     }
 
     private async submitBriefing(): Promise<void> {
-        await this.fileDraftService.waitUntilReady();
-        const attachments: BriefingAttachment[] = [];
-
-        this.pages.forEach(page => {
-            const fields = Array.from(page.querySelectorAll<
-                HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-            >("input, select, textarea"));
-            const pageKey = page.dataset.briefingPageKey ?? page.className;
-
-            fields.forEach((field, fieldIndex) => {
-                if (!(field instanceof HTMLInputElement) || field.type !== "file" || isBriefingFieldLogicallyDisabled(field)) return;
-
-                const answerKey = field.name || field.id || `field-${fieldIndex + 1}`;
-                this.fileDraftService.getFiles(page, fieldIndex, field).forEach((file, fileIndex) => {
-                    const uploadId = briefingFileUploadId(page, answerKey, fileIndex);
-                    attachments.push({
-                        file,
-                        manifest: { uploadId, pageKey, answerKey, fileIndex, originalName: file.name }
-                    });
-                });
-            });
-        });
-
-        await this.briefingApi.submit({
+        await this.submissionFlow.submit({
             token: this.sessionToken,
-            briefing: this.buildCompletedBriefing(),
-            attachments
+            pages: this.pages,
+            template: this.template,
+            project: this.briefing.description
         });
     }
 

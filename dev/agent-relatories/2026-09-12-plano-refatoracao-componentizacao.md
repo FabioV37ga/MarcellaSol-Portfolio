@@ -42,6 +42,7 @@ Fora deste ciclo:
 8. Um arquivo deve possuir um motivo principal para mudar.
 9. Cada recorte deve compilar, passar nos testes e possuir um fluxo manual curto.
 10. Commits devem ser pequenos o suficiente para permitir reversão isolada.
+11. Cada implementação deve adicionar ou ampliar ao menos um teste E2E que percorra o comportamento afetado pela interface.
 
 ## 4. Setor A — entrada HTTP do backend
 
@@ -589,6 +590,7 @@ Estado inicial em 12/09/2026:
 - [ ] nenhuma alteração acidental em dados reais;
 - [ ] build do projeto afetado;
 - [ ] testes automatizados proporcionais ao risco;
+- [ ] teste E2E adicionado ou ampliado para cobrir o comportamento afetado;
 - [ ] `git diff --check` sem erros;
 - [ ] inspeção de arquivos inesperados no diff;
 - [ ] fluxo de teste manual entregue ao final;
@@ -642,3 +644,5 @@ Correção complementar em 12/09/2026: o multipart de anexos passou a usar nomes
 Estado em 12/09/2026: **terceiro recorte concluído**. Cache em memória, persistência no IndexedDB, restauração, deduplicação, limite por campo, feedback visual, sincronização de gravações e limpeza dos arquivos foram extraídos para `BriefingFileDraftService`. O controller passou a apenas inicializar o componente, encaminhar mudanças de campos e consultar os arquivos associados ao montar a resposta. O próximo recorte extrairá a coleta das respostas do formulário.
 
 Estado em 12/09/2026: **quarto recorte concluído**. A leitura dos controles, interpretação de valores, agrupamento de radio/checkbox, associação de arquivos, extração das perguntas e organização de seções e ambientes foram movidas para `BriefingAnswerCollector`. A estrutura `CompletedBriefing` e os identificadores de upload foram preservados. O próximo recorte extrairá a montagem dos anexos e o fluxo de submissão.
+
+Estado em 12/09/2026: **quinto recorte concluído**. A espera pelas gravações pendentes, coleta do payload, montagem do manifesto de anexos, chamada da API e limpeza dos rascunhos após sucesso foram concentradas em `BriefingSubmissionFlow`. Falhas de envio preservam os dados locais para nova tentativa. O próximo recorte reduzirá o controller à coordenação, removendo fachadas e responsabilidades residuais que não forem mais necessárias.
