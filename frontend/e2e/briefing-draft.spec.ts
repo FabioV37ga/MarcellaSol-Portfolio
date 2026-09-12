@@ -27,12 +27,12 @@ const briefingResponse = {
     }
 };
 
-async function mockClientApi(page: Page): Promise<void> {
+async function mockClientApi(page: Page, response = briefingResponse): Promise<void> {
     await page.route("**/api/client/login", route => route.fulfill({ json: client }));
     await page.route("**/api/client/session", route => route.fulfill({
         json: { name: client.name, hasFilledBriefing: false }
     }));
-    await page.route("**/api/view/client", route => route.fulfill({ json: briefingResponse }));
+    await page.route("**/api/view/client", route => route.fulfill({ json: response }));
 }
 
 async function storedFileCount(page: Page): Promise<number> {
@@ -162,4 +162,29 @@ test("preserva o rascunho após falha e o limpa somente depois do envio bem-suce
     expect(attempts).toBe(2);
     expect(successfulRequestBody).toContain("briefing-attachment-0.pdf");
     expect(successfulRequestBody).toContain("planta térrea versão final.pdf");
+});
+
+test("compõe as páginas dos ambientes configurados na ordem do briefing", async ({ page }) => {
+    const response = {
+        ...briefingResponse,
+        briefingObject: {
+            ...briefingResponse.briefingObject,
+            rooms: [
+                { id: 7, index: 1, name: "Cozinha integrada", type: "cozinha", options: [] },
+                { id: 3, index: 0, name: "Sala principal", type: "sala-estar", options: [] }
+            ]
+        }
+    };
+    await mockClientApi(page, response);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+
+    const roomPages = page.locator("[data-briefing-room-id][data-briefing-room-page-kind]");
+    await expect(roomPages).toHaveCount(4);
+    await expect(roomPages.nth(0)).toHaveAttribute("data-briefing-page-key", "room-3");
+    await expect(roomPages.nth(1)).toHaveAttribute("data-briefing-page-key", "room-3-considerations");
+    await expect(roomPages.nth(2)).toHaveAttribute("data-briefing-page-key", "room-7");
+    await expect(roomPages.nth(3)).toHaveAttribute("data-briefing-page-key", "room-7-considerations");
+    await expect(page.locator("[data-briefing-page-key='room-7'] .briefing-title"))
+        .toHaveText("Cozinha integrada");
 });

@@ -3,7 +3,8 @@ import { ClientSystemModules } from "../modules/client-system.modules.js";
 import { ClientSystemRouter, type ClientRoute } from "../navigation/client-system.router.js";
 import getTemplates from "../templates/getter.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
-import ClientBriefingController, { normalizeBriefingData } from "./briefing.controller.js";
+import ClientBriefingController from "./briefing.controller.js";
+import { normalizeBriefingData } from "../ui/briefing/briefing-data.mapper.js";
 
 export default class ClientSystem {
     private readonly api = new ClientSystemApi();
