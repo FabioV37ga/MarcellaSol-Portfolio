@@ -5,6 +5,12 @@ import { BriefingFormRules } from "../ui/briefing/briefing-form-rules.js";
 import { BriefingNavigator, type BriefingHistoryOptions } from "../ui/briefing/briefing-navigator.js";
 import { BriefingDraftService } from "../ui/briefing/briefing-draft.service.js";
 import { BriefingFileDraftService } from "../ui/briefing/briefing-file-draft.service.js";
+import {
+    BriefingAnswerCollector,
+    briefingFileUploadId,
+    isBriefingFieldLogicallyDisabled,
+    type CompletedBriefing
+} from "../ui/briefing/briefing-answer-collector.js";
 import type {
     BriefingRoom,
     ClientBriefingResponse,
@@ -113,40 +119,7 @@ function considerationPage(roomType: string): HTMLElement | undefined {
     }
 }
 
-interface BriefingAnswer {
-    key: string;
-    question: string;
-    controlType: string;
-    value: string | number | boolean | string[] | Array<{
-        name: string;
-        size: number;
-        type: string;
-        uploadId: string;
-    }>;
-}
-
-interface BriefingAnswerSection {
-    key: string;
-    title: string;
-    answers: BriefingAnswer[];
-}
-
-interface BriefingRoomAnswers {
-    id: number;
-    index: number;
-    name: string;
-    type: string;
-    subtype?: string;
-    sections: BriefingAnswerSection[];
-}
-
-export interface CompletedBriefing {
-    version: 1;
-    project: ResolvedBriefingDefinition["description"];
-    sections: BriefingAnswerSection[];
-    rooms: BriefingRoomAnswers[];
-    submittedAt: string;
-}
+export type { CompletedBriefing } from "../ui/briefing/briefing-answer-collector.js";
 
 export default class ClientBriefingController {
     private readonly pages: HTMLElement[];
@@ -155,6 +128,7 @@ export default class ClientBriefingController {
     private readonly draftStorageKey: string;
     private readonly draftService: BriefingDraftService;
     private readonly fileDraftService: BriefingFileDraftService;
+    private readonly answerCollector: BriefingAnswerCollector;
     private readonly briefingApi = new BriefingApi();
     private readonly formRules: BriefingFormRules;
     private readonly navigator: BriefingNavigator;
@@ -168,6 +142,7 @@ export default class ClientBriefingController {
         this.draftStorageKey = `client-briefing-draft:v1:${ownerKey}`;
         this.draftService = new BriefingDraftService(new BriefingDraftRepository(this.draftStorageKey));
         this.fileDraftService = new BriefingFileDraftService(this.draftStorageKey, new BriefingFileRepository());
+        this.answerCollector = new BriefingAnswerCollector(this.fileDraftService);
         const generatedPages = this.createPages();
         this.template = briefingTemplate(generatedPages);
         this.pages = Array.from(
@@ -397,127 +372,7 @@ export default class ClientBriefingController {
     }
 
     public buildCompletedBriefing(): CompletedBriefing {
-        const sections: BriefingAnswerSection[] = [];
-        const roomsById = new Map<string, BriefingRoomAnswers>();
-
-        this.pages.forEach(page => {
-            const section = this.captureSection(page);
-            const roomId = page.dataset.briefingRoomId;
-
-            if (!roomId) {
-                sections.push(section);
-                return;
-            }
-
-            let roomAnswers = roomsById.get(roomId);
-            if (!roomAnswers) {
-                roomAnswers = {
-                    id: Number(roomId),
-                    index: Number(page.dataset.briefingRoomIndex) || 0,
-                    name: page.dataset.briefingRoomName ?? "",
-                    type: page.dataset.briefingRoomType ?? "",
-                    subtype: page.dataset.briefingRoomSubtype || undefined,
-                    sections: []
-                };
-                roomsById.set(roomId, roomAnswers);
-            }
-
-            roomAnswers.sections.push(section);
-        });
-
-        return {
-            version: 1,
-            project: { ...this.briefing.description },
-            sections,
-            rooms: Array.from(roomsById.values()).sort((a, b) => a.index - b.index),
-            submittedAt: new Date().toISOString()
-        };
-    }
-
-    private captureSection(page: HTMLElement): BriefingAnswerSection {
-        const fields = Array.from(page.querySelectorAll<
-            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-        >("input, select, textarea"));
-        const processedGroups = new Set<string>();
-        const answers: BriefingAnswer[] = [];
-
-        fields.forEach((field, fieldIndex) => {
-            if (this.isLogicallyDisabled(field) || field.closest(".briefing-navigation")) return;
-
-            const type = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
-            const key = field.name || field.id || `field-${fieldIndex + 1}`;
-            const groupKey = `${type}:${key}`;
-
-            if ((type === "radio" || type === "checkbox") && processedGroups.has(groupKey)) return;
-
-            if (type === "radio" || type === "checkbox") {
-                processedGroups.add(groupKey);
-                const group = fields.filter(candidate =>
-                    candidate instanceof HTMLInputElement
-                    && candidate.type === type
-                    && (candidate.name || candidate.id || `field-${fields.indexOf(candidate) + 1}`) === key
-                    && !this.isLogicallyDisabled(candidate)
-                ) as HTMLInputElement[];
-                const selectedValues = group.filter(candidate => candidate.checked).map(candidate => candidate.value);
-
-                answers.push({
-                    key,
-                    question: this.getQuestion(field),
-                    controlType: type,
-                    value: type === "radio" ? (selectedValues[0] ?? "") : selectedValues
-                });
-                return;
-            }
-
-            if (field instanceof HTMLInputElement && field.type === "file") {
-                const files = this.fileDraftService.getFiles(page, fieldIndex, field);
-                answers.push({
-                    key,
-                    question: this.getQuestion(field),
-                    controlType: "file",
-                    value: files.map((file, fileIndex) => ({
-                        name: file.name,
-                        size: file.size,
-                        type: file.type,
-                        uploadId: this.getFileUploadId(page, key, fileIndex)
-                    }))
-                });
-                return;
-            }
-
-            const value = field instanceof HTMLSelectElement && field.multiple
-                ? Array.from(field.selectedOptions).map(option => option.value)
-                : field instanceof HTMLInputElement && field.type === "number"
-                    ? Number(field.value)
-                    : field.value;
-
-            answers.push({ key, question: this.getQuestion(field), controlType: type, value });
-        });
-
-        return {
-            key: page.dataset.briefingPageKey ?? page.className,
-            title: page.querySelector<HTMLElement>(".briefing-title")?.textContent?.trim() ?? "",
-            answers
-        };
-    }
-
-    private isLogicallyDisabled(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): boolean {
-        const disabledBeforePageWasHidden = field.dataset.briefingDisabledBeforeHide;
-        return disabledBeforePageWasHidden === undefined
-            ? field.disabled
-            : disabledBeforePageWasHidden === "true";
-    }
-
-    private getQuestion(field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): string {
-        const container = field.closest<HTMLElement>(".briefing-input-box, fieldset");
-        const heading = container?.querySelector<HTMLElement>(
-            ":scope > legend, :scope > p, :scope > label:not(.briefing-ignore-option)"
-        );
-        return heading?.textContent?.trim()
-            || field.labels?.[0]?.textContent?.trim()
-            || field.name
-            || field.id
-            || "Campo sem título";
+        return this.answerCollector.collect(this.pages, this.briefing.description);
     }
 
     private async submitBriefing(): Promise<void> {
@@ -531,11 +386,11 @@ export default class ClientBriefingController {
             const pageKey = page.dataset.briefingPageKey ?? page.className;
 
             fields.forEach((field, fieldIndex) => {
-                if (!(field instanceof HTMLInputElement) || field.type !== "file" || this.isLogicallyDisabled(field)) return;
+                if (!(field instanceof HTMLInputElement) || field.type !== "file" || isBriefingFieldLogicallyDisabled(field)) return;
 
                 const answerKey = field.name || field.id || `field-${fieldIndex + 1}`;
                 this.fileDraftService.getFiles(page, fieldIndex, field).forEach((file, fileIndex) => {
-                    const uploadId = this.getFileUploadId(page, answerKey, fileIndex);
+                    const uploadId = briefingFileUploadId(page, answerKey, fileIndex);
                     attachments.push({
                         file,
                         manifest: { uploadId, pageKey, answerKey, fileIndex, originalName: file.name }
@@ -549,14 +404,6 @@ export default class ClientBriefingController {
             briefing: this.buildCompletedBriefing(),
             attachments
         });
-    }
-
-    private getFileUploadId(page: HTMLElement, answerKey: string, fileIndex: number): string {
-        const pageKey = page.dataset.briefingPageKey ?? page.className;
-        const roomKey = page.dataset.briefingRoomId
-            ? `room-${page.dataset.briefingRoomId}`
-            : "global";
-        return `${roomKey}:${pageKey}:${answerKey}:${fileIndex}`;
     }
 
     private ensureStylesheet(): void {
