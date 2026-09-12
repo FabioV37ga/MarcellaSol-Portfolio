@@ -1,4 +1,38 @@
 import html from 'nanohtml'
+import { briefingSimpleOptions } from './components/briefing-options.template.js'
+
+const visualAttentionOptions = [
+    { value: "cores", label: "Cores" },
+    { value: "materiais", label: "Materiais" },
+    { value: "iluminacao", label: "Iluminação" },
+    { value: "texturas", label: "Texturas" },
+    { value: "mobiliario", label: "Mobiliário" },
+    { value: "sensacao-de-aconchego", label: "Sensação de aconchego" },
+    { value: "integracao-dos-ambientes", label: "Integração dos ambientes" },
+    { value: "simplicidade", label: "Simplicidade" },
+    { value: "sofisticacao", label: "Sofisticação" },
+    { value: "natureza", label: "Natureza" },
+    { value: "organizacao", label: "Organização" },
+    { value: "outros", label: "Outros" }
+];
+
+const dreamHomeAdjectives = [
+    { value: "acolhedora", label: "Acolhedora" },
+    { value: "leve", label: "Leve" },
+    { value: "sofisticada", label: "Sofisticada" },
+    { value: "funcional", label: "Funcional" },
+    { value: "pratica", label: "Prática" },
+    { value: "natural", label: "Natural" },
+    { value: "moderna", label: "Moderna" },
+    { value: "classica", label: "Clássica" },
+    { value: "elegante", label: "Elegante" },
+    { value: "despojada", label: "Despojada" },
+    { value: "criativa", label: "Criativa" },
+    { value: "minimalista", label: "Minimalista" },
+    { value: "confortavel", label: "Confortável" },
+    { value: "inspiradora", label: "Inspiradora" },
+    { value: "outros", label: "Outros" }
+];
 
 export function preferences_1() {
     return html`
@@ -89,113 +123,7 @@ export function preferences_1() {
                     <span>Selecione até 5 itens.</span>
 
                     <div class="briefing-options">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="cores"
-                            >
-                            <span>Cores</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="materiais"
-                            >
-                            <span>Materiais</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="iluminacao"
-                            >
-                            <span>Iluminação</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="texturas"
-                            >
-                            <span>Texturas</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="mobiliario"
-                            >
-                            <span>Mobiliário</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="sensacao-de-aconchego"
-                            >
-                            <span>Sensação de aconchego</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="integracao-dos-ambientes"
-                            >
-                            <span>Integração dos ambientes</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="simplicidade"
-                            >
-                            <span>Simplicidade</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="sofisticacao"
-                            >
-                            <span>Sofisticação</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="natureza"
-                            >
-                            <span>Natureza</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="organizacao"
-                            >
-                            <span>Organização</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-66"
-                                value="outros"
-                            >
-                            <span>Outros</span>
-                        </label>
+                        ${briefingSimpleOptions("checkbox", "form-input-66", visualAttentionOptions)}
                     </div>
 
                     <div class="briefing-attention-details" hidden>
@@ -216,140 +144,7 @@ export function preferences_1() {
                     <span>Escolha até 5 adjetivos.</span>
 
                     <div class="briefing-options">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="acolhedora"
-                            >
-                            <span>Acolhedora</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="leve"
-                            >
-                            <span>Leve</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="sofisticada"
-                            >
-                            <span>Sofisticada</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="funcional"
-                            >
-                            <span>Funcional</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="pratica"
-                            >
-                            <span>Prática</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="natural"
-                            >
-                            <span>Natural</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="moderna"
-                            >
-                            <span>Moderna</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="classica"
-                            >
-                            <span>Clássica</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="elegante"
-                            >
-                            <span>Elegante</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="despojada"
-                            >
-                            <span>Despojada</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="criativa"
-                            >
-                            <span>Criativa</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="minimalista"
-                            >
-                            <span>Minimalista</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="confortavel"
-                            >
-                            <span>Confortável</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="inspiradora"
-                            >
-                            <span>Inspiradora</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-67"
-                                value="outros"
-                            >
-                            <span>Outros</span>
-                        </label>
+                        ${briefingSimpleOptions("checkbox", "form-input-67", dreamHomeAdjectives)}
                     </div>
                     <input
                         type="text"

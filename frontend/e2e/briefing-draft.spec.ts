@@ -207,3 +207,25 @@ test("renderiza e permite selecionar as opções componentizadas de investimento
     await expect(investment.locator("input[name='investment-range'][value='250-500-mil']")).toBeChecked();
     await expect(investment.locator("input[name='investment-includes'][value='marcenaria']")).toBeChecked();
 });
+
+test("mantém opções simples e limite de seleção nas preferências de atmosfera", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+    await moveStoredDraftToPage(page, 5);
+    await page.reload();
+
+    const preferences = page.locator("[data-briefing-page-key='preferences-atmosphere']");
+    const attention = preferences.locator("input[name='form-input-66']");
+    const adjectives = preferences.locator("input[name='form-input-67']");
+    await expect(preferences).toBeVisible();
+    await expect(attention).toHaveCount(12);
+    await expect(adjectives).toHaveCount(15);
+
+    for (const value of ["cores", "materiais", "iluminacao", "texturas", "mobiliario"]) {
+        await preferences.locator(`input[name='form-input-66'][value='${value}']`).check();
+    }
+
+    await expect(preferences.locator("input[name='form-input-66'][value='natureza']")).toBeDisabled();
+    await expect(preferences.locator("input[name='form-input-66'][value='cores']")).toBeChecked();
+});

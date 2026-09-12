@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { briefingButtonOptions } from "../src/client/templates/briefing/components/briefing-options.template.js";
+import {
+    briefingButtonOptions,
+    briefingSimpleOptions
+} from "../src/client/templates/briefing/components/briefing-options.template.js";
 
 describe("briefingButtonOptions", () => {
     it("preserva tipo, nome, valor, texto e classe estrutural das opções", () => {
@@ -18,5 +21,17 @@ describe("briefingButtonOptions", () => {
             "Organização",
             "Iluminação"
         ]);
+    });
+
+    it("gera opções simples sem introduzir uma classe visual", () => {
+        const [option] = briefingSimpleOptions("radio", "identity", [
+            { value: "natural", label: "Natural" }
+        ]);
+
+        expect(option.hasAttribute("class")).toBe(false);
+        expect(option.querySelector("input")?.matches(
+            'input[type="radio"][name="identity"][value="natural"]'
+        )).toBe(true);
+        expect(option.querySelector("span")?.textContent).toBe("Natural");
     });
 });
