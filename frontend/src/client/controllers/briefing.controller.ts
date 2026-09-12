@@ -1,12 +1,9 @@
 import { BriefingApi, type BriefingAttachment } from "../infrastructure/briefing/briefing.api.js";
-import {
-    BriefingDraftRepository,
-    type CachedBriefingDraft,
-    type CachedBriefingField
-} from "../infrastructure/briefing/briefing-draft.repository.js";
+import { BriefingDraftRepository } from "../infrastructure/briefing/briefing-draft.repository.js";
 import { BriefingFileRepository } from "../infrastructure/briefing/briefing-file.repository.js";
 import { BriefingFormRules } from "../ui/briefing/briefing-form-rules.js";
 import { BriefingNavigator, type BriefingHistoryOptions } from "../ui/briefing/briefing-navigator.js";
+import { BriefingDraftService } from "../ui/briefing/briefing-draft.service.js";
 import type {
     BriefingRoom,
     ClientBriefingResponse,
@@ -157,7 +154,7 @@ export default class ClientBriefingController {
     private readonly template: HTMLElement;
     private navigationBound = false;
     private readonly draftStorageKey: string;
-    private readonly draftRepository: BriefingDraftRepository;
+    private readonly draftService: BriefingDraftService;
     private readonly fileRepository = new BriefingFileRepository();
     private readonly briefingApi = new BriefingApi();
     private readonly cachedFiles = new Map<string, File[]>();
@@ -172,7 +169,7 @@ export default class ClientBriefingController {
     ) {
         const ownerKey = briefing.id || client.id || client.name;
         this.draftStorageKey = `client-briefing-draft:v1:${ownerKey}`;
-        this.draftRepository = new BriefingDraftRepository(this.draftStorageKey);
+        this.draftService = new BriefingDraftService(new BriefingDraftRepository(this.draftStorageKey));
         const generatedPages = this.createPages();
         this.template = briefingTemplate(generatedPages);
         this.pages = Array.from(
@@ -310,7 +307,7 @@ export default class ClientBriefingController {
 
     private bindNavigation(): void {
         this.template.addEventListener("input", (event: Event) => {
-            if (this.isCacheableField(event.target)) this.saveDraft();
+            if (this.draftService.isCacheableField(event.target)) this.saveDraft();
         });
 
         this.template.addEventListener("change", (event: Event) => {
@@ -322,7 +319,7 @@ export default class ClientBriefingController {
 
             this.formRules.handleChange(field, this.pages[this.navigator.currentPage]);
 
-            if (this.isCacheableField(field)) this.saveDraft();
+            if (this.draftService.isCacheableField(field)) this.saveDraft();
         });
 
         this.template.addEventListener("click", async (event: MouseEvent) => {
@@ -377,68 +374,12 @@ export default class ClientBriefingController {
         });
     }
 
-    private isCacheableField(target: EventTarget | null): target is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
-        if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) {
-            return false;
-        }
-
-        return !(target instanceof HTMLInputElement && (target.type === "file" || target.type === "password"));
-    }
-
     private saveDraft(): void {
-        const fields: CachedBriefingField[] = [];
-
-        this.pages.forEach(page => {
-            const pageKey = page.dataset.briefingPageKey ?? page.className;
-            page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-                "input, select, textarea"
-            ).forEach((field, fieldIndex) => {
-                if (!this.isCacheableField(field)) return;
-
-                const type = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
-                const value = field instanceof HTMLSelectElement && field.multiple
-                    ? Array.from(field.selectedOptions).map(option => option.value)
-                    : field.value;
-                const checked = field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")
-                    ? field.checked
-                    : undefined;
-
-                fields.push({ pageKey, fieldIndex, type, value, checked });
-            });
-        });
-
-        const draft: CachedBriefingDraft = { version: 1, currentPage: this.navigator.currentPage, fields };
-        this.draftRepository.save(draft);
+        this.draftService.save(this.pages, this.navigator.currentPage);
     }
 
     private restoreDraft(): number {
-        const draft = this.draftRepository.load();
-        if (!draft) return 0;
-
-        const pagesByKey = new Map(this.pages.map(page => [page.dataset.briefingPageKey ?? page.className, page]));
-        draft.fields.forEach(cachedField => {
-            const page = pagesByKey.get(cachedField.pageKey);
-            const field = page?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-                "input, select, textarea"
-            )[cachedField.fieldIndex];
-            if (!field || !this.isCacheableField(field)) return;
-
-            const currentType = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
-            if (currentType !== cachedField.type) return;
-
-            if (field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")) {
-                field.checked = Boolean(cachedField.checked);
-            } else if (field instanceof HTMLSelectElement && field.multiple && Array.isArray(cachedField.value)) {
-                const selectedValues = new Set(cachedField.value);
-                Array.from(field.options).forEach(option => option.selected = selectedValues.has(option.value));
-            } else if (typeof cachedField.value === "string") {
-                field.value = cachedField.value;
-            }
-        });
-
-        return Number.isInteger(draft.currentPage)
-            ? Math.min(Math.max(draft.currentPage, 0), this.pages.length - 1)
-            : 0;
+        return this.draftService.restore(this.pages);
     }
 
     private getFileFieldId(page: HTMLElement, fieldIndex: number): string {
@@ -551,7 +492,7 @@ export default class ClientBriefingController {
     }
 
     private clearDraft(): void {
-        this.draftRepository.remove();
+        this.draftService.remove();
     }
 
     private setSubmissionState(page: HTMLElement, state: "idle" | "loading" | "success"): void {

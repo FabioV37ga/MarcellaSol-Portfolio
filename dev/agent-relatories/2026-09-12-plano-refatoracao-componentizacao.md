@@ -577,7 +577,7 @@ Estado inicial em 12/09/2026:
 | R1 — fronteira HTTP do backend | pendente |
 | R2 — infraestrutura HTTP do frontend | pendente |
 | R3 — módulos administrativos | pendente |
-| R4 — briefing do cliente | pendente |
+| R4 — briefing do cliente | em andamento |
 | R5 — briefing administrativo | pendente |
 | R6 — Drive e relatório | pendente |
 | R7 — persistência e listagens | pendente |
@@ -634,3 +634,5 @@ Briefing do cliente
 ### Primeiro recorte desta ordem
 
 Começar pelo briefing do cliente, extraindo o armazenamento do rascunho textual de `briefing.controller.ts`. O recorte deve preservar o formato atual do rascunho e do payload enviado, sem alterar as views persistidas. Em seguida, introduzir identificadores estáveis para respostas com leitura compatível do formato legado antes de separar arquivos, coleta e submissão.
+
+Estado em 12/09/2026: **primeiro recorte concluído**. A captura, persistência, restauração e remoção do rascunho textual foram concentradas em `BriefingDraftService`. O formato legado por `pageKey + fieldIndex` foi preservado integralmente e recebeu testes próprios. O próximo recorte introduzirá identificadores estáveis com leitura retrocompatível.
