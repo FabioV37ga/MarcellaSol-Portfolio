@@ -14,3 +14,5 @@ private-*
 *.gitkeep
 reports/
 backend/.puppeteer-cache/
+frontend/playwright-report/
+frontend/test-results/

@@ -48,7 +48,7 @@ export default defineConfig({
   },
   server: {
     port: 8080,
-    open: true,
+    open: process.env.PLAYWRIGHT_TEST !== '1',
     headers: securityHeaders,
   },
   preview: {
