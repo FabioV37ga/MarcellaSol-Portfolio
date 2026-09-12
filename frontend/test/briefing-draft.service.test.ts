@@ -62,6 +62,48 @@ describe("BriefingDraftService", () => {
             .toEqual([false, true]);
     });
 
+    it("restaura um rascunho novo pelo identificador mesmo após reordenar os campos", () => {
+        let saved: CachedBriefingDraft | undefined;
+        const store = {
+            save: (draft: CachedBriefingDraft) => { saved = draft; },
+            load: () => saved,
+            remove: vi.fn()
+        };
+        const service = new BriefingDraftService(store);
+        const original = page("residents", `
+            <input name="firstName" value="Marcella">
+            <input name="email" value="marcella@example.com">
+        `);
+        service.save([original], 0);
+
+        const reordered = page("residents", `
+            <input name="email">
+            <input name="firstName">
+        `);
+        service.restore([reordered]);
+
+        expect(reordered.querySelector<HTMLInputElement>('[name="firstName"]')?.value).toBe("Marcella");
+        expect(reordered.querySelector<HTMLInputElement>('[name="email"]')?.value).toBe("marcella@example.com");
+        expect(saved?.fields.map(field => field.answerKey)).toEqual(["name:firstName", "name:email"]);
+    });
+
+    it("não usa o índice quando uma chave nova deixou de existir", () => {
+        const service = new BriefingDraftService({
+            save: vi.fn(),
+            load: () => ({
+                version: 1,
+                currentPage: 0,
+                fields: [{ pageKey: "about", fieldIndex: 0, answerKey: "name:removed", type: "text", value: "Incorreta" }]
+            }),
+            remove: vi.fn()
+        });
+        const changed = page("about", `<input name="anotherField" value="Original">`);
+
+        service.restore([changed]);
+
+        expect(changed.querySelector<HTMLInputElement>("input")?.value).toBe("Original");
+    });
+
     it("delega a remoção do rascunho ao repository", () => {
         const remove = vi.fn();
         const service = new BriefingDraftService({ save: vi.fn(), load: () => undefined, remove });

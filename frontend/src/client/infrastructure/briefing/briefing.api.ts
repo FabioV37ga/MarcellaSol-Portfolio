@@ -6,6 +6,7 @@ export interface BriefingFileManifestEntry {
     answerKey: string;
     fileIndex: number;
     originalName: string;
+    transportName?: string;
 }
 
 export interface BriefingAttachment {
@@ -22,10 +23,17 @@ export interface SubmitBriefingCommand {
 export class BriefingApi {
     async submit(command: SubmitBriefingCommand): Promise<void> {
         const formData = new FormData();
-        command.attachments.forEach(({ file }) => formData.append("files", file, file.name));
+        const attachments = command.attachments.map((attachment, index) => ({
+            ...attachment,
+            manifest: {
+                ...attachment.manifest,
+                transportName: transportFileName(index, attachment.file.name)
+            }
+        }));
+        attachments.forEach(({ file, manifest }) => formData.append("files", file, manifest.transportName));
         formData.append("payload", JSON.stringify({
             briefing: command.briefing,
-            fileManifest: command.attachments.map(({ manifest }) => manifest)
+            fileManifest: attachments.map(({ manifest }) => manifest)
         }));
 
         const response = await fetch(`${config.apiBaseUrl}/client/briefing`, {
@@ -39,4 +47,9 @@ export class BriefingApi {
             throw new Error(result.message || "Não foi possível enviar o briefing.");
         }
     }
+}
+
+function transportFileName(index: number, originalName: string): string {
+    const extension = originalName.match(/\.[A-Za-z0-9]{1,10}$/)?.[0].toLowerCase() ?? "";
+    return `briefing-attachment-${index}${extension}`;
 }

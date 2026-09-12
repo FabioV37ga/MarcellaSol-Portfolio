@@ -163,9 +163,10 @@ export class ClientController {
         if (new Set(manifest.map(item => item.uploadId)).size !== manifest.length) {
             throw new ApplicationError("Os identificadores dos anexos devem ser únicos", 400);
         }
-        if (manifest.some((item, index) => item.originalName !== files[index]?.originalname)) {
+        if (manifest.some((item, index) => (item.transportName ?? item.originalName) !== files[index]?.originalname)) {
             throw new ApplicationError("A ordem dos anexos não corresponde aos arquivos enviados", 400);
         }
+        files.forEach((file, index) => { file.originalname = manifest[index].originalName; });
         return {
             clientId: principal.subject,
             clientLogin: principal.login,
@@ -230,6 +231,7 @@ export class ClientController {
     private isManifestEntry(item: FileManifestEntry): boolean {
         return Boolean(item) && typeof item.uploadId === "string" && typeof item.pageKey === "string"
             && typeof item.answerKey === "string" && Number.isInteger(item.fileIndex) && item.fileIndex >= 0
-            && typeof item.originalName === "string";
+            && typeof item.originalName === "string"
+            && (item.transportName === undefined || typeof item.transportName === "string");
     }
 }

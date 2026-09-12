@@ -1,6 +1,7 @@
 export interface CachedBriefingField {
     pageKey: string;
     fieldIndex: number;
+    answerKey?: string;
     type: string;
     value: string | string[];
     checked?: boolean;

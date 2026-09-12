@@ -23,10 +23,15 @@ export class BriefingDraftService {
 
         pages.forEach(page => {
             const pageKey = this.pageKey(page);
-            this.fields(page).forEach((field, fieldIndex) => {
+            const pageFields = this.fields(page);
+            const stableKeys = pageFields.map(field => this.stableKey(field));
+            pageFields.forEach((field, fieldIndex) => {
                 if (!this.isCacheableField(field)) return;
 
                 const type = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
+                const answerKey = stableKeys[fieldIndex];
+                const hasUniqueAnswerKey = answerKey !== undefined
+                    && stableKeys.filter(candidate => candidate === answerKey).length === 1;
                 const value = field instanceof HTMLSelectElement && field.multiple
                     ? Array.from(field.selectedOptions).map(option => option.value)
                     : field.value;
@@ -34,7 +39,14 @@ export class BriefingDraftService {
                     ? field.checked
                     : undefined;
 
-                fields.push({ pageKey, fieldIndex, type, value, checked });
+                fields.push({
+                    pageKey,
+                    fieldIndex,
+                    ...(hasUniqueAnswerKey ? { answerKey } : {}),
+                    type,
+                    value,
+                    checked
+                });
             });
         });
 
@@ -56,7 +68,10 @@ export class BriefingDraftService {
     }
 
     private restoreField(page: HTMLElement | undefined, cachedField: CachedBriefingField): void {
-        const field = page ? this.fields(page)[cachedField.fieldIndex] : undefined;
+        const pageFields = page ? this.fields(page) : [];
+        const field = cachedField.answerKey
+            ? pageFields.find(candidate => this.stableKey(candidate) === cachedField.answerKey)
+            : pageFields[cachedField.fieldIndex];
         if (!field || !this.isCacheableField(field)) return;
 
         const currentType = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
@@ -83,5 +98,17 @@ export class BriefingDraftService {
 
     private pageKey(page: HTMLElement): string {
         return page.dataset.briefingPageKey ?? page.className;
+    }
+
+    private stableKey(field: BriefingField): string | undefined {
+        const declaredKey = field.dataset.briefingAnswerKey?.trim();
+        if (declaredKey) return `data:${declaredKey}`;
+        if (field.id) return `id:${field.id}`;
+        if (!field.name) return undefined;
+
+        if (field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")) {
+            return `name:${field.name}:value:${field.value}`;
+        }
+        return `name:${field.name}`;
     }
 }

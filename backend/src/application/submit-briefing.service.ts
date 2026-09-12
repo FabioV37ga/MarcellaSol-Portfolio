@@ -14,6 +14,7 @@ export interface FileManifestEntry {
     answerKey: string;
     fileIndex: number;
     originalName: string;
+    transportName?: string;
 }
 
 interface StoredAttachment extends FileManifestEntry, DriveUpload { }
