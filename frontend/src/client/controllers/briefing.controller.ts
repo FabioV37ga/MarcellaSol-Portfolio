@@ -4,6 +4,7 @@ import { BriefingFileRepository } from "../infrastructure/briefing/briefing-file
 import { BriefingFormRules } from "../ui/briefing/briefing-form-rules.js";
 import { BriefingNavigator, type BriefingHistoryOptions } from "../ui/briefing/briefing-navigator.js";
 import { BriefingDraftService } from "../ui/briefing/briefing-draft.service.js";
+import { BriefingFileDraftService } from "../ui/briefing/briefing-file-draft.service.js";
 import type {
     BriefingRoom,
     ClientBriefingResponse,
@@ -27,8 +28,6 @@ import { livingRoom } from "../templates/briefing/livingRoom.template.js";
 import { preferences_1, preferences_2, preferences_3 } from "../templates/briefing/preferences.template.js";
 import { routine } from "../templates/briefing/routine.template.js";
 import { toilet } from "../templates/briefing/toilet.template.js";
-
-const maxFilesPerField = 10;
 
 const roomLabels: Record<string, string> = {
     "sala-estar": "Sala de estar",
@@ -155,10 +154,8 @@ export default class ClientBriefingController {
     private navigationBound = false;
     private readonly draftStorageKey: string;
     private readonly draftService: BriefingDraftService;
-    private readonly fileRepository = new BriefingFileRepository();
+    private readonly fileDraftService: BriefingFileDraftService;
     private readonly briefingApi = new BriefingApi();
-    private readonly cachedFiles = new Map<string, File[]>();
-    private fileCacheReady: Promise<void> = Promise.resolve();
     private readonly formRules: BriefingFormRules;
     private readonly navigator: BriefingNavigator;
 
@@ -170,6 +167,7 @@ export default class ClientBriefingController {
         const ownerKey = briefing.id || client.id || client.name;
         this.draftStorageKey = `client-briefing-draft:v1:${ownerKey}`;
         this.draftService = new BriefingDraftService(new BriefingDraftRepository(this.draftStorageKey));
+        this.fileDraftService = new BriefingFileDraftService(this.draftStorageKey, new BriefingFileRepository());
         const generatedPages = this.createPages();
         this.template = briefingTemplate(generatedPages);
         this.pages = Array.from(
@@ -202,7 +200,7 @@ export default class ClientBriefingController {
 
         const restoredPage = this.restoreDraft();
         this.showPage(restoredPage, { replaceHistory: true });
-        this.fileCacheReady = this.restoreFileDrafts();
+        this.fileDraftService.initialize(this.pages);
     }
 
     navigateToStep(index: number): void {
@@ -314,7 +312,7 @@ export default class ClientBriefingController {
             const field = event.target as HTMLInputElement;
 
             if (field instanceof HTMLInputElement && field.type === "file") {
-                void this.saveFileDraft(field);
+                void this.fileDraftService.save(field, this.pages);
             }
 
             this.formRules.handleChange(field, this.pages[this.navigator.currentPage]);
@@ -360,7 +358,7 @@ export default class ClientBriefingController {
                 this.setSubmissionState(page, "loading");
                 await this.submitBriefing();
                 this.clearDraft();
-                await this.clearFileDrafts();
+                await this.fileDraftService.clear(this.template);
                 this.setSubmissionState(page, "success");
             } catch (error) {
                 console.error("Briefing: falha ao enviar respostas.", error);
@@ -380,115 +378,6 @@ export default class ClientBriefingController {
 
     private restoreDraft(): number {
         return this.draftService.restore(this.pages);
-    }
-
-    private getFileFieldId(page: HTMLElement, fieldIndex: number): string {
-        const pageKey = page.dataset.briefingPageKey ?? page.className;
-        return `${this.draftStorageKey}:${pageKey}:${fieldIndex}`;
-    }
-
-    private getFilesForField(page: HTMLElement, fieldIndex: number, field: HTMLInputElement): File[] {
-        const cachedFiles = this.cachedFiles.get(this.getFileFieldId(page, fieldIndex));
-        if (cachedFiles) return cachedFiles;
-
-        const selectedFiles = Array.from(field.files ?? []);
-        return selectedFiles;
-    }
-
-    private async saveFileDraft(field: HTMLInputElement): Promise<void> {
-        const page = this.pages.find(candidate => candidate.contains(field));
-        if (!page) return;
-
-        const fields = Array.from(page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-            "input, select, textarea"
-        ));
-        const fieldIndex = fields.indexOf(field);
-        if (fieldIndex < 0) return;
-
-        const id = this.getFileFieldId(page, fieldIndex);
-        const previousFiles = this.cachedFiles.get(id) ?? [];
-        const selectedFiles = Array.from(field.files ?? []);
-        const uniqueFiles = new Map<string, File>();
-        [...previousFiles, ...selectedFiles].forEach(file => {
-            uniqueFiles.set(`${file.name}:${file.size}:${file.lastModified}`, file);
-        });
-        const allFiles = Array.from(uniqueFiles.values());
-        const files = allFiles.slice(0, maxFilesPerField);
-        if (files.length > 0) this.cachedFiles.set(id, files);
-        else this.cachedFiles.delete(id);
-        this.renderCachedFileStatus(field, files, allFiles.length - files.length);
-
-        const operation = this.fileCacheReady.then(() => this.fileRepository.save(id, files)).catch(error => {
-            console.warn("Briefing: não foi possível salvar os arquivos do rascunho.", error);
-        });
-
-        this.fileCacheReady = operation;
-        await operation;
-    }
-
-    private async restoreFileDrafts(): Promise<void> {
-        try {
-            const fileFields = this.pages.reduce<Array<{
-                page: HTMLElement;
-                field: HTMLInputElement;
-                fieldIndex: number;
-            }>>((result, page) => {
-                const fields = Array.from(page.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-                    "input, select, textarea"
-                ));
-                fields.forEach((field, fieldIndex) => {
-                    if (field instanceof HTMLInputElement && field.type === "file") {
-                        result.push({ page, field, fieldIndex });
-                    }
-                });
-                return result;
-            }, []);
-
-            await Promise.all(fileFields.map(async ({ page, field, fieldIndex }) => {
-                const id = this.getFileFieldId(page, fieldIndex);
-                const files = await this.fileRepository.load(id);
-                if (files.length > 0) {
-                    this.cachedFiles.set(id, files);
-                    this.renderCachedFileStatus(field, files);
-                }
-            }));
-        } catch (error) {
-            console.warn("Briefing: não foi possível restaurar os arquivos do rascunho.", error);
-        }
-    }
-
-    private renderCachedFileStatus(field: HTMLInputElement, files: File[], rejectedCount = 0): void {
-        const container = field.parentElement ?? field;
-        let status = container.querySelector<HTMLElement>("[data-briefing-file-cache-status]");
-
-        if (files.length === 0) {
-            status?.remove();
-            return;
-        }
-
-        if (!status) {
-            status = document.createElement("small");
-            status.dataset.briefingFileCacheStatus = "true";
-            status.setAttribute("role", "status");
-            field.insertAdjacentElement("afterend", status);
-        }
-
-        const names = files.map(file => file.name).join(", ");
-        const rejectedMessage = rejectedCount > 0
-            ? ` ${rejectedCount} arquivo(s) excederam o limite de ${maxFilesPerField} e não foram adicionados.`
-            : "";
-        status.textContent = `${files.length} arquivo(s) salvo(s) no rascunho: ${names}.${rejectedMessage}`;
-    }
-
-    private async clearFileDrafts(): Promise<void> {
-        this.cachedFiles.clear();
-        try {
-            await this.fileCacheReady;
-            await this.fileRepository.removeByPrefix(`${this.draftStorageKey}:`);
-            this.template.querySelectorAll("[data-briefing-file-cache-status]").forEach(status => status.remove());
-        } catch (error) {
-            console.warn("Briefing: não foi possível remover os arquivos do rascunho.", error);
-        }
     }
 
     private clearDraft(): void {
@@ -581,7 +470,7 @@ export default class ClientBriefingController {
             }
 
             if (field instanceof HTMLInputElement && field.type === "file") {
-                const files = this.getFilesForField(page, fieldIndex, field);
+                const files = this.fileDraftService.getFiles(page, fieldIndex, field);
                 answers.push({
                     key,
                     question: this.getQuestion(field),
@@ -632,7 +521,7 @@ export default class ClientBriefingController {
     }
 
     private async submitBriefing(): Promise<void> {
-        await this.fileCacheReady;
+        await this.fileDraftService.waitUntilReady();
         const attachments: BriefingAttachment[] = [];
 
         this.pages.forEach(page => {
@@ -645,7 +534,7 @@ export default class ClientBriefingController {
                 if (!(field instanceof HTMLInputElement) || field.type !== "file" || this.isLogicallyDisabled(field)) return;
 
                 const answerKey = field.name || field.id || `field-${fieldIndex + 1}`;
-                this.getFilesForField(page, fieldIndex, field).forEach((file, fileIndex) => {
+                this.fileDraftService.getFiles(page, fieldIndex, field).forEach((file, fileIndex) => {
                     const uploadId = this.getFileUploadId(page, answerKey, fileIndex);
                     attachments.push({
                         file,
