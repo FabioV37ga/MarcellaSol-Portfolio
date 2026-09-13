@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     briefingButtonOptions,
+    briefingDescriptiveOptions,
     briefingSimpleOptions
 } from "../src/client/templates/briefing/components/briefing-options.template.js";
 
@@ -33,5 +34,19 @@ describe("briefingButtonOptions", () => {
             'input[type="radio"][name="identity"][value="natural"]'
         )).toBe(true);
         expect(option.querySelector("span")?.textContent).toBe("Natural");
+    });
+
+    it("preserva título e descrição das opções descritivas", () => {
+        const [option] = briefingDescriptiveOptions("radio", "maintenance", [{
+            value: "baixa",
+            label: "Baixa manutenção",
+            description: "Praticidade no dia a dia"
+        }]);
+
+        expect(Array.from(option.children).map(child => child.tagName)).toEqual([
+            "INPUT", "STRONG", "SPAN"
+        ]);
+        expect(option.querySelector("strong")?.textContent).toBe("Baixa manutenção");
+        expect(option.querySelector("span")?.textContent).toBe("Praticidade no dia a dia");
     });
 });

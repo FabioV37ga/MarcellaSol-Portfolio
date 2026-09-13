@@ -578,7 +578,7 @@ Estado inicial em 12/09/2026:
 | R1 — fronteira HTTP do backend | pendente |
 | R2 — infraestrutura HTTP do frontend | pendente |
 | R3 — módulos administrativos | pendente |
-| R4 — briefing do cliente | em andamento |
+| R4 — briefing do cliente | resolvido |
 | R5 — briefing administrativo | pendente |
 | R6 — Drive e relatório | pendente |
 | R7 — persistência e listagens | pendente |
@@ -652,3 +652,7 @@ Estado em 12/09/2026: **sexto recorte concluído**. Normalização da resposta d
 Estado em 12/09/2026: **sétimo recorte em andamento**. Opções com aparência de botão passaram a ser geradas por `briefingButtonOptions`, preservando `type`, `name`, `value`, texto e classe estrutural. O primeiro recorte migrou os grupos de investimento e prioridades; os templates extensos de preferências e ambientes serão migrados incrementalmente para evitar alterações visuais amplas.
 
 Continuação do sétimo recorte: opções simples sem mídia passaram a usar `briefingSimpleOptions`. Os grupos de atenção visual e adjetivos da casa dos sonhos foram migrados, removendo marcação repetida sem misturar o contrato dos cartões com imagens. Limites de seleção e identificadores dos campos permanecem cobertos por E2E.
+
+Continuação do sétimo recorte: cartões de atmosfera, paleta, madeira e formas passaram a usar `briefingVisualOptions`. O componente preserva a ordem estrutural de input, imagem, badge, título ou legenda e não cria nós de texto ausentes. Quantidades, acessibilidade das imagens, seleção e limites estão cobertos por E2E. Permanecem os cartões de elementos e manutenção antes da revisão final da fase.
+
+Estado em 12/09/2026: **oitavo recorte concluído e Fase R4 resolvida**. Cartões de elementos foram incorporados a `briefingVisualOptions` com suporte à classe específica dos ícones, e manutenção passou a usar opções descritivas reutilizáveis. A revisão final removeu campos privados e o carregador de stylesheet comentado sem função do controller. Rascunho, arquivos, respostas, submissão, navegação, montagem e componentes de opções possuem responsabilidades separadas e cobertura unitária e E2E. Etapa priorizada 1: **8/8 concluída**.

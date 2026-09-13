@@ -5,6 +5,10 @@ export interface BriefingOption {
     label: string;
 }
 
+export interface BriefingDescriptiveOption extends BriefingOption {
+    description: string;
+}
+
 export function briefingButtonOptions(
     type: "checkbox" | "radio",
     name: string,
@@ -32,4 +36,18 @@ export function briefingSimpleOptions(
                 <span>${option.label}</span>
             </label>
         `);
+}
+
+export function briefingDescriptiveOptions(
+    type: "checkbox" | "radio",
+    name: string,
+    options: BriefingDescriptiveOption[]
+): HTMLElement[] {
+    return options.map(option => html`
+        <label>
+            <input type="${type}" name="${name}" value="${option.value}">
+            <strong>${option.label}</strong>
+            <span>${option.description}</span>
+        </label>
+    `);
 }

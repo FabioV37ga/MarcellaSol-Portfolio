@@ -229,3 +229,56 @@ test("mantém opções simples e limite de seleção nas preferências de atmosf
     await expect(preferences.locator("input[name='form-input-66'][value='natureza']")).toBeDisabled();
     await expect(preferences.locator("input[name='form-input-66'][value='cores']")).toBeChecked();
 });
+
+test("renderiza cartões visuais e respeita os limites de cores e madeiras", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+    await moveStoredDraftToPage(page, 6);
+    await page.reload();
+
+    const preferences = page.locator("[data-briefing-page-key='preferences-colors']");
+    const palettes = preferences.locator("input[name='form-input-65']");
+    const woods = preferences.locator("input[name='form-input-68']");
+    await expect(preferences).toBeVisible();
+    await expect(palettes).toHaveCount(5);
+    await expect(woods).toHaveCount(8);
+    await expect(preferences.locator("input[name='form-input-69']")).toHaveCount(4);
+    await expect(palettes.first().locator("xpath=following-sibling::img")).toHaveAttribute(
+        "alt", "Paleta de cores neutras quentes"
+    );
+
+    await preferences.locator("input[name='form-input-65'][value='neutros-quentes']").check();
+    await preferences.locator("input[name='form-input-65'][value='cores-suaves']").check();
+    await expect(preferences.locator("input[name='form-input-65'][value='cores-profundas']"))
+        .toBeDisabled();
+
+    await preferences.locator("input[name='form-input-68'][value='madeira-1']").check();
+    await preferences.locator("input[name='form-input-68'][value='madeira-10']").check();
+    await expect(preferences.locator("input[name='form-input-68'][value='madeira-2']")).toBeDisabled();
+});
+
+test("renderiza elementos e opções descritivas de manutenção", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+    await moveStoredDraftToPage(page, 7);
+    await page.reload();
+
+    const preferences = page.locator("[data-briefing-page-key='preferences-materials']");
+    const elements = preferences.locator("input[name='form-input-70']");
+    const maintenance = preferences.locator("input[name='form-input-73']");
+    await expect(preferences).toBeVisible();
+    await expect(elements).toHaveCount(8);
+    await expect(maintenance).toHaveCount(3);
+    await expect(preferences.locator(".briefing-element-icon")).toHaveCount(8);
+    await expect(maintenance.nth(1).locator("xpath=following-sibling::strong"))
+        .toHaveText("Manutenção moderada");
+    await expect(maintenance.nth(1).locator("xpath=following-sibling::span"))
+        .toHaveText("Equilíbrio entre beleza e cuidado");
+
+    await preferences.locator("input[name='form-input-70'][value='ripado']").check();
+    await preferences.locator("input[name='form-input-73'][value='moderada']").check();
+    await expect(preferences.locator("input[name='form-input-70'][value='ripado']")).toBeChecked();
+    await expect(preferences.locator("input[name='form-input-73'][value='moderada']")).toBeChecked();
+});

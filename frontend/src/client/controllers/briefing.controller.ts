@@ -23,11 +23,8 @@ export default class ClientBriefingController {
     private readonly pages: HTMLElement[];
     private readonly template: HTMLElement;
     private navigationBound = false;
-    private readonly draftStorageKey: string;
     private readonly draftService: BriefingDraftService;
     private readonly fileDraftService: BriefingFileDraftService;
-    private readonly answerCollector: BriefingAnswerCollector;
-    private readonly briefingApi = new BriefingApi();
     private readonly submissionFlow: BriefingSubmissionFlow;
     private readonly formRules: BriefingFormRules;
     private readonly navigator: BriefingNavigator;
@@ -38,15 +35,15 @@ export default class ClientBriefingController {
         private readonly sessionToken: string
     ) {
         const ownerKey = briefing.id || client.id || client.name;
-        this.draftStorageKey = `client-briefing-draft:v1:${ownerKey}`;
-        this.draftService = new BriefingDraftService(new BriefingDraftRepository(this.draftStorageKey));
-        this.fileDraftService = new BriefingFileDraftService(this.draftStorageKey, new BriefingFileRepository());
-        this.answerCollector = new BriefingAnswerCollector(this.fileDraftService);
+        const draftStorageKey = `client-briefing-draft:v1:${ownerKey}`;
+        this.draftService = new BriefingDraftService(new BriefingDraftRepository(draftStorageKey));
+        this.fileDraftService = new BriefingFileDraftService(draftStorageKey, new BriefingFileRepository());
+        const answerCollector = new BriefingAnswerCollector(this.fileDraftService);
         this.submissionFlow = new BriefingSubmissionFlow(
-            this.briefingApi,
+            new BriefingApi(),
             this.draftService,
             this.fileDraftService,
-            this.answerCollector
+            answerCollector
         );
         const generatedPages = new BriefingPageFactory().create(this.briefing);
         this.template = briefingTemplate(generatedPages);
@@ -72,7 +69,6 @@ export default class ClientBriefingController {
     }
 
     initialize(): void {
-        this.ensureStylesheet();
         if (!this.navigationBound) {
             this.bindNavigation();
             this.navigationBound = true;
@@ -194,13 +190,4 @@ export default class ClientBriefingController {
         });
     }
 
-    private ensureStylesheet(): void {
-        // if (document.querySelector('link[data-client-briefing="true"]')) return;
-
-        // const stylesheet = document.createElement("link");
-        // stylesheet.rel = "stylesheet";
-        // stylesheet.href = "/client/styles/briefing/briefing.css";
-        // stylesheet.dataset.clientBriefing = "true";
-        // document.head.append(stylesheet);
-    }
 }

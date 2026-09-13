@@ -1,5 +1,53 @@
 import html from 'nanohtml'
-import { briefingSimpleOptions } from './components/briefing-options.template.js'
+import { briefingDescriptiveOptions, briefingSimpleOptions } from './components/briefing-options.template.js'
+import { briefingVisualOptions } from './components/briefing-visual-options.template.js'
+
+const atmosphereOptions = [
+    { value: "contemporaneo-brasileiro", imageSrc: "/images/briefing/styles/contemporaneo-brasileiro.png", imageAlt: "Ambiente no estilo contemporâneo brasileiro", badge: "Opção A", title: "Contemporâneo brasileiro" },
+    { value: "moderno", imageSrc: "/images/briefing/styles/moderno.png", imageAlt: "Ambiente no estilo moderno", badge: "Opção B", title: "Moderno" },
+    { value: "japandi", imageSrc: "/images/briefing/styles/japandi.png", imageAlt: "Ambiente no estilo japandi", badge: "Opção C", title: "Japandi" },
+    { value: "industrial", imageSrc: "/images/briefing/styles/industrial.png", imageAlt: "Ambiente no estilo industrial", badge: "Opção D", title: "Industrial" },
+    { value: "rustico", imageSrc: "/images/briefing/styles/rustico.png", imageAlt: "Ambiente no estilo rústico", badge: "Opção E", title: "Rústico" },
+    { value: "boho", imageSrc: "/images/briefing/styles/boho.png", imageAlt: "Ambiente no estilo boho", badge: "Opção F", title: "Boho" }
+];
+
+const colorPaletteOptions = [
+    { value: "neutros-quentes", imageSrc: "/images/briefing/palettes/neutros-quentes.png", imageAlt: "Paleta de cores neutras quentes", badge: "Opção A", title: "Neutros quentes" },
+    { value: "neutros-frios", imageSrc: "/images/briefing/palettes/neutros-frios.png", imageAlt: "Paleta de cores neutras frias", badge: "Opção B", title: "Neutros frios" },
+    { value: "tons-terrosos-naturais", imageSrc: "/images/briefing/palettes/tons-terrosos.png", imageAlt: "Paleta de tons terrosos e naturais", badge: "Opção C", title: "Tons terrosos e naturais" },
+    { value: "cores-suaves", imageSrc: "/images/briefing/palettes/cores-suaves.png", imageAlt: "Paleta de cores suaves", badge: "Opção D", title: "Cores suaves" },
+    { value: "cores-profundas", imageSrc: "/images/briefing/palettes/cores-profundas.png", imageAlt: "Paleta de cores profundas", badge: "Opção E", title: "Cores profundas" }
+];
+
+const woodOptions = [1, 2, 3, 6, 7, 8, 9, 10].map(number => ({
+    value: `madeira-${number}`,
+    imageSrc: `/images/briefing/woods/madeira-${number}.png`,
+    imageAlt: `Amostra da madeira ${number}`
+}));
+
+const shapeOptions = [
+    { value: "retas", imageSrc: "/images/briefing/shapes/retas.png", imageAlt: "Móvel de linhas retas", label: "Retas" },
+    { value: "curvas", imageSrc: "/images/briefing/shapes/curvas.png", imageAlt: "Poltrona de linhas curvas", label: "Curvas" },
+    { value: "mistura-equilibrada", imageSrc: "/images/briefing/shapes/mistura-equilibrada.png", imageAlt: "Composição equilibrada de linhas retas e curvas", label: "Mistura equilibrada" },
+    { value: "curvas-em-destaque", imageSrc: "/images/briefing/shapes/curvas-em-destaque.png", imageAlt: "Composição com formas curvas em destaque", label: "Curvas em destaque" }
+];
+
+const elementOptions = [
+    { value: "ripado", imageSrc: "/images/briefing/elements/ripado.png", imageAlt: "Ícone de ripado", imageClass: "briefing-element-icon", label: "Ripado" },
+    { value: "muxarabi", imageSrc: "/images/briefing/elements/muxarabi.png", imageAlt: "Ícone de muxarabi", imageClass: "briefing-element-icon", label: "Muxarabi" },
+    { value: "palhinha-fibra-natural", imageSrc: "/images/briefing/elements/palhinha-fibra-natural.png", imageAlt: "Ícone de palhinha e fibra natural", imageClass: "briefing-element-icon", label: "Palhinha / Fibra natural" },
+    { value: "vidro-canelado", imageSrc: "/images/briefing/elements/vidro-canelado.png", imageAlt: "Ícone de vidro canelado", imageClass: "briefing-element-icon", label: "Vidro canelado" },
+    { value: "serralheria", imageSrc: "/images/briefing/elements/serralheria.png", imageAlt: "Ícone de serralheria", imageClass: "briefing-element-icon", label: "Serralheria" },
+    { value: "marcenaria-curva", imageSrc: "/images/briefing/elements/marcenaria-curva.png", imageAlt: "Ícone de marcenaria curva", imageClass: "briefing-element-icon", label: "Marcenaria curva" },
+    { value: "paineis-lisos", imageSrc: "/images/briefing/elements/paineis-lisos.png", imageAlt: "Ícone de painéis lisos", imageClass: "briefing-element-icon", label: "Painéis lisos" },
+    { value: "pedra-veios-marcantes", imageSrc: "/images/briefing/elements/pedra-veios-marcantes.png", imageAlt: "Ícone de pedra com veios marcantes", imageClass: "briefing-element-icon", label: "Pedra com veios marcantes" }
+];
+
+const maintenanceOptions = [
+    { value: "baixa", label: "Baixa manutenção", description: "Praticidade no dia a dia" },
+    { value: "moderada", label: "Manutenção moderada", description: "Equilíbrio entre beleza e cuidado" },
+    { value: "alta", label: "Alta manutenção", description: "Prioriza estética e exclusividade" }
+];
 
 const visualAttentionOptions = [
     { value: "cores", label: "Cores" },
@@ -50,71 +98,7 @@ export function preferences_1() {
                     <span>Escolha até 3.</span>
 
                     <div class="briefing-options briefing-style-options">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="contemporaneo-brasileiro"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/styles/contemporaneo-brasileiro.png" alt="Ambiente no estilo contemporâneo brasileiro">
-                            <span>Opção A</span>
-                            <strong>Contemporâneo brasileiro</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="moderno"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/styles/moderno.png" alt="Ambiente no estilo moderno">
-                            <span>Opção B</span>
-                            <strong>Moderno</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="japandi"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/styles/japandi.png" alt="Ambiente no estilo japandi">
-                            <span>Opção C</span>
-                            <strong>Japandi</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="industrial"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/styles/industrial.png" alt="Ambiente no estilo industrial">
-                            <span>Opção D</span>
-                            <strong>Industrial</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="rustico"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/styles/rustico.png" alt="Ambiente no estilo rústico">
-                            <span>Opção E</span>
-                            <strong>Rústico</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="boho"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/styles/boho.png" alt="Ambiente no estilo boho">
-                            <span>Opção F</span>
-                            <strong>Boho</strong>
-                        </label>
+                        ${briefingVisualOptions("checkbox", "form-input-65", atmosphereOptions)}
                     </div>
                 </div>
 
@@ -193,60 +177,7 @@ export function preferences_2() {
                     <span>Escolha até 2.</span>
 
                     <div class="briefing-options briefing-style-options briefing-material-options">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="neutros-quentes"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/palettes/neutros-quentes.png" alt="Paleta de cores neutras quentes">
-                            <span>Opção A</span>
-                            <strong>Neutros quentes</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="neutros-frios"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/palettes/neutros-frios.png" alt="Paleta de cores neutras frias">
-                            <span>Opção B</span>
-                            <strong>Neutros frios</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="tons-terrosos-naturais"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/palettes/tons-terrosos.png" alt="Paleta de tons terrosos e naturais">
-                            <span>Opção C</span>
-                            <strong>Tons terrosos e naturais</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="cores-suaves"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/palettes/cores-suaves.png" alt="Paleta de cores suaves">
-                            <span>Opção D</span>
-                            <strong>Cores suaves</strong>
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-65"
-                                value="cores-profundas"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/palettes/cores-profundas.png" alt="Paleta de cores profundas">
-                            <span>Opção E</span>
-                            <strong>Cores profundas</strong>
-                        </label>
+                        ${briefingVisualOptions("checkbox", "form-input-65", colorPaletteOptions)}
                     </div>
                 </div>
 
@@ -281,69 +212,7 @@ export function preferences_2() {
                     <span>Escolha até 2.</span>
 
                     <div class="briefing-options briefing-style-options briefing-material-options briefing-wood-options">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-68"
-                                value="madeira-1"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-1.png" alt="Amostra da madeira 1">
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-68"
-                                value="madeira-2"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-2.png" alt="Amostra da madeira 2">
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-68"
-                                value="madeira-3"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-3.png" alt="Amostra da madeira 3">
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-68"
-                                value="madeira-6"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-6.png" alt="Amostra da madeira 6">
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-68"
-                                value="madeira-7"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-7.png" alt="Amostra da madeira 7">
-                        </label>
-
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="form-input-68"
-                                value="madeira-8"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-8.png" alt="Amostra da madeira 8">
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-68" value="madeira-9">
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-9.png" alt="Amostra da madeira 9">
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-68" value="madeira-10">
-                            <img class="briefing-option-image" src="/images/briefing/woods/madeira-10.png" alt="Amostra da madeira 10">
-                        </label>
+                        ${briefingVisualOptions("checkbox", "form-input-68", woodOptions)}
                     </div>
                     <div class="briefing-wood-scale-labels" aria-hidden="true">
                         <span>Clara</span>
@@ -356,45 +225,7 @@ export function preferences_2() {
                     <span>Escolha a que mais representa o estilo que desejam.</span>
 
                     <div class="briefing-options briefing-style-options briefing-shape-options">
-                        <label>
-                            <input
-                                type="radio"
-                                name="form-input-69"
-                                value="retas"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/shapes/retas.png" alt="Móvel de linhas retas">
-                            <span>Retas</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="radio"
-                                name="form-input-69"
-                                value="curvas"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/shapes/curvas.png" alt="Poltrona de linhas curvas">
-                            <span>Curvas</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="radio"
-                                name="form-input-69"
-                                value="mistura-equilibrada"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/shapes/mistura-equilibrada.png" alt="Composição equilibrada de linhas retas e curvas">
-                            <span>Mistura equilibrada</span>
-                        </label>
-
-                        <label>
-                            <input
-                                type="radio"
-                                name="form-input-69"
-                                value="curvas-em-destaque"
-                            >
-                            <img class="briefing-option-image" src="/images/briefing/shapes/curvas-em-destaque.png" alt="Composição com formas curvas em destaque">
-                            <span>Curvas em destaque</span>
-                        </label>
+                        ${briefingVisualOptions("radio", "form-input-69", shapeOptions)}
                     </div>
                 </div>
 
@@ -422,54 +253,7 @@ export function preferences_3(showCostObservation = true) {
                     <p>Elementos que vocês gostam e desejam considerar no projeto</p>
 
                     <div class="briefing-options briefing-elements-options">
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="ripado">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/ripado.png" alt="Ícone de ripado">
-                            <span>Ripado</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="muxarabi">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/muxarabi.png" alt="Ícone de muxarabi">
-                            <span>Muxarabi</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="palhinha-fibra-natural">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/palhinha-fibra-natural.png" alt="Ícone de palhinha e fibra natural">
-                            <span>Palhinha / Fibra natural</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="vidro-canelado">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/vidro-canelado.png" alt="Ícone de vidro canelado">
-                            <span>Vidro canelado</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="serralheria">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/serralheria.png" alt="Ícone de serralheria">
-                            <span>Serralheria</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="marcenaria-curva">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/marcenaria-curva.png" alt="Ícone de marcenaria curva">
-                            <span>Marcenaria curva</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="paineis-lisos">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/paineis-lisos.png" alt="Ícone de painéis lisos">
-                            <span>Painéis lisos</span>
-                        </label>
-
-                        <label>
-                            <input type="checkbox" name="form-input-70" value="pedra-veios-marcantes">
-                            <img class="briefing-element-icon" src="/images/briefing/elements/pedra-veios-marcantes.png" alt="Ícone de pedra com veios marcantes">
-                            <span>Pedra com veios marcantes</span>
-                        </label>
-
+                        ${briefingVisualOptions("checkbox", "form-input-70", elementOptions)}
                     </div>
 
                     ${showCostObservation ? html`<div class="briefing-info-box briefing-cost-observation">
@@ -502,23 +286,7 @@ export function preferences_3(showCostObservation = true) {
                     <p>Preferência de manutenção</p>
 
                     <div class="briefing-options briefing-maintenance-options">
-                        <label>
-                            <input type="radio" name="form-input-73" value="baixa">
-                            <strong>Baixa manutenção</strong>
-                            <span>Praticidade no dia a dia</span>
-                        </label>
-
-                        <label>
-                            <input type="radio" name="form-input-73" value="moderada">
-                            <strong>Manutenção moderada</strong>
-                            <span>Equilíbrio entre beleza e cuidado</span>
-                        </label>
-
-                        <label>
-                            <input type="radio" name="form-input-73" value="alta">
-                            <strong>Alta manutenção</strong>
-                            <span>Prioriza estética e exclusividade</span>
-                        </label>
+                        ${briefingDescriptiveOptions("radio", "form-input-73", maintenanceOptions)}
                     </div>
                 </div>
 
