@@ -1,13 +1,13 @@
 import type {
     ClientProposal,
     ClientProposalDecision,
-    ClientSystemApi
-} from "../infrastructure/client-system.api.js";
+    ClientProposalsGateway
+} from "../infrastructure/proposals.api.js";
 import type { StagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
 import { clientApprovalItem } from "../templates/client-approval-item.template.js";
 import { renderProjectStages } from "@/shared/project-stages.js";
 
-type ProposalResponseApi = Pick<ClientSystemApi, "approveProposal" | "beatProposal">;
+type ProposalResponseApi = Pick<ClientProposalsGateway, "approveProposal" | "beatProposal">;
 
 export class ClientProposalResponseModule {
     private approvedProposalId = "";

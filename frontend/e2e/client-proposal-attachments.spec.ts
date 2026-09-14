@@ -44,9 +44,11 @@ async function mockClient(page: Page): Promise<void> {
 
 test("cliente envia anexo ao aprovar proposta e visualiza o histórico", async ({ page }) => {
     let multipartBody = "";
+    let authorization = "";
     await mockClient(page);
     await page.route("**/api/client/proposals/proposal-id/approve", async route => {
         multipartBody = route.request().postDataBuffer()?.toString("utf8") ?? "";
+        authorization = route.request().headers().authorization ?? "";
         await route.fulfill({
             json: {
                 currentStageKey: "briefing",
@@ -92,4 +94,5 @@ test("cliente envia anexo ao aprovar proposta e visualiza o histórico", async (
     );
     expect(multipartBody).toContain("referencia-cliente.pdf");
     expect(multipartBody).toContain("Aprovado com referência");
+    expect(authorization).toBe("Bearer client-token");
 });

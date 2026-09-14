@@ -4,6 +4,8 @@ import type { dbView } from "../templates/interface.js";
 import type { ProjectStage, ProjectStageKey, ProjectStageStatus } from "@/shared/project-stages.js";
 import { AdminPaymentsApi, type AdminPaymentsGateway, type ClientPayment, type PaymentFields, type PaymentPage, type PaymentPreview, type PaymentPreviewFields } from "./payments.api.js";
 export type { ClientPayment, PaymentFields, PaymentInstallment, PaymentPage, PaymentPart, PaymentPreview, PaymentPreviewFields } from "./payments.api.js";
+import { AdminProposalsApi, type AdminProposalsGateway, type ClientProposal, type ProposalFields, type ProposalStageMutation } from "./proposals.api.js";
+export type { ClientProposal, ProposalFields, ProposalStageMutation, ProposalStatus } from "./proposals.api.js";
 
 export interface AdminSession {
     token: string;
@@ -29,46 +31,16 @@ export interface UpdatedClientProjectStage {
     projectStages: ProjectStage[];
 }
 
-export interface ProposalStageMutation extends UpdatedClientProjectStage {
-    proposal: ClientProposal;
-}
-
 export interface BriefingReportStatus {
     exists: boolean;
     folderUrl?: string;
 }
 
-export type ProposalStatus = "sent" | "beated" | "resent" | "approved" | "Cancelled";
-
-export interface ClientProposal {
-    _id: string;
-    userId: string;
-    title: string;
-    description: string;
-    attachments: string[];
-    attachment?: string;
-    userComment: string;
-    clientResponses: Array<{
-        decision: "approved" | "beated";
-        comment: string;
-        attachments: string[];
-        createdAt: string;
-    }>;
-    stageKey?: ProjectStageKey;
-    status: ProposalStatus;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface ProposalFields {
-    title: string;
-    description: string;
-    stageKey: ProjectStageKey;
-    attachments?: File[];
-}
-
 export class AdminSystemApi {
-    constructor(private readonly payments: AdminPaymentsGateway = new AdminPaymentsApi()) { }
+    constructor(
+        private readonly payments: AdminPaymentsGateway = new AdminPaymentsApi(),
+        private readonly proposals: AdminProposalsGateway = new AdminProposalsApi()
+    ) { }
 
     private authorization(session: AdminSession): HeadersInit {
         return { Authorization: `Bearer ${session.token}` };
@@ -130,93 +102,26 @@ export class AdminSystemApi {
         return this.payments.setInstallmentPaid(session, clientId, paymentId, installmentNumber, isPaid, version);
     }
 
-    private async proposalRequest(
-        response: Response
-    ): Promise<{
-        proposal?: ClientProposal;
-        proposals?: ClientProposal[];
-        currentStageKey?: ProjectStageKey;
-        projectStages?: ProjectStage[];
-        message?: string;
-    }> {
-        const result = await response.json().catch(() => ({})) as {
-            proposal?: ClientProposal;
-            proposals?: ClientProposal[];
-            currentStageKey?: ProjectStageKey;
-            projectStages?: ProjectStage[];
-            message?: string;
-        };
-        if (!response.ok) throw new Error(result.message ?? "Não foi possível processar a proposta");
-        return result;
-    }
-
     async loadProposals(session: AdminSession, userId: string): Promise<ClientProposal[]> {
-        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals`, {
-            headers: this.authorization(session)
-        });
-        return (await this.proposalRequest(response)).proposals ?? [];
+        return this.proposals.loadProposals(session, userId);
     }
 
     async createProposal(session: AdminSession, userId: string, fields: ProposalFields): Promise<ProposalStageMutation> {
-        const result = await this.saveProposal(session, userId, fields);
-        if (!result.proposal || !result.currentStageKey || !Array.isArray(result.projectStages)) {
-            throw new Error("Resposta inválida ao criar proposta");
-        }
-        return {
-            proposal: result.proposal,
-            currentStageKey: result.currentStageKey,
-            projectStages: result.projectStages
-        };
+        return this.proposals.createProposal(session, userId, fields);
     }
 
     async editProposal(
         session: AdminSession, userId: string, proposalId: string, fields: ProposalFields
     ): Promise<ClientProposal> {
-        const proposal = (await this.saveProposal(session, userId, fields, proposalId)).proposal;
-        if (!proposal) throw new Error("Resposta inválida ao salvar proposta");
-        return proposal;
-    }
-
-    private async saveProposal(
-        session: AdminSession, userId: string, fields: ProposalFields, proposalId?: string
-    ): ReturnType<AdminSystemApi["proposalRequest"]> {
-        const body = new FormData();
-        body.set("title", fields.title);
-        body.set("description", fields.description);
-        body.set("stageKey", fields.stageKey);
-        fields.attachments?.forEach(file => body.append("attachments", file));
-        const suffix = proposalId ? `/${encodeURIComponent(proposalId)}` : "";
-        const response = await fetch(
-            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals${suffix}`,
-            { method: proposalId ? "PUT" : "POST", headers: this.authorization(session), body }
-        );
-        return this.proposalRequest(response);
+        return this.proposals.editProposal(session, userId, proposalId, fields);
     }
 
     async resendProposal(session: AdminSession, userId: string, proposalId: string): Promise<ProposalStageMutation> {
-        const response = await fetch(
-            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals/${encodeURIComponent(proposalId)}/resend`,
-            { method: "POST", headers: this.authorization(session) }
-        );
-        const result = await this.proposalRequest(response);
-        if (!result.proposal || !result.currentStageKey || !Array.isArray(result.projectStages)) {
-            throw new Error("Resposta inválida ao reenviar proposta");
-        }
-        return {
-            proposal: result.proposal,
-            currentStageKey: result.currentStageKey,
-            projectStages: result.projectStages
-        };
+        return this.proposals.resendProposal(session, userId, proposalId);
     }
 
     async deleteProposal(session: AdminSession, userId: string, proposalId: string): Promise<void> {
-        const response = await fetch(
-            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals/${encodeURIComponent(proposalId)}`,
-            { method: "DELETE", headers: this.authorization(session) }
-        );
-        if (response.ok) return;
-        const result = await response.json().catch(() => ({})) as { message?: string };
-        throw new Error(result.message ?? "Não foi possível remover a proposta");
+        return this.proposals.deleteProposal(session, userId, proposalId);
     }
 
     async deleteProposalAttachment(
@@ -225,13 +130,7 @@ export class AdminSystemApi {
         proposalId: string,
         attachmentIndex: number
     ): Promise<ClientProposal> {
-        const response = await fetch(
-            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(userId)}/proposals/${encodeURIComponent(proposalId)}/attachments/${attachmentIndex}`,
-            { method: "DELETE", headers: this.authorization(session) }
-        );
-        const proposal = (await this.proposalRequest(response)).proposal;
-        if (!proposal) throw new Error("Resposta inválida ao remover o anexo");
-        return proposal;
+        return this.proposals.deleteProposalAttachment(session, userId, proposalId, attachmentIndex);
     }
 
     async loadClients(session: AdminSession): Promise<AdminClientListItem[]> {

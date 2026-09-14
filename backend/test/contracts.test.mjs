@@ -56,8 +56,8 @@ test("etapas e status são compatíveis entre backend e frontend", async () => {
 });
 
 test("status de proposta são compatíveis entre backend e frontends", async () => {
-    const admin = await sourceFile("admin/infrastructure/admin-system.api.ts");
-    const client = await sourceFile("client/infrastructure/client-system.api.ts");
+    const admin = await sourceFile("admin/infrastructure/proposals.api.ts");
+    const client = await sourceFile("client/infrastructure/proposals.api.ts");
     assert.deepEqual(stringUnion(admin, "ProposalStatus"), [...proposalStatuses]);
     assert.deepEqual(stringUnion(client, "ClientProposalStatus"), [...proposalStatuses]);
 });
