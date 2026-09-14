@@ -1,28 +1,27 @@
 import u from "umbrellajs";
 import { getBaseElements, type baseElements } from "../selectors/base.selector.js";
-import { getClientsElements, type clientsElements } from "../selectors/clients.selector.js";
 import { getNewClientElements, type newClientElements } from "../selectors/new-client.selector.js";
 import type { system } from "../templates/interface.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";
 import type { AdminSystemView } from "../views/adminSystem.view.js";
 import type { ClientCreationFlow } from "./client-creation.flow.js";
 import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
-import { clientListItem } from "../templates/client-list-item.template.js";
 import { getClientManagementElements } from "../selectors/client-management.selector.js";
 import { logoutSession } from "@/shared/session/logout.js";
 import { getClientFinancialElements } from "../selectors/client-financial.selector.js";
 import { ClientFinancialManager } from "../ui/client-financial-manager.js";
 import { AdminClientProposalsModule } from "./admin-client-proposals.module.js";
 import { AdminHomeModule } from "./admin-home.module.js";
+import { AdminClientsModule } from "./admin-clients.module.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
-    private clients?: clientsElements;
     private newClient?: newClientElements;
     private clientManagementRequestId = 0;
     private clientFinancialRequestId = 0;
     private readonly clientProposals: AdminClientProposalsModule;
     private readonly home: AdminHomeModule;
+    private readonly clients: AdminClientsModule;
 
     constructor(
         private readonly view: AdminSystemView,
@@ -46,13 +45,22 @@ export class AdminSystemModules {
             () => navigate("clients"),
             () => this.base?.desktop_nav_home
         );
+        this.clients = new AdminClientsModule(
+            view,
+            models.client!,
+            api,
+            session,
+            () => navigate("new-client"),
+            clientId => navigate("client-management", clientId),
+            () => this.base?.desktop_nav_client
+        );
     }
 
     mount(route: AdminRoute, id?: string): void {
         switch (route) {
             case "base": this.mountBase(); break;
             case "home": this.home.mount(); break;
-            case "clients": this.mountClients(); break;
+            case "clients": this.clients.mount(); break;
             case "client-management": void this.mountClientManagement(id); break;
             case "client-proposals": void this.clientProposals.mount(id); break;
             case "client-financial": void this.mountClientFinancial(id); break;
@@ -176,103 +184,6 @@ export class AdminSystemModules {
             if (window.innerWidth >= 900) closeMenu();
         }, { signal: globalListeners.signal });
         syncSelection();
-    }
-
-    private mountClients(): void {
-        this.view.render(this.models.client!, ".page-content");
-        this.clients = getClientsElements();
-        this.view.styleNavButton(this.base!.desktop_nav_client);
-        u(this.clients.new_client).off("click").on("click", () => this.navigate("new-client"));
-        void this.mountClientList();
-    }
-
-    private async mountClientList(): Promise<void> {
-        try {
-            const clients = await this.api.loadClients(this.session);
-            if (!this.clients) return;
-
-            let deletingClient: typeof clients[number] | undefined;
-            let deleting = false;
-            const syncDeleteConfirmation = (): void => {
-                this.clients!.deleteConfirm.disabled = !deletingClient
-                    || this.clients!.deleteConfirmation.value !== deletingClient.name;
-            };
-            const openDeleteDialog = (client: typeof clients[number]): void => {
-                deletingClient = client;
-                this.clients!.deleteName.textContent = client.name;
-                this.clients!.deleteConfirmation.value = "";
-                this.clients!.deleteFeedback.textContent = "";
-                syncDeleteConfirmation();
-                this.clients!.deleteDialog.showModal();
-                this.clients!.deleteConfirmation.focus();
-            };
-            const resetDeleteDialog = (): void => {
-                deletingClient = undefined;
-                this.clients!.deleteForm.reset();
-                this.clients!.deleteName.textContent = "";
-                this.clients!.deleteFeedback.textContent = "";
-                this.clients!.deleteConfirm.disabled = true;
-            };
-
-            this.clients.deleteConfirmation.oninput = syncDeleteConfirmation;
-            this.clients.deleteCancel.onclick = () => this.clients?.deleteDialog.close();
-            this.clients.deleteDialog.oncancel = event => {
-                if (deleting) event.preventDefault();
-            };
-            this.clients.deleteDialog.onclose = resetDeleteDialog;
-            this.clients.deleteForm.onsubmit = event => {
-                event.preventDefault();
-                const client = deletingClient;
-                if (!client || this.clients!.deleteConfirmation.value !== client.name) {
-                    this.clients!.deleteFeedback.textContent = "Digite o nome exatamente como apresentado.";
-                    syncDeleteConfirmation();
-                    return;
-                }
-
-                deleting = true;
-                this.clients!.deleteConfirm.disabled = true;
-                this.clients!.deleteCancel.disabled = true;
-                this.clients!.deleteConfirmation.disabled = true;
-                this.clients!.deleteFeedback.textContent = "Apagando cliente...";
-                void this.api.deleteClient(this.session, client.id, this.clients!.deleteConfirmation.value).then(() => {
-                    this.clients?.list.querySelector<HTMLElement>(`[data-client-id="${CSS.escape(client.id)}"]`)?.remove();
-                    this.clients?.deleteDialog.close();
-                }, error => {
-                    this.clients!.deleteFeedback.textContent = error instanceof Error
-                        ? error.message : "Não foi possível apagar o cliente.";
-                }).then(() => {
-                    deleting = false;
-                    if (!this.clients) return;
-                    this.clients.deleteCancel.disabled = false;
-                    this.clients.deleteConfirmation.disabled = false;
-                    syncDeleteConfirmation();
-                });
-            };
-
-            this.clients.list
-                .querySelectorAll(":scope > .client-list-client")
-                .forEach(item => item.remove());
-
-            const items = document.createDocumentFragment();
-            clients.forEach(client => {
-                const item = clientListItem(client, this.clients!.itemTemplate);
-                u(item).on("click", () => this.navigate("client-management", client.id));
-                item.addEventListener("keydown", event => {
-                    if (event.target === item && (event.key === "Enter" || event.key === " ")) {
-                        event.preventDefault();
-                        this.navigate("client-management", client.id);
-                    }
-                });
-                item.querySelector<HTMLButtonElement>(".client-delete")!.addEventListener("click", event => {
-                    event.stopPropagation();
-                    openDeleteDialog(client);
-                });
-                items.append(item);
-            });
-            this.clients.list.append(items);
-        } catch (error) {
-            console.error("Erro ao carregar clientes:", error);
-        }
     }
 
     private async mountClientManagement(id?: string): Promise<void> {

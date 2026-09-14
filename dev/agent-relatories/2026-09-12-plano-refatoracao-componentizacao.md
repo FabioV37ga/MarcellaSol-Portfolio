@@ -660,3 +660,5 @@ Estado em 12/09/2026: **oitavo recorte concluído e Fase R4 resolvida**. Cartõe
 ## 23. Execução da Etapa priorizada 2 — módulos administrativos
 
 Estado em 14/09/2026: **primeiro recorte concluído**. A montagem da página inicial administrativa e o acesso rápido aos clientes foram extraídos de `AdminSystemModules` para `AdminHomeModule`. O componente recebe a view persistida, a ação de navegação e o item de navegação como dependências, mantendo o agregador somente como roteador temporário. Etapa priorizada 2: **1/4 concluída**. O próximo recorte separará a listagem e as ações de clientes.
+
+Estado em 14/09/2026: **segundo recorte concluído**. Carregamento da listagem, renderização, navegação por clique e teclado e confirmação nominal de exclusão foram movidos para `AdminClientsModule`. O HTML continua vindo de `admin-clients-view.json`, e o módulo recebe API, sessão e ações de navegação como dependências. Etapa priorizada 2: **2/4 concluída**. O próximo recorte separará a gestão e o relatório individual do cliente.
