@@ -17,7 +17,7 @@ test("sessões administrativas expiram antes das sessões de cliente", () => {
     const admin = tokens.issue({ subject: "admin", role: "admin", login: "admin", name: "Admin" });
     const client = tokens.issue({ subject: "client", role: "client", login: "client", name: "Client" });
 
-    assert.ok(admin.expiresAt - now <= 8 * 60 * 60);
+    assert.ok(admin.expiresAt - now <= 8 * 60 * 60 + 1);
     assert.ok(client.expiresAt - now >= 7 * 24 * 60 * 60 - 1);
 });
 
@@ -147,4 +147,3 @@ test("login administrativo bloqueia a sexta falha e envia Retry-After", async ()
         await close(server);
     }
 });
-

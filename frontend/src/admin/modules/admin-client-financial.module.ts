@@ -1,5 +1,6 @@
 import u from "umbrellajs";
-import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
+import type { AdminSession } from "../infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
 import type { AdminPaymentsGateway } from "../infrastructure/payments.api.js";
 import { getClientFinancialElements } from "../selectors/client-financial.selector.js";
 import { ClientFinancialManager } from "../ui/client-financial-manager.js";
@@ -11,7 +12,7 @@ export class AdminClientFinancialModule {
     constructor(
         private readonly view: AdminSystemView,
         private readonly template: HTMLElement,
-        private readonly api: AdminPaymentsGateway & Pick<AdminSystemApi, "loadClient">,
+        private readonly api: AdminPaymentsGateway & Pick<AdminClientsGateway, "loadClient">,
         private readonly session: AdminSession,
         private readonly navigateToClients: () => void,
         private readonly navigateToClient: (clientId: string) => void,

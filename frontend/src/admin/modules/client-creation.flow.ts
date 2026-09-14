@@ -1,6 +1,7 @@
 import u from "umbrellajs";
 import { newClient } from "../controllers/newClient/newClient.controller.js";
-import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
+import type { AdminSession } from "../infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";
 import { finishBriefing } from "../templates/briefing/briefing.template.js";
 import type { briefing } from "../templates/interface.js";
@@ -14,7 +15,7 @@ export class ClientCreationFlow {
 
     constructor(
         private readonly view: AdminSystemView,
-        private readonly api: AdminSystemApi,
+        private readonly api: Pick<AdminClientsGateway, "createClient">,
         private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute) => void
     ) { }

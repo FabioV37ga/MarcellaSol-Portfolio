@@ -81,3 +81,15 @@ test("views usam a taxonomia compartilhada de tipos", async () => {
     assert.match(source, /\["system", "briefing", "client", "financial"\] as const/);
     assert.match(source, /type: DatabaseViewType/);
 });
+
+test("fachadas HTTP apenas delegam para APIs por responsabilidade", async () => {
+    const [admin, client] = await Promise.all([
+        readFile(path.resolve("../frontend/src/admin/infrastructure/admin-system.api.ts"), "utf8"),
+        readFile(path.resolve("../frontend/src/client/infrastructure/client-system.api.ts"), "utf8")
+    ]);
+    assert.doesNotMatch(admin, /\bfetch\s*\(/);
+    assert.doesNotMatch(client, /\bfetch\s*\(/);
+    assert.match(admin, /AdminClientsGateway/);
+    assert.match(admin, /AdminViewsGateway/);
+    assert.match(client, /ClientViewsGateway/);
+});

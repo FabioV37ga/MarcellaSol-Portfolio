@@ -1,14 +1,14 @@
 import u from "umbrellajs";
 import type {
     AdminClientListItem,
-    AdminSession,
-    AdminSystemApi
+    AdminSession
 } from "../infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
 import { getClientsElements, type clientsElements } from "../selectors/clients.selector.js";
 import { clientListItem } from "../templates/client-list-item.template.js";
 import type { AdminSystemView } from "../views/adminSystem.view.js";
 
-type ClientsApi = Pick<AdminSystemApi, "loadClients" | "deleteClient">;
+type ClientsApi = Pick<AdminClientsGateway, "loadClients" | "deleteClient">;
 
 export class AdminClientsModule {
     private elements?: clientsElements;
