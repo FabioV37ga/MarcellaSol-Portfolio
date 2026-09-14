@@ -11,17 +11,22 @@ import {
     type ProjectStageKey,
     type ProjectStageStatus
 } from "../models/projectStage.js";
-import type { ClientProposalResponse, ProposalStatus } from "../models/clientProposal.js";
+import type { ProposalStatus } from "../models/clientProposal.js";
+import { ClientProposalResponseService } from "./client-proposal-response.service.js";
 
 interface ProposalInput { title?: unknown; description?: unknown; stageKey?: unknown; }
-const MAX_CLIENT_COMMENT_LENGTH = 2000;
 
 export class ClientProposalService {
+    private readonly responses: ClientProposalResponseService;
+
     constructor(
         private readonly clients: ClientRepository,
         private readonly proposals: ClientProposalRepository,
-        private readonly storage: ProposalStorage
-    ) { }
+        private readonly storage: ProposalStorage,
+        responses?: ClientProposalResponseService
+    ) {
+        this.responses = responses ?? new ClientProposalResponseService(clients, proposals, storage);
+    }
 
     async list(userId: string) {
         await this.requireClient(userId, false);
@@ -114,7 +119,7 @@ export class ClientProposalService {
     }
 
     async approve(userId: string, proposalId: string, comment: unknown, files: Express.Multer.File[] = []) {
-        return this.decide(userId, proposalId, "approved", this.requiredProposalComment(comment), files);
+        return this.responses.approve(userId, proposalId, comment, files);
     }
 
     async beat(
@@ -124,10 +129,7 @@ export class ClientProposalService {
         confirmRevisionRound: unknown,
         files: Express.Multer.File[] = []
     ) {
-        if (confirmRevisionRound !== true) {
-            throw new ApplicationError("Confirme o uso de 1 rodada de alterações", 400);
-        }
-        return this.decide(userId, proposalId, "beated", this.requiredProposalComment(comment), files);
+        return this.responses.beat(userId, proposalId, comment, confirmRevisionRound, files);
     }
 
     async remove(userId: string, proposalId: string): Promise<void> {
@@ -194,70 +196,6 @@ export class ClientProposalService {
         return client;
     }
 
-    private async decide(
-        userId: string,
-        proposalId: string,
-        status: "approved" | "beated",
-        userComment: string,
-        files: Express.Multer.File[]
-    ) {
-        this.requireObjectId(userId, "Cliente não encontrado");
-        this.requireObjectId(proposalId, "Proposta não encontrada");
-        const existing = await this.proposals.findByIdAndUserId(proposalId, userId);
-        if (!existing) throw new ApplicationError("Proposta não encontrada", 404);
-        if (existing.status !== "sent" && existing.status !== "resent") {
-            throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
-        }
-        const client = await this.requireClient(userId, files.length > 0);
-        const responseId = new mongoose.Types.ObjectId();
-        let uploadedAttachments: string[] = [];
-        let attachmentFolderId = existing.attachmentFolderId;
-        if (files.length > 0) {
-            const responseIndex = (existing.clientResponses?.length ?? 0) + 1;
-            const upload = await this.storage.uploadProposal(
-                client.driveFolderId!, proposalId, existing.title, files, "client", responseIndex
-            );
-            uploadedAttachments = upload.attachmentUrls;
-            attachmentFolderId = upload.folderId;
-        }
-        const clientResponse: ClientProposalResponse = {
-            _id: responseId,
-            decision: status,
-            comment: userComment,
-            attachments: uploadedAttachments,
-            createdAt: new Date()
-        };
-        let proposal;
-        try {
-            proposal = await this.proposals.decide(
-                proposalId, userId, status, userComment, clientResponse, attachmentFolderId
-            );
-            if (!proposal) throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
-        } catch (error) {
-            await this.trashUploadedAttachments(uploadedAttachments);
-            throw error;
-        }
-
-        try {
-            const stageStatus = status === "approved" ? "approved" : "changes-requested";
-            const projectState = proposal.stageKey
-                ? await this.synchronizeProjectStage(userId, client, proposal.stageKey, stageStatus)
-                : this.currentProjectState(client);
-            return { proposal, ...projectState };
-        } catch (error) {
-            await this.restoreProposalStatus(
-                proposalId,
-                userId,
-                status,
-                existing.status,
-                existing.userComment ?? "",
-                responseId
-            );
-            await this.trashUploadedAttachments(uploadedAttachments);
-            throw error;
-        }
-    }
-
     private async synchronizeProjectStage(
         userId: string,
         client: { projectStages?: ProjectStage[]; hasFilledBriefing: boolean },
@@ -291,18 +229,10 @@ export class ClientProposalService {
         userId: string,
         expectedStatus: ProposalStatus,
         status: ProposalStatus,
-        userComment: string,
-        responseId?: mongoose.Types.ObjectId
+        userComment: string
     ): Promise<void> {
-        await this.proposals.restoreStatus(proposalId, userId, expectedStatus, status, userComment, responseId)
+        await this.proposals.restoreStatus(proposalId, userId, expectedStatus, status, userComment)
             .catch(rollbackError => console.error("Não foi possível restaurar o status da proposta:", rollbackError));
-    }
-
-    private async trashUploadedAttachments(attachments: string[]): Promise<void> {
-        await Promise.all(attachments.map(attachment =>
-            this.storage.setProposalAttachmentTrashed(attachment, true)
-                .catch(error => console.error("Não foi possível remover anexo sem resposta associada:", error))
-        ));
     }
 
     private requireObjectId(value: string, message: string): void {
@@ -314,13 +244,6 @@ export class ClientProposalService {
         return value.trim();
     }
 
-    private requiredProposalComment(value: unknown): string {
-        const comment = this.requiredText(value, "Comentário");
-        if (comment.length > MAX_CLIENT_COMMENT_LENGTH) {
-            throw new ApplicationError(`O comentário deve ter no máximo ${MAX_CLIENT_COMMENT_LENGTH} caracteres`, 400);
-        }
-        return comment;
-    }
 
     private requiredStageKey(value: unknown): ProjectStageKey {
         if (typeof value !== "string" || value === "contract" || !projectStageKeys.includes(value as ProjectStageKey)) {

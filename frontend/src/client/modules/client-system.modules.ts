@@ -5,12 +5,12 @@ import { getBaseElements, type baseElements } from "../selectors/base.selector.j
 import { getHomeElements } from "../selectors/home.selector.js";
 import type { system } from "../templates/interface.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
-import { ClientSystemApi, type ClientProposal } from "../infrastructure/client-system.api.js";
-import { clientApprovalItem } from "../templates/client-approval-item.template.js";
+import { ClientSystemApi } from "../infrastructure/client-system.api.js";
 import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
 import { logoutSession } from "@/shared/session/logout.js";
 import { renderProjectStages } from "@/shared/project-stages.js";
 import { ClientFinancialModule } from "./client-financial.module.js";
+import { ClientProposalResponseModule } from "./client-proposal-response.module.js";
 
 export class ClientSystemModules {
     private baseElements?: baseElements;
@@ -95,118 +95,8 @@ export class ClientSystemModules {
         u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
-        let approvedProposalId = "";
-        let rejectedProposalId = "";
-        const replaceProposal = (proposal: ClientProposal): void => {
-            const current = elements.list.querySelector<HTMLElement>(`[data-proposal-id="${CSS.escape(proposal._id)}"]`);
-            const replacement = renderProposal(proposal);
-            current?.replaceWith(replacement);
-        };
-        const renderProposal = (proposal: ClientProposal): HTMLElement => {
-            const card = clientApprovalItem(proposal);
-            card.querySelector<HTMLButtonElement>(".client-approval-approve")?.addEventListener("click", () => {
-                approvedProposalId = proposal._id;
-                elements.feedback.textContent = "";
-                elements.approveComment.value = "";
-                elements.approveAttachments.value = "";
-                elements.approveFeedback.textContent = "";
-                elements.approveDialog.showModal();
-                elements.approveComment.focus();
-            });
-            card.querySelector<HTMLButtonElement>(".client-approval-reject")?.addEventListener("click", () => {
-                rejectedProposalId = proposal._id;
-                elements.rejectComment.value = "";
-                elements.rejectAttachments.value = "";
-                elements.rejectRevisionConfirmation.checked = false;
-                elements.rejectFeedback.textContent = "";
-                elements.rejectDialog.showModal();
-                elements.rejectComment.focus();
-            });
-            return card;
-        };
-
-        elements.approveCancel.addEventListener("click", () => elements.approveDialog.close());
-        elements.approveDialog.addEventListener("close", () => {
-            approvedProposalId = "";
-            elements.approveComment.value = "";
-            elements.approveAttachments.value = "";
-            elements.approveFeedback.textContent = "";
-        });
-        elements.approveConfirm.addEventListener("click", async () => {
-            const comment = elements.approveComment.value.trim();
-            if (!comment) {
-                elements.approveFeedback.textContent = "Digite um comentário antes de confirmar.";
-                elements.approveComment.focus();
-                return;
-            }
-            if (!approvedProposalId) return;
-            elements.approveConfirm.disabled = true;
-            elements.approveCancel.disabled = true;
-            elements.approveFeedback.textContent = "";
-            try {
-                const result = await this.api.approveProposal(
-                    this.token,
-                    approvedProposalId,
-                    comment,
-                    Array.from(elements.approveAttachments.files ?? [])
-                );
-                replaceProposal(result.proposal);
-                renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
-                elements.approveDialog.close();
-            } catch (error) {
-                elements.approveFeedback.textContent = error instanceof Error
-                    ? error.message
-                    : "Não foi possível aprovar a proposta.";
-            } finally {
-                elements.approveConfirm.disabled = false;
-                elements.approveCancel.disabled = false;
-            }
-        });
-
-        elements.rejectCancel.addEventListener("click", () => elements.rejectDialog.close());
-        elements.rejectDialog.addEventListener("close", () => {
-            rejectedProposalId = "";
-            elements.rejectComment.value = "";
-            elements.rejectAttachments.value = "";
-            elements.rejectRevisionConfirmation.checked = false;
-            elements.rejectFeedback.textContent = "";
-        });
-        elements.rejectConfirm.addEventListener("click", async () => {
-            const comment = elements.rejectComment.value.trim();
-            if (!comment) {
-                elements.rejectFeedback.textContent = "Digite um comentário antes de confirmar.";
-                elements.rejectComment.focus();
-                return;
-            }
-            if (!elements.rejectRevisionConfirmation.checked) {
-                elements.rejectFeedback.textContent = "Confirme o uso de 1 rodada de alterações.";
-                elements.rejectRevisionConfirmation.focus();
-                return;
-            }
-            if (!rejectedProposalId) return;
-            elements.rejectConfirm.disabled = true;
-            elements.rejectCancel.disabled = true;
-            elements.rejectFeedback.textContent = "";
-            try {
-                const result = await this.api.beatProposal(
-                    this.token,
-                    rejectedProposalId,
-                    comment,
-                    elements.rejectRevisionConfirmation.checked,
-                    Array.from(elements.rejectAttachments.files ?? [])
-                );
-                replaceProposal(result.proposal);
-                renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
-                elements.rejectDialog.close();
-            } catch (error) {
-                elements.rejectFeedback.textContent = error instanceof Error
-                    ? error.message
-                    : "Não foi possível solicitar a alteração da proposta.";
-            } finally {
-                elements.rejectConfirm.disabled = false;
-                elements.rejectCancel.disabled = false;
-            }
-        });
+        const proposalResponses = new ClientProposalResponseModule(elements, this.api, this.token, progressRoot);
+        proposalResponses.mount();
 
         try {
             const project = await this.api.loadProposals(this.token);
@@ -220,7 +110,7 @@ export class ClientSystemModules {
             }
             elements.empty.hidden = true;
             const items = document.createDocumentFragment();
-            proposals.forEach(proposal => items.append(renderProposal(proposal)));
+            proposals.forEach(proposal => items.append(proposalResponses.render(proposal)));
             elements.list.append(items);
         } catch (error) {
             elements.loading.hidden = true;

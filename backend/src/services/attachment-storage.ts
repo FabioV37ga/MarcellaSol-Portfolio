@@ -4,21 +4,20 @@ import {
     uploadBriefingFiles,
     uploadBriefingReportPdf,
     downloadDriveImage,
+    setDriveFolderTrashed,
     type BriefingReportDriveStatus,
     type DriveUploadResult,
     type DriveImageDownload
 } from "./googleDrive.js";
+import { grantFolderReadAccess, type FolderReadAccessResult } from "./googleDrive.js";
 import {
-    grantFolderReadAccess,
     renameProposalFolder,
-    setDriveFolderTrashed,
     setProposalAttachmentTrashed,
     setProposalFolderTrashed,
     uploadProposalAttachment,
     moveProposalAttachmentsToAdministratorFolder,
-    type FolderReadAccessResult,
     type ProposalDriveUpload
-} from "./googleDrive.js";
+} from "./proposal-drive.storage.js";
 
 export interface ClientFolderStorage {
     createClientFolder(clientLogin: string): Promise<string>;

@@ -4,6 +4,7 @@ import { BriefingFolderAccessService } from "../application/briefing-folder-acce
 import { ClientBriefingReportService } from "../application/client-briefing-report.service.js";
 import { ClientPaymentService } from "../application/client-payment.service.js";
 import { ClientProposalService } from "../application/client-proposal.service.js";
+import { ClientProposalResponseService } from "../application/client-proposal-response.service.js";
 import { CreateClientService } from "../application/create-client.service.js";
 import { DeleteClientService } from "../application/delete-client.service.js";
 import { PixPresentationService } from "../application/financial/pix-presentation.service.js";
@@ -59,7 +60,8 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
         clock,
         ids
     );
-    const proposalService = new ClientProposalService(clients, proposals, drive);
+    const proposalResponses = new ClientProposalResponseService(clients, proposals, drive);
+    const proposalService = new ClientProposalService(clients, proposals, drive, proposalResponses);
 
     return {
         admin: new AdminController(

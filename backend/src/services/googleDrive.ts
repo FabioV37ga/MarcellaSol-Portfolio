@@ -25,11 +25,6 @@ export interface BriefingReportDriveStatus {
     folderUrl?: string;
 }
 
-export interface ProposalDriveUpload {
-    folderId: string;
-    attachmentUrls: string[];
-}
-
 export interface DriveImageDownload {
     data: Buffer;
     mimeType: string;
@@ -48,7 +43,7 @@ function requiredEnvironment(name: string): string {
     return value;
 }
 
-function createDriveClient(): drive_v3.Drive {
+export function createDriveClient(): drive_v3.Drive {
     const auth = new OAuth2Client({
         clientId: requiredEnvironment("GOOGLE_OAUTH_CLIENT_ID"),
         clientSecret: requiredEnvironment("GOOGLE_OAUTH_CLIENT_SECRET"),
@@ -77,11 +72,7 @@ function safeFolderName(value: string): string {
     return safeValue || "cliente-sem-login";
 }
 
-function proposalFolderName(title: string, proposalId: string): string {
-    return `${safeFolderName(title)}-${proposalId}`;
-}
-
-async function findOrCreateFolder(
+export async function findOrCreateFolder(
     drive: drive_v3.Drive,
     parentId: string,
     name: string
@@ -280,119 +271,10 @@ export async function uploadBriefingFiles(
     return { folderId: briefingFolderId, files: uploadedFiles };
 }
 
-export async function uploadProposalAttachment(
-    clientFolderId: string,
-    proposalId: string,
-    title: string,
-    files: Express.Multer.File[],
-    author: "administrator" | "client" = "administrator",
-    responseIndex?: number
-): Promise<ProposalDriveUpload> {
-    const drive = createDriveClient();
-    const proposalsFolderId = await findOrCreateFolder(drive, clientFolderId, "propostas");
-    const folderId = await findOrCreateFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
-    const authorFolderName = author === "administrator" ? "administrador" : "cliente";
-    const authorFolderId = await findOrCreateFolder(drive, folderId, authorFolderName);
-    const uploadFolderId = author === "client" && responseIndex
-        ? await findOrCreateFolder(drive, authorFolderId, `resposta-${responseIndex}`)
-        : authorFolderId;
-    const attachmentUrls: string[] = [];
-    for (const file of files) {
-        const uploaded = await drive.files.create({
-            requestBody: { name: file.originalname, parents: [uploadFolderId] },
-            media: {
-                mimeType: file.mimetype || "application/octet-stream",
-                body: Readable.from(file.buffer)
-            },
-            fields: "id,webViewLink",
-            supportsAllDrives: true
-        });
-        if (!uploaded.data.id) throw new Error(`O Google Drive não retornou o ID de ${file.originalname}`);
-        attachmentUrls.push(uploaded.data.webViewLink
-            || `https://drive.google.com/file/d/${encodeURIComponent(uploaded.data.id)}/view`);
-    }
-    return {
-        folderId,
-        attachmentUrls
-    };
-}
-
-export async function moveProposalAttachmentsToAdministratorFolder(
-    proposalFolderId: string,
-    attachmentUrls: string[]
-): Promise<number> {
-    const drive = createDriveClient();
-    const administratorFolderId = await findOrCreateFolder(drive, proposalFolderId, "administrador");
-    let moved = 0;
-    for (const attachmentUrl of attachmentUrls) {
-        const fileId = proposalAttachmentFileId(attachmentUrl);
-        const metadata = await drive.files.get({
-            fileId,
-            fields: "id,parents",
-            supportsAllDrives: true
-        });
-        const parents = metadata.data.parents ?? [];
-        if (!parents.includes(proposalFolderId)) continue;
-        await drive.files.update({
-            fileId,
-            addParents: administratorFolderId,
-            removeParents: proposalFolderId,
-            fields: "id,parents",
-            supportsAllDrives: true
-        });
-        moved += 1;
-    }
-    return moved;
-}
-
-export async function renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {
-    const drive = createDriveClient();
-    await drive.files.update({
-        fileId: folderId,
-        requestBody: { name: proposalFolderName(title, proposalId) },
-        fields: "id",
-        supportsAllDrives: true
-    });
-}
-
 export async function setDriveFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
     const drive = createDriveClient();
     await drive.files.update({
         fileId: folderId,
-        requestBody: { trashed },
-        fields: "id,trashed",
-        supportsAllDrives: true
-    });
-}
-
-export function setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
-    return setDriveFolderTrashed(folderId, trashed);
-}
-
-function proposalAttachmentFileId(attachmentUrl: string): string {
-    let parsed: URL;
-    try {
-        parsed = new URL(attachmentUrl);
-    } catch {
-        throw new Error("URL do anexo do Google Drive inválida");
-    }
-
-    if (parsed.protocol !== "https:" || parsed.hostname !== "drive.google.com") {
-        throw new Error("O anexo não pertence ao Google Drive");
-    }
-
-    const pathMatch = parsed.pathname.match(/^\/file\/d\/([A-Za-z0-9_-]+)(?:\/|$)/);
-    const fileId = pathMatch?.[1] ?? parsed.searchParams.get("id");
-    if (!fileId || !/^[A-Za-z0-9_-]+$/.test(fileId)) {
-        throw new Error("Não foi possível identificar o arquivo do anexo no Google Drive");
-    }
-    return fileId;
-}
-
-export async function setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void> {
-    const drive = createDriveClient();
-    await drive.files.update({
-        fileId: proposalAttachmentFileId(attachmentUrl),
         requestBody: { trashed },
         fields: "id,trashed",
         supportsAllDrives: true

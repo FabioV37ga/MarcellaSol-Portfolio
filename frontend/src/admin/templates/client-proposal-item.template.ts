@@ -42,7 +42,7 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
         link.innerHTML = `<i class="fa fa-paperclip"></i> Anexo ${index + 1}`;
         attachmentsContainer.append(link);
     });
-    if (proposal.userComment) {
+    if (proposal.userComment && !proposal.clientResponses?.length) {
         const comment = article.querySelector<HTMLElement>(".proposal-comment")!;
         comment.hidden = false;
         comment.querySelector("p")!.textContent = proposal.userComment;

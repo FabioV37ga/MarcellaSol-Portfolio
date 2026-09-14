@@ -54,7 +54,7 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
 
     article.append(header, title, stage, description, attachments);
 
-    if (proposal.userComment) {
+    if (proposal.userComment && !proposal.clientResponses?.length) {
         const comment = document.createElement("div");
         comment.className = "client-approval-comment";
         const commentTitle = document.createElement("strong");
