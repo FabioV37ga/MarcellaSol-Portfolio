@@ -11,7 +11,8 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
         databaseView("admin-base-view.json"),
         databaseView("admin-home-view.json"),
         databaseView("admin-clients-view.json"),
-        databaseView("client-management-view.json")
+        databaseView("client-management-view.json"),
+        databaseView("client-financial-view.json")
     ]);
     await page.route("**/api/admin/login", route => route.fulfill({
         json: { token: "e2e-admin-token", name: "Administrador E2E" }
@@ -118,4 +119,51 @@ test("carrega a gestão do cliente e gera o relatório de briefing", async ({ pa
     await report.click();
     await expect(report).toContainText("Acessar");
     expect(reportGenerationRequests).toBe(1);
+});
+
+test("abre o financeiro do cliente e preserva a navegação de retorno", async ({ page }) => {
+    const client = {
+        id: "client-financial-e2e",
+        name: "Cliente Financeiro E2E",
+        type: "residencial",
+        hasFilledBriefing: false,
+        currentStageKey: "briefing",
+        currentStageStatus: "not-started"
+    };
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/client-financial-e2e", route => route.fulfill({
+        json: {
+            client: {
+                ...client,
+                projectStages: [],
+                hasProjectStageOrder: false
+            }
+        }
+    }));
+    await page.route("**/api/admin/clients/client-financial-e2e/payments", route => route.fulfill({
+        json: {
+            payments: [],
+            page: { limit: 20, hasMore: false },
+            summary: {
+                paymentCount: 0,
+                totalAmountCents: 0,
+                paidAmountCents: 0,
+                remainingAmountCents: 0
+            }
+        }
+    }));
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='client-financial-e2e']").click();
+    await page.locator("#client-management-financial").click();
+
+    await expect(page.locator("#financial-title-name")).toHaveText("Cliente Financeiro E2E");
+    await expect(page.locator("#financial-payments-list")).toContainText("Nenhum pagamento cadastrado");
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-financial");
+    await page.locator("#financial-back").click();
+    await expect(page.locator("#client-management-name")).toHaveText("Cliente Financeiro E2E");
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-management");
 });
