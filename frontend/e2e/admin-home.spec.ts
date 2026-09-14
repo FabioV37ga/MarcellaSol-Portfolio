@@ -167,3 +167,21 @@ test("abre o financeiro do cliente e preserva a navegação de retorno", async (
     await expect(page.locator("#client-management-name")).toHaveText("Cliente Financeiro E2E");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-management");
 });
+
+test("encerra a sessão administrativa usando o cliente HTTP compartilhado", async ({ page }) => {
+    let authorization = "";
+    await mockAdminApi(page);
+    await page.route("**/api/admin/logout", async route => {
+        authorization = route.request().headers().authorization ?? "";
+        await route.fulfill({ status: 204, body: "" });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+
+    await page.locator(".logout-desktop").click();
+
+    await expect(page.locator(".admin-login")).toBeVisible();
+    expect(authorization).toBe("Bearer e2e-admin-token");
+});
