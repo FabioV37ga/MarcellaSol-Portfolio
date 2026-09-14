@@ -10,7 +10,8 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
     const views = await Promise.all([
         databaseView("admin-base-view.json"),
         databaseView("admin-home-view.json"),
-        databaseView("admin-clients-view.json")
+        databaseView("admin-clients-view.json"),
+        databaseView("client-management-view.json")
     ]);
     await page.route("**/api/admin/login", route => route.fulfill({
         json: { token: "e2e-admin-token", name: "Administrador E2E" }
@@ -66,4 +67,55 @@ test("lista e exclui um cliente com confirmação nominal", async ({ page }) => 
 
     await expect(row).toHaveCount(0);
     expect(JSON.parse(deletionBody)).toEqual({ confirmationName: "Cliente Exclusão E2E" });
+});
+
+test("carrega a gestão do cliente e gera o relatório de briefing", async ({ page }) => {
+    const client = {
+        id: "client-management-e2e",
+        name: "Cliente Gestão E2E",
+        type: "residencial",
+        hasFilledBriefing: true,
+        currentStageKey: "briefing",
+        currentStageStatus: "completed"
+    };
+    let reportGenerationRequests = 0;
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/client-management-e2e", route => route.fulfill({
+        json: {
+            client: {
+                ...client,
+                driveFolderUrl: "https://drive.google.com/drive/folders/client-management-e2e",
+                projectStages: [],
+                hasProjectStageOrder: false
+            }
+        }
+    }));
+    await page.route("**/api/admin/clients/client-management-e2e/briefing-report", route => {
+        if (route.request().method() === "POST") {
+            reportGenerationRequests += 1;
+            return route.fulfill({
+                json: {
+                    exists: true,
+                    folderUrl: "https://drive.google.com/drive/folders/client-management-e2e"
+                }
+            });
+        }
+        return route.fulfill({ json: { exists: false } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='client-management-e2e']").click();
+
+    await expect(page.locator("#client-management-name")).toHaveText("Cliente Gestão E2E");
+    await expect(page.locator("#client-management-drive")).toHaveAttribute(
+        "href", "https://drive.google.com/drive/folders/client-management-e2e"
+    );
+    const report = page.locator("#client-management-briefing-report");
+    await expect(report).toContainText("Gerar relatório");
+    await report.click();
+    await expect(report).toContainText("Acessar");
+    expect(reportGenerationRequests).toBe(1);
 });

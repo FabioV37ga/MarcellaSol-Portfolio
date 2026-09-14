@@ -6,22 +6,22 @@ import type { AdminRoute } from "../navigation/admin-system.router.js";
 import type { AdminSystemView } from "../views/adminSystem.view.js";
 import type { ClientCreationFlow } from "./client-creation.flow.js";
 import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
-import { getClientManagementElements } from "../selectors/client-management.selector.js";
 import { logoutSession } from "@/shared/session/logout.js";
 import { getClientFinancialElements } from "../selectors/client-financial.selector.js";
 import { ClientFinancialManager } from "../ui/client-financial-manager.js";
 import { AdminClientProposalsModule } from "./admin-client-proposals.module.js";
 import { AdminHomeModule } from "./admin-home.module.js";
 import { AdminClientsModule } from "./admin-clients.module.js";
+import { AdminClientManagementModule } from "./admin-client-management.module.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
     private newClient?: newClientElements;
-    private clientManagementRequestId = 0;
     private clientFinancialRequestId = 0;
     private readonly clientProposals: AdminClientProposalsModule;
     private readonly home: AdminHomeModule;
     private readonly clients: AdminClientsModule;
+    private readonly clientManagement: AdminClientManagementModule;
 
     constructor(
         private readonly view: AdminSystemView,
@@ -54,6 +54,16 @@ export class AdminSystemModules {
             clientId => navigate("client-management", clientId),
             () => this.base?.desktop_nav_client
         );
+        this.clientManagement = new AdminClientManagementModule(
+            view,
+            models.clientManagement!,
+            api,
+            session,
+            () => navigate("clients"),
+            clientId => navigate("client-proposals", clientId),
+            clientId => navigate("client-financial", clientId),
+            () => this.base?.desktop_nav_client
+        );
     }
 
     mount(route: AdminRoute, id?: string): void {
@@ -61,7 +71,7 @@ export class AdminSystemModules {
             case "base": this.mountBase(); break;
             case "home": this.home.mount(); break;
             case "clients": this.clients.mount(); break;
-            case "client-management": void this.mountClientManagement(id); break;
+            case "client-management": void this.clientManagement.mount(id); break;
             case "client-proposals": void this.clientProposals.mount(id); break;
             case "client-financial": void this.mountClientFinancial(id); break;
             case "new-client": this.mountNewClient(); break;
@@ -186,68 +196,6 @@ export class AdminSystemModules {
         syncSelection();
     }
 
-    private async mountClientManagement(id?: string): Promise<void> {
-        if (!id || !this.models.clientManagement) {
-            this.navigate("clients");
-            return;
-        }
-
-        this.view.render(this.models.clientManagement, ".page-content");
-        const requestId = ++this.clientManagementRequestId;
-        this.view.registerDisposer(() => {
-            this.clientManagementRequestId += 1;
-        });
-        this.view.styleNavButton(this.base!.desktop_nav_client);
-        const elements = getClientManagementElements();
-        elements.drive.removeAttribute("href");
-        elements.drive.setAttribute("aria-disabled", "true");
-        elements.drive.classList.add("client-management-action-disabled");
-        elements.briefingReport.disabled = true;
-        elements.briefingReport.classList.add("client-management-report-loading");
-        elements.briefingReport.classList.remove("client-management-report-unavailable");
-        elements.briefingReportLabel.textContent = "Verificando...";
-        u(elements.briefingReport).off("click");
-        elements.briefingReport.onclick = null;
-        u(elements.clientsIndex).off("click").on("click", () => this.navigate("clients"));
-        u(elements.back).off("click").on("click", () => this.navigate("clients"));
-        u(elements.financial).off("click").on("click", () => this.navigate("client-financial", id));
-
-        try {
-            const client = await this.api.loadClient(this.session, id);
-            if (requestId !== this.clientManagementRequestId) return;
-            elements.clientName.textContent = client.name;
-            elements.titleName.textContent = client.name;
-            if (elements.proposals) {
-                u(elements.proposals).off("click").on("click", () => this.navigate("client-proposals", id));
-            }
-
-            if (client.driveFolderUrl) {
-                elements.drive.href = client.driveFolderUrl;
-                elements.drive.target = "_blank";
-                elements.drive.rel = "noopener noreferrer";
-                elements.drive.removeAttribute("aria-disabled");
-                elements.drive.classList.remove("client-management-action-disabled");
-            } else {
-                elements.drive.removeAttribute("href");
-                elements.drive.setAttribute("aria-disabled", "true");
-                elements.drive.classList.add("client-management-action-disabled");
-            }
-
-            if (client.hasFilledBriefing) {
-                await this.mountBriefingReport(id, elements, requestId);
-            } else {
-                elements.briefingReport.disabled = true;
-                elements.briefingReport.classList.remove("client-management-report-loading");
-                elements.briefingReport.classList.add("client-management-report-unavailable");
-                elements.briefingReportLabel.textContent = "Cliente ainda não preencheu o briefing";
-            }
-        } catch (error) {
-            if (requestId !== this.clientManagementRequestId) return;
-            console.error("Erro ao carregar o cliente:", error);
-            this.navigate("clients");
-        }
-    }
-
     private async mountClientFinancial(clientId?: string): Promise<void> {
         if (!clientId || !this.models.clientFinancial) {
             this.navigate("clients");
@@ -281,72 +229,6 @@ export class AdminSystemModules {
             console.error("Erro ao carregar financeiro do cliente:", error);
             this.navigate("clients");
         }
-    }
-
-    private async mountBriefingReport(
-        clientId: string,
-        elements: ReturnType<typeof getClientManagementElements>,
-        requestId: number
-    ): Promise<void> {
-        try {
-            const status = await this.api.loadBriefingReportStatus(this.session, clientId);
-            if (requestId !== this.clientManagementRequestId) return;
-            this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl, requestId);
-        } catch (error) {
-            if (requestId !== this.clientManagementRequestId) return;
-            console.error("Erro ao verificar relatório do briefing:", error);
-            elements.briefingReport.classList.remove("client-management-report-loading");
-            elements.briefingReport.disabled = false;
-            elements.briefingReportLabel.textContent = "Tentar novamente";
-            elements.briefingReport.onclick = () => {
-                elements.briefingReport.disabled = true;
-                elements.briefingReport.classList.add("client-management-report-loading");
-                elements.briefingReportLabel.textContent = "Verificando...";
-                void this.mountBriefingReport(clientId, elements, requestId);
-            };
-        }
-    }
-
-    private bindBriefingReportAction(
-        clientId: string,
-        elements: ReturnType<typeof getClientManagementElements>,
-        exists: boolean,
-        folderUrl: string | undefined,
-        requestId: number
-    ): void {
-        const button = elements.briefingReport;
-        button.disabled = false;
-        button.classList.remove("client-management-report-loading");
-        button.classList.remove("client-management-report-unavailable");
-        u(button).off("click");
-        button.onclick = null;
-
-        if (exists && folderUrl) {
-            elements.briefingReportLabel.textContent = "Acessar";
-            button.onclick = () => {
-                window.open(folderUrl, "_blank", "noopener,noreferrer");
-            };
-            return;
-        }
-
-        elements.briefingReportLabel.textContent = "Gerar relatório";
-        button.onclick = () => {
-            button.disabled = true;
-            button.classList.add("client-management-report-loading");
-            elements.briefingReportLabel.textContent = "Gerando relatório...";
-            void this.api.generateBriefingReport(this.session, clientId)
-                .then(status => {
-                    if (requestId !== this.clientManagementRequestId) return;
-                    this.bindBriefingReportAction(clientId, elements, status.exists, status.folderUrl, requestId);
-                })
-                .catch(error => {
-                    if (requestId !== this.clientManagementRequestId) return;
-                    console.error("Erro ao gerar relatório do briefing:", error);
-                    button.disabled = false;
-                    button.classList.remove("client-management-report-loading");
-                    elements.briefingReportLabel.textContent = "Tentar novamente";
-                });
-        };
     }
 
     private mountNewClient(): void {
