@@ -577,7 +577,7 @@ Estado inicial em 12/09/2026:
 |---|---|
 | R1 — fronteira HTTP do backend | pendente |
 | R2 — infraestrutura HTTP do frontend | pendente |
-| R3 — módulos administrativos | pendente |
+| R3 — módulos administrativos | em andamento |
 | R4 — briefing do cliente | resolvido |
 | R5 — briefing administrativo | pendente |
 | R6 — Drive e relatório | pendente |
@@ -656,3 +656,7 @@ Continuação do sétimo recorte: opções simples sem mídia passaram a usar `b
 Continuação do sétimo recorte: cartões de atmosfera, paleta, madeira e formas passaram a usar `briefingVisualOptions`. O componente preserva a ordem estrutural de input, imagem, badge, título ou legenda e não cria nós de texto ausentes. Quantidades, acessibilidade das imagens, seleção e limites estão cobertos por E2E. Permanecem os cartões de elementos e manutenção antes da revisão final da fase.
 
 Estado em 12/09/2026: **oitavo recorte concluído e Fase R4 resolvida**. Cartões de elementos foram incorporados a `briefingVisualOptions` com suporte à classe específica dos ícones, e manutenção passou a usar opções descritivas reutilizáveis. A revisão final removeu campos privados e o carregador de stylesheet comentado sem função do controller. Rascunho, arquivos, respostas, submissão, navegação, montagem e componentes de opções possuem responsabilidades separadas e cobertura unitária e E2E. Etapa priorizada 1: **8/8 concluída**.
+
+## 23. Execução da Etapa priorizada 2 — módulos administrativos
+
+Estado em 14/09/2026: **primeiro recorte concluído**. A montagem da página inicial administrativa e o acesso rápido aos clientes foram extraídos de `AdminSystemModules` para `AdminHomeModule`. O componente recebe a view persistida, a ação de navegação e o item de navegação como dependências, mantendo o agregador somente como roteador temporário. Etapa priorizada 2: **1/4 concluída**. O próximo recorte separará a listagem e as ações de clientes.

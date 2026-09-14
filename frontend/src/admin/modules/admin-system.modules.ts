@@ -1,7 +1,6 @@
 import u from "umbrellajs";
 import { getBaseElements, type baseElements } from "../selectors/base.selector.js";
 import { getClientsElements, type clientsElements } from "../selectors/clients.selector.js";
-import { getHomeElements, type homeElements } from "../selectors/home.selector.js";
 import { getNewClientElements, type newClientElements } from "../selectors/new-client.selector.js";
 import type { system } from "../templates/interface.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";
@@ -14,15 +13,16 @@ import { logoutSession } from "@/shared/session/logout.js";
 import { getClientFinancialElements } from "../selectors/client-financial.selector.js";
 import { ClientFinancialManager } from "../ui/client-financial-manager.js";
 import { AdminClientProposalsModule } from "./admin-client-proposals.module.js";
+import { AdminHomeModule } from "./admin-home.module.js";
 
 export class AdminSystemModules {
     private base?: baseElements;
-    private home?: homeElements;
     private clients?: clientsElements;
     private newClient?: newClientElements;
     private clientManagementRequestId = 0;
     private clientFinancialRequestId = 0;
     private readonly clientProposals: AdminClientProposalsModule;
+    private readonly home: AdminHomeModule;
 
     constructor(
         private readonly view: AdminSystemView,
@@ -40,12 +40,18 @@ export class AdminSystemModules {
             navigate,
             () => this.base?.desktop_nav_client
         );
+        this.home = new AdminHomeModule(
+            view,
+            models.home!,
+            () => navigate("clients"),
+            () => this.base?.desktop_nav_home
+        );
     }
 
     mount(route: AdminRoute, id?: string): void {
         switch (route) {
             case "base": this.mountBase(); break;
-            case "home": this.mountHome(); break;
+            case "home": this.home.mount(); break;
             case "clients": this.mountClients(); break;
             case "client-management": void this.mountClientManagement(id); break;
             case "client-proposals": void this.clientProposals.mount(id); break;
@@ -170,13 +176,6 @@ export class AdminSystemModules {
             if (window.innerWidth >= 900) closeMenu();
         }, { signal: globalListeners.signal });
         syncSelection();
-    }
-
-    private mountHome(): void {
-        this.view.render(this.models.home!, ".page-content");
-        this.home = getHomeElements();
-        this.view.styleNavButton(this.base!.desktop_nav_home);
-        u(this.home.access_client).off("click").on("click", () => this.navigate("clients"));
     }
 
     private mountClients(): void {
