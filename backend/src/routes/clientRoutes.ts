@@ -4,6 +4,7 @@ import { receiveBriefingFiles } from "../middleware/briefing-upload.middleware.j
 import type { AuthenticationGuard } from "../middleware/authentication.middleware.js";
 import { clientLoginRateLimit } from "../middleware/login-rate-limit.middleware.js";
 import { financialMutationRateLimit, financialReadRateLimit } from "../middleware/financial-rate-limit.middleware.js";
+import { receiveProposalAttachment } from "../middleware/proposal-upload.middleware.js";
 
 export default function clientRoutes(controller: ClientController, requireAuthentication: AuthenticationGuard) {
     const router = express.Router();
@@ -14,8 +15,8 @@ export default function clientRoutes(controller: ClientController, requireAuthen
     router.get("/api/client/proposals", requireAuthentication("client"), controller.approvals);
     router.get("/api/client/payments", requireAuthentication("client"), financialReadRateLimit, controller.payments);
     router.post("/api/client/payments/:paymentId/pix", requireAuthentication("client"), financialMutationRateLimit, controller.generatePaymentPix);
-    router.post("/api/client/proposals/:proposalId/approve", requireAuthentication("client"), controller.approveProposal);
-    router.post("/api/client/proposals/:proposalId/beat", requireAuthentication("client"), controller.beatProposal);
+    router.post("/api/client/proposals/:proposalId/approve", requireAuthentication("client"), receiveProposalAttachment, controller.approveProposal);
+    router.post("/api/client/proposals/:proposalId/beat", requireAuthentication("client"), receiveProposalAttachment, controller.beatProposal);
     router.post("/api/client/briefing", requireAuthentication("client"), receiveBriefingFiles, controller.submit);
 
     return router;

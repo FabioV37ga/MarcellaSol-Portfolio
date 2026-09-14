@@ -507,6 +507,40 @@
     margin-top: 18px;
 }
 
+.client-approval-attachments-field {
+    display: grid;
+    gap: 8px;
+}
+
+.client-approval-attachments-field input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd6d2;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.client-approval-attachments-help {
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.client-approval-response-history,
+.client-approval-response {
+    display: grid;
+    gap: 8px;
+}
+
+.client-approval-response-history {
+    padding-top: 12px;
+    border-top: 1px solid #eee7e3;
+}
+
+.client-approval-response a {
+    color: var(--orange);
+    font-size: 12px;
+}
+
 #client-stages-back {
     width: 100%;
     min-height: 42px;

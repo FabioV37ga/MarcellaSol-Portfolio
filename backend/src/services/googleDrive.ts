@@ -284,15 +284,22 @@ export async function uploadProposalAttachment(
     clientFolderId: string,
     proposalId: string,
     title: string,
-    files: Express.Multer.File[]
+    files: Express.Multer.File[],
+    author: "administrator" | "client" = "administrator",
+    responseIndex?: number
 ): Promise<ProposalDriveUpload> {
     const drive = createDriveClient();
     const proposalsFolderId = await findOrCreateFolder(drive, clientFolderId, "propostas");
     const folderId = await findOrCreateFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
+    const authorFolderName = author === "administrator" ? "administrador" : "cliente";
+    const authorFolderId = await findOrCreateFolder(drive, folderId, authorFolderName);
+    const uploadFolderId = author === "client" && responseIndex
+        ? await findOrCreateFolder(drive, authorFolderId, `resposta-${responseIndex}`)
+        : authorFolderId;
     const attachmentUrls: string[] = [];
     for (const file of files) {
         const uploaded = await drive.files.create({
-            requestBody: { name: file.originalname, parents: [folderId] },
+            requestBody: { name: file.originalname, parents: [uploadFolderId] },
             media: {
                 mimeType: file.mimetype || "application/octet-stream",
                 body: Readable.from(file.buffer)
@@ -308,6 +315,34 @@ export async function uploadProposalAttachment(
         folderId,
         attachmentUrls
     };
+}
+
+export async function moveProposalAttachmentsToAdministratorFolder(
+    proposalFolderId: string,
+    attachmentUrls: string[]
+): Promise<number> {
+    const drive = createDriveClient();
+    const administratorFolderId = await findOrCreateFolder(drive, proposalFolderId, "administrador");
+    let moved = 0;
+    for (const attachmentUrl of attachmentUrls) {
+        const fileId = proposalAttachmentFileId(attachmentUrl);
+        const metadata = await drive.files.get({
+            fileId,
+            fields: "id,parents",
+            supportsAllDrives: true
+        });
+        const parents = metadata.data.parents ?? [];
+        if (!parents.includes(proposalFolderId)) continue;
+        await drive.files.update({
+            fileId,
+            addParents: administratorFolderId,
+            removeParents: proposalFolderId,
+            fields: "id,parents",
+            supportsAllDrives: true
+        });
+        moved += 1;
+    }
+    return moved;
 }
 
 export async function renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {

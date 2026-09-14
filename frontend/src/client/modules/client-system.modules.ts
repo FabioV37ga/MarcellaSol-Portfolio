@@ -108,6 +108,7 @@ export class ClientSystemModules {
                 approvedProposalId = proposal._id;
                 elements.feedback.textContent = "";
                 elements.approveComment.value = "";
+                elements.approveAttachments.value = "";
                 elements.approveFeedback.textContent = "";
                 elements.approveDialog.showModal();
                 elements.approveComment.focus();
@@ -115,6 +116,7 @@ export class ClientSystemModules {
             card.querySelector<HTMLButtonElement>(".client-approval-reject")?.addEventListener("click", () => {
                 rejectedProposalId = proposal._id;
                 elements.rejectComment.value = "";
+                elements.rejectAttachments.value = "";
                 elements.rejectRevisionConfirmation.checked = false;
                 elements.rejectFeedback.textContent = "";
                 elements.rejectDialog.showModal();
@@ -127,6 +129,7 @@ export class ClientSystemModules {
         elements.approveDialog.addEventListener("close", () => {
             approvedProposalId = "";
             elements.approveComment.value = "";
+            elements.approveAttachments.value = "";
             elements.approveFeedback.textContent = "";
         });
         elements.approveConfirm.addEventListener("click", async () => {
@@ -141,7 +144,12 @@ export class ClientSystemModules {
             elements.approveCancel.disabled = true;
             elements.approveFeedback.textContent = "";
             try {
-                const result = await this.api.approveProposal(this.token, approvedProposalId, comment);
+                const result = await this.api.approveProposal(
+                    this.token,
+                    approvedProposalId,
+                    comment,
+                    Array.from(elements.approveAttachments.files ?? [])
+                );
                 replaceProposal(result.proposal);
                 renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);
                 elements.approveDialog.close();
@@ -159,6 +167,7 @@ export class ClientSystemModules {
         elements.rejectDialog.addEventListener("close", () => {
             rejectedProposalId = "";
             elements.rejectComment.value = "";
+            elements.rejectAttachments.value = "";
             elements.rejectRevisionConfirmation.checked = false;
             elements.rejectFeedback.textContent = "";
         });
@@ -183,7 +192,8 @@ export class ClientSystemModules {
                     this.token,
                     rejectedProposalId,
                     comment,
-                    elements.rejectRevisionConfirmation.checked
+                    elements.rejectRevisionConfirmation.checked,
+                    Array.from(elements.rejectAttachments.files ?? [])
                 );
                 replaceProposal(result.proposal);
                 renderProjectStages(progressRoot, result.projectStages, result.currentStageKey);

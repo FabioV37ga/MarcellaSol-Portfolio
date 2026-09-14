@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import proposals, { type ProposalStatus } from "../models/clientProposal.js";
 import type { ProjectStageKey } from "../models/projectStage.js";
+import type { ClientProposalResponse } from "../models/clientProposal.js";
 
 export interface CreateProposalData {
     _id: mongoose.Types.ObjectId;
@@ -39,10 +40,20 @@ export class ClientProposalRepository {
         );
     }
 
-    decide(id: string, userId: string, status: "approved" | "beated", userComment: string) {
+    decide(
+        id: string,
+        userId: string,
+        status: "approved" | "beated",
+        userComment: string,
+        response?: ClientProposalResponse,
+        attachmentFolderId?: string
+    ) {
+        const update: Record<string, unknown> = { $set: { status, userComment } };
+        if (attachmentFolderId) (update.$set as Record<string, unknown>).attachmentFolderId = attachmentFolderId;
+        if (response) update.$push = { clientResponses: response };
         return proposals.findOneAndUpdate(
             { _id: id, userId, status: { $in: ["sent", "resent"] } },
-            { $set: { status, userComment } },
+            update,
             { new: true, runValidators: true }
         );
     }
@@ -52,11 +63,14 @@ export class ClientProposalRepository {
         userId: string,
         expectedStatus: ProposalStatus,
         status: ProposalStatus,
-        userComment: string
+        userComment: string,
+        responseId?: mongoose.Types.ObjectId
     ) {
+        const update: Record<string, unknown> = { $set: { status, userComment } };
+        if (responseId) update.$pull = { clientResponses: { _id: responseId } };
         return proposals.findOneAndUpdate(
             { _id: id, userId, status: expectedStatus },
-            { $set: { status, userComment } },
+            update,
             { new: true, runValidators: true }
         );
     }

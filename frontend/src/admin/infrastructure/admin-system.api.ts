@@ -54,6 +54,12 @@ export interface ClientProposal {
     attachments: string[];
     attachment?: string;
     userComment: string;
+    clientResponses: Array<{
+        decision: "approved" | "beated";
+        comment: string;
+        attachments: string[];
+        createdAt: string;
+    }>;
     stageKey?: ProjectStageKey;
     status: ProposalStatus;
     createdAt: string;

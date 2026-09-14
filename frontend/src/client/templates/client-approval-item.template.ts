@@ -65,6 +65,31 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
         article.append(comment);
     }
 
+    if (proposal.clientResponses?.length) {
+        const history = document.createElement("section");
+        history.className = "client-approval-response-history";
+        const heading = document.createElement("strong");
+        heading.textContent = "Histórico de respostas";
+        history.append(heading);
+        proposal.clientResponses.forEach((response, responseIndex) => {
+            const item = document.createElement("div");
+            item.className = "client-approval-response";
+            const label = document.createElement("p");
+            label.textContent = `${responseIndex + 1}. ${response.decision === "approved" ? "Aprovação" : "Solicitação de alteração"}: ${response.comment}`;
+            item.append(label);
+            response.attachments.forEach((url, attachmentIndex) => {
+                const link = document.createElement("a");
+                link.href = url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = `Anexo enviado ${attachmentIndex + 1}`;
+                item.append(link);
+            });
+            history.append(item);
+        });
+        article.append(history);
+    }
+
     if (proposal.status === "sent" || proposal.status === "resent") {
         const actions = document.createElement("div");
         actions.className = "client-approval-actions";

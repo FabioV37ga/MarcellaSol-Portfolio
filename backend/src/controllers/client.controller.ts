@@ -73,6 +73,7 @@ export class ClientController {
                         ? proposal.attachments
                         : proposal.attachment ? [proposal.attachment] : [],
                     userComment: proposal.userComment,
+                    clientResponses: proposal.clientResponses ?? [],
                     stageKey: proposal.stageKey,
                     status: proposal.status,
                     createdAt: proposal.createdAt,
@@ -185,12 +186,18 @@ export class ClientController {
             const principal = authenticatedPrincipal(response);
             const proposalId = String(request.params.proposalId ?? "");
             const result = decision === "approved"
-                ? await this.proposals.approve(principal.subject, proposalId, request.body?.comment)
+                ? await this.proposals.approve(
+                    principal.subject,
+                    proposalId,
+                    request.body?.comment,
+                    request.files as Express.Multer.File[] | undefined
+                )
                 : await this.proposals.beat(
                     principal.subject,
                     proposalId,
                     request.body?.comment,
-                    request.body?.confirmRevisionRound
+                    request.body?.confirmRevisionRound === true || request.body?.confirmRevisionRound === "true",
+                    request.files as Express.Multer.File[] | undefined
                 );
             const proposal = result.proposal;
             return response.status(200).json({
@@ -204,6 +211,7 @@ export class ClientController {
                         ? proposal.attachments
                         : proposal.attachment ? [proposal.attachment] : [],
                     userComment: proposal.userComment,
+                    clientResponses: proposal.clientResponses ?? [],
                     stageKey: proposal.stageKey,
                     status: proposal.status,
                     createdAt: proposal.createdAt,

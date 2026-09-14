@@ -11,7 +11,7 @@ import {
     type ProjectStageKey,
     type ProjectStageStatus
 } from "../models/projectStage.js";
-import type { ProposalStatus } from "../models/clientProposal.js";
+import type { ClientProposalResponse, ProposalStatus } from "../models/clientProposal.js";
 
 interface ProposalInput { title?: unknown; description?: unknown; stageKey?: unknown; }
 const MAX_CLIENT_COMMENT_LENGTH = 2000;
@@ -113,15 +113,21 @@ export class ClientProposalService {
         }
     }
 
-    async approve(userId: string, proposalId: string, comment: unknown) {
-        return this.decide(userId, proposalId, "approved", this.requiredProposalComment(comment));
+    async approve(userId: string, proposalId: string, comment: unknown, files: Express.Multer.File[] = []) {
+        return this.decide(userId, proposalId, "approved", this.requiredProposalComment(comment), files);
     }
 
-    async beat(userId: string, proposalId: string, comment: unknown, confirmRevisionRound: unknown) {
+    async beat(
+        userId: string,
+        proposalId: string,
+        comment: unknown,
+        confirmRevisionRound: unknown,
+        files: Express.Multer.File[] = []
+    ) {
         if (confirmRevisionRound !== true) {
             throw new ApplicationError("Confirme o uso de 1 rodada de alterações", 400);
         }
-        return this.decide(userId, proposalId, "beated", this.requiredProposalComment(comment));
+        return this.decide(userId, proposalId, "beated", this.requiredProposalComment(comment), files);
     }
 
     async remove(userId: string, proposalId: string): Promise<void> {
@@ -192,7 +198,8 @@ export class ClientProposalService {
         userId: string,
         proposalId: string,
         status: "approved" | "beated",
-        userComment: string
+        userComment: string,
+        files: Express.Multer.File[]
     ) {
         this.requireObjectId(userId, "Cliente não encontrado");
         this.requireObjectId(proposalId, "Proposta não encontrada");
@@ -201,9 +208,35 @@ export class ClientProposalService {
         if (existing.status !== "sent" && existing.status !== "resent") {
             throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
         }
-        const client = await this.requireClient(userId, false);
-        const proposal = await this.proposals.decide(proposalId, userId, status, userComment);
-        if (!proposal) throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
+        const client = await this.requireClient(userId, files.length > 0);
+        const responseId = new mongoose.Types.ObjectId();
+        let uploadedAttachments: string[] = [];
+        let attachmentFolderId = existing.attachmentFolderId;
+        if (files.length > 0) {
+            const responseIndex = (existing.clientResponses?.length ?? 0) + 1;
+            const upload = await this.storage.uploadProposal(
+                client.driveFolderId!, proposalId, existing.title, files, "client", responseIndex
+            );
+            uploadedAttachments = upload.attachmentUrls;
+            attachmentFolderId = upload.folderId;
+        }
+        const clientResponse: ClientProposalResponse = {
+            _id: responseId,
+            decision: status,
+            comment: userComment,
+            attachments: uploadedAttachments,
+            createdAt: new Date()
+        };
+        let proposal;
+        try {
+            proposal = await this.proposals.decide(
+                proposalId, userId, status, userComment, clientResponse, attachmentFolderId
+            );
+            if (!proposal) throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
+        } catch (error) {
+            await this.trashUploadedAttachments(uploadedAttachments);
+            throw error;
+        }
 
         try {
             const stageStatus = status === "approved" ? "approved" : "changes-requested";
@@ -217,8 +250,10 @@ export class ClientProposalService {
                 userId,
                 status,
                 existing.status,
-                existing.userComment ?? ""
+                existing.userComment ?? "",
+                responseId
             );
+            await this.trashUploadedAttachments(uploadedAttachments);
             throw error;
         }
     }
@@ -256,10 +291,18 @@ export class ClientProposalService {
         userId: string,
         expectedStatus: ProposalStatus,
         status: ProposalStatus,
-        userComment: string
+        userComment: string,
+        responseId?: mongoose.Types.ObjectId
     ): Promise<void> {
-        await this.proposals.restoreStatus(proposalId, userId, expectedStatus, status, userComment)
+        await this.proposals.restoreStatus(proposalId, userId, expectedStatus, status, userComment, responseId)
             .catch(rollbackError => console.error("Não foi possível restaurar o status da proposta:", rollbackError));
+    }
+
+    private async trashUploadedAttachments(attachments: string[]): Promise<void> {
+        await Promise.all(attachments.map(attachment =>
+            this.storage.setProposalAttachmentTrashed(attachment, true)
+                .catch(error => console.error("Não foi possível remover anexo sem resposta associada:", error))
+        ));
     }
 
     private requireObjectId(value: string, message: string): void {

@@ -833,6 +833,23 @@
     margin-top: 16px;
 }
 
+.proposal-client-response-history,
+.proposal-client-response {
+    display: grid;
+    gap: 8px;
+}
+
+.proposal-client-response-history {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee7e3;
+}
+
+.proposal-client-response a {
+    color: var(--orange);
+    font-size: 11px;
+}
+
 #proposals-back {
     width: 100%;
 }

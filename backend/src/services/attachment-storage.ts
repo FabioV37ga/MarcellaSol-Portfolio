@@ -15,6 +15,7 @@ import {
     setProposalAttachmentTrashed,
     setProposalFolderTrashed,
     uploadProposalAttachment,
+    moveProposalAttachmentsToAdministratorFolder,
     type FolderReadAccessResult,
     type ProposalDriveUpload
 } from "./googleDrive.js";
@@ -38,7 +39,8 @@ export interface BriefingReportStorage {
 }
 
 export interface ProposalStorage {
-    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[]): Promise<ProposalDriveUpload>;
+    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[], author?: "administrator" | "client", responseIndex?: number): Promise<ProposalDriveUpload>;
+    moveProposalAttachmentsToAdministratorFolder(folderId: string, attachmentUrls: string[]): Promise<number>;
     renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void>;
     setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void>;
     setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void>;
@@ -73,8 +75,12 @@ export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFo
         return downloadDriveImage(fileId);
     }
 
-    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[]): Promise<ProposalDriveUpload> {
-        return uploadProposalAttachment(clientFolderId, proposalId, title, files);
+    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[], author: "administrator" | "client" = "administrator", responseIndex?: number): Promise<ProposalDriveUpload> {
+        return uploadProposalAttachment(clientFolderId, proposalId, title, files, author, responseIndex);
+    }
+
+    moveProposalAttachmentsToAdministratorFolder(folderId: string, attachmentUrls: string[]): Promise<number> {
+        return moveProposalAttachmentsToAdministratorFolder(folderId, attachmentUrls);
     }
 
     renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {

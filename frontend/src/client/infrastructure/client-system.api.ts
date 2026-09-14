@@ -15,12 +15,20 @@ export type ClientSystemResponse = { view: DbView[] } & ClientBriefingResponse;
 
 export type ClientProposalStatus = "sent" | "beated" | "resent" | "approved" | "Cancelled";
 
+export interface ClientProposalResponse {
+    decision: "approved" | "beated";
+    comment: string;
+    attachments: string[];
+    createdAt: string;
+}
+
 export interface ClientProposal {
     _id: string;
     title: string;
     description: string;
     attachments: string[];
     userComment: string;
+    clientResponses: ClientProposalResponse[];
     stageKey?: ProjectStageKey;
     status: ClientProposalStatus;
     createdAt: string;
@@ -118,17 +126,18 @@ export class ClientSystemApi {
         return parsePaymentPixResponse(result, parseClientPayment) as ClientPixResponse;
     }
 
-    approveProposal(token: string, proposalId: string, comment: string): Promise<ClientProposalDecision> {
-        return this.decideProposal(token, proposalId, "approve", comment);
+    approveProposal(token: string, proposalId: string, comment: string, files: File[] = []): Promise<ClientProposalDecision> {
+        return this.decideProposal(token, proposalId, "approve", comment, undefined, files);
     }
 
     beatProposal(
         token: string,
         proposalId: string,
         comment: string,
-        confirmRevisionRound: boolean
+        confirmRevisionRound: boolean,
+        files: File[] = []
     ): Promise<ClientProposalDecision> {
-        return this.decideProposal(token, proposalId, "beat", comment, confirmRevisionRound);
+        return this.decideProposal(token, proposalId, "beat", comment, confirmRevisionRound, files);
     }
 
     private async decideProposal(
@@ -136,20 +145,19 @@ export class ClientSystemApi {
         proposalId: string,
         decision: "approve" | "beat",
         comment?: string,
-        confirmRevisionRound?: boolean
+        confirmRevisionRound?: boolean,
+        files: File[] = []
     ): Promise<ClientProposalDecision> {
+        const body = new FormData();
+        if (comment !== undefined) body.set("comment", comment);
+        if (confirmRevisionRound !== undefined) body.set("confirmRevisionRound", String(confirmRevisionRound));
+        files.forEach(file => body.append("attachments", file, file.name));
         const response = await fetch(
             `${config.apiBaseUrl}/client/proposals/${encodeURIComponent(proposalId)}/${decision}`,
             {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    ...(comment === undefined ? {} : { comment }),
-                    ...(confirmRevisionRound === undefined ? {} : { confirmRevisionRound })
-                })
+                headers: { Authorization: `Bearer ${token}` },
+                body
             }
         );
         const result = await response.json().catch(() => ({})) as {

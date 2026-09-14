@@ -47,5 +47,29 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
         comment.hidden = false;
         comment.querySelector("p")!.textContent = proposal.userComment;
     }
+    if (proposal.clientResponses?.length) {
+        const history = document.createElement("section");
+        history.className = "proposal-client-response-history";
+        const heading = document.createElement("strong");
+        heading.textContent = "Histórico de respostas do cliente";
+        history.append(heading);
+        proposal.clientResponses.forEach((response, responseIndex) => {
+            const item = document.createElement("div");
+            item.className = "proposal-client-response";
+            const text = document.createElement("p");
+            text.textContent = `${responseIndex + 1}. ${response.decision === "approved" ? "Aprovou" : "Solicitou alteração"}: ${response.comment}`;
+            item.append(text);
+            response.attachments.forEach((url, attachmentIndex) => {
+                const link = document.createElement("a");
+                link.href = url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = `Anexo do cliente ${attachmentIndex + 1}`;
+                item.append(link);
+            });
+            history.append(item);
+        });
+        article.append(history);
+    }
     return article;
 }

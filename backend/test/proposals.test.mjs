@@ -166,6 +166,68 @@ test("cliente que solicita alteração coloca a etapa em alterações solicitada
     assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "changes-requested");
 });
 
+test("cliente anexa arquivos à resposta e preserva o histórico da proposta", async () => {
+    const userId = "507f1f77bcf86cd799439011";
+    const proposalId = "507f1f77bcf86cd799439012";
+    const uploads = [];
+    let savedResponse;
+    const clients = {
+        async findById() {
+            return {
+                _id: userId,
+                driveFolderId: "pasta-cliente",
+                hasFilledBriefing: true,
+                projectStages: [{ key: "briefing", status: "awaiting-approval" }]
+            };
+        },
+        async updateProjectStageState() { return { _id: userId }; }
+    };
+    const repository = {
+        async findByIdAndUserId() {
+            return {
+                _id: proposalId,
+                title: "Layout v1",
+                stageKey: "briefing",
+                status: "sent",
+                userComment: "",
+                clientResponses: []
+            };
+        },
+        async decide(_id, _userId, status, userComment, response, attachmentFolderId) {
+            savedResponse = response;
+            return {
+                _id: proposalId,
+                stageKey: "briefing",
+                status,
+                userComment,
+                attachmentFolderId,
+                clientResponses: [response]
+            };
+        }
+    };
+    const storage = {
+        async uploadProposal(clientFolderId, id, title, files, author, responseIndex) {
+            uploads.push({ clientFolderId, id, title, files, author, responseIndex });
+            return {
+                folderId: "pasta-proposta",
+                attachmentUrls: ["https://drive.google.com/file/d/resposta-1/view"]
+            };
+        },
+        async setProposalAttachmentTrashed() { }
+    };
+    const service = new ClientProposalService(clients, repository, storage);
+    const file = { originalname: "referencia.pdf" };
+
+    const result = await service.approve(userId, proposalId, "Aprovado com referência", [file]);
+
+    assert.equal(uploads.length, 1);
+    assert.equal(uploads[0].author, "client");
+    assert.equal(uploads[0].responseIndex, 1);
+    assert.equal(savedResponse.decision, "approved");
+    assert.deepEqual(savedResponse.attachments, ["https://drive.google.com/file/d/resposta-1/view"]);
+    assert.equal(result.proposal.clientResponses.length, 1);
+});
+
 test("reenvio de proposta devolve a etapa para aguardando aprovação", async () => {
     const userId = "507f1f77bcf86cd799439011";
     const proposalId = "507f1f77bcf86cd799439012";
@@ -283,4 +345,3 @@ test("não permite remover o único anexo da proposta", async () => {
     );
     assert.equal(storageCalled, false);
 });
-
