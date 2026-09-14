@@ -65,8 +65,8 @@ test("status de proposta são compatíveis entre backend e frontends", async () 
 test("admin e cliente reutilizam o contrato financeiro compartilhado", async () => {
     const [shared, admin, client] = await Promise.all([
         readFile(path.resolve("../frontend/src/shared/financial/payment-contract.ts"), "utf8"),
-        readFile(path.resolve("../frontend/src/admin/infrastructure/admin-system.api.ts"), "utf8"),
-        readFile(path.resolve("../frontend/src/client/infrastructure/client-system.api.ts"), "utf8")
+        readFile(path.resolve("../frontend/src/admin/infrastructure/payments.api.ts"), "utf8"),
+        readFile(path.resolve("../frontend/src/client/infrastructure/payments.api.ts"), "utf8")
     ]);
     assert.match(shared, /interface ClientPaymentContract/);
     assert.match(shared, /interface PaymentPageContract/);

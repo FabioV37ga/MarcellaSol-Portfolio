@@ -140,8 +140,10 @@ test("abre o financeiro do cliente e preserva a navegação de retorno", async (
             }
         }
     }));
-    await page.route("**/api/admin/clients/client-financial-e2e/payments", route => route.fulfill({
-        json: {
+    let paymentsAuthorization = "";
+    await page.route("**/api/admin/clients/client-financial-e2e/payments", route => {
+        paymentsAuthorization = route.request().headers().authorization ?? "";
+        return route.fulfill({ json: {
             payments: [],
             page: { limit: 20, hasMore: false },
             summary: {
@@ -150,8 +152,8 @@ test("abre o financeiro do cliente e preserva a navegação de retorno", async (
                 paidAmountCents: 0,
                 remainingAmountCents: 0
             }
-        }
-    }));
+        } });
+    });
     await page.goto("/admin.html");
     await page.locator("#admin-login").fill("ADMIN-E2E");
     await page.locator("#admin-password").fill("senha-e2e");
@@ -162,6 +164,7 @@ test("abre o financeiro do cliente e preserva a navegação de retorno", async (
 
     await expect(page.locator("#financial-title-name")).toHaveText("Cliente Financeiro E2E");
     await expect(page.locator("#financial-payments-list")).toContainText("Nenhum pagamento cadastrado");
+    expect(paymentsAuthorization).toBe("Bearer e2e-admin-token");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-financial");
     await page.locator("#financial-back").click();
     await expect(page.locator("#client-management-name")).toHaveText("Cliente Financeiro E2E");

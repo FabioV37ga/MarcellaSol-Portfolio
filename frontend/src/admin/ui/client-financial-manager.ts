@@ -1,12 +1,14 @@
 import type {
     AdminSession,
-    AdminSystemApi,
+} from "../infrastructure/admin-system.api.js";
+import type {
+    AdminPaymentsGateway,
     ClientPayment,
     PaymentFields,
     PaymentPage,
     PaymentPreview,
     PaymentPreviewFields
-} from "../infrastructure/admin-system.api.js";
+} from "../infrastructure/payments.api.js";
 import type { ClientFinancialElements } from "../selectors/client-financial.selector.js";
 import { dueDateLabel, isOverdue } from "@/shared/financial/payment-presentation.js";
 
@@ -41,7 +43,7 @@ export class ClientFinancialManager {
 
     constructor(
         private readonly elements: ClientFinancialElements,
-        private readonly api: AdminSystemApi,
+        private readonly api: AdminPaymentsGateway,
         private readonly session: AdminSession,
         private readonly clientId: string,
         paymentPage: PaymentPage | ClientPayment[]

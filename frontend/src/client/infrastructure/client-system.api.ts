@@ -2,14 +2,8 @@ import { config } from "@/utils/connection.js";
 import type { ClientBriefingResponse } from "@/shared/briefing/briefing.types.js";
 import type { DbView } from "../templates/interface.js";
 import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
-import type {
-    ClientPaymentContract,
-    PaymentPixResponseContract,
-    PaymentInstallmentContract,
-    PaymentPageContract,
-    PaymentPartContract
-} from "@/shared/financial/payment-contract.js";
-import { parseClientPayment, parsePaymentPage, parsePaymentPixResponse } from "@/shared/financial/payment-contract.js";
+import { ClientPaymentsApi, type ClientPaymentsGateway, type ClientPaymentPage, type ClientPixResponse } from "./payments.api.js";
+export type { ClientPayment, ClientPaymentInstallment, ClientPaymentPage, ClientPaymentPart, ClientPixResponse } from "./payments.api.js";
 
 export type ClientSystemResponse = { view: DbView[] } & ClientBriefingResponse;
 
@@ -47,20 +41,9 @@ export interface ClientProposalDecision {
     currentStageKey: ProjectStageKey;
 }
 
-export interface ClientPaymentPart extends PaymentPartContract { }
-
-export interface ClientPaymentInstallment extends PaymentInstallmentContract { }
-
-export interface ClientPayment extends ClientPaymentContract {
-    downPayment: ClientPaymentPart;
-    installments: ClientPaymentInstallment[];
-}
-
-export interface ClientPaymentPage extends PaymentPageContract<ClientPayment> { }
-
-export interface ClientPixResponse extends PaymentPixResponseContract<ClientPayment> { }
-
 export class ClientSystemApi {
+    constructor(private readonly payments: ClientPaymentsGateway = new ClientPaymentsApi()) { }
+
     async load(token: string): Promise<ClientSystemResponse | undefined> {
         const response = await fetch(`${config.apiBaseUrl}/view/client`, {
             method: "POST",
@@ -93,37 +76,17 @@ export class ClientSystemApi {
         };
     }
 
-    async loadPayments(token: string, cursor?: string): Promise<ClientPaymentPage> {
-        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-        const response = await fetch(`${config.apiBaseUrl}/client/payments${query}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const result = await response.json().catch(() => ({})) as {
-            payments?: ClientPayment[];
-            page?: ClientPaymentPage["page"];
-            summary?: ClientPaymentPage["summary"];
-            message?: string;
-        };
-        if (!response.ok) throw new Error(result.message ?? "Não foi possível carregar os pagamentos.");
-        return parsePaymentPage(result, parseClientPayment) as ClientPaymentPage;
+    loadPayments(token: string, cursor?: string): Promise<ClientPaymentPage> {
+        return this.payments.loadPayments(token, cursor);
     }
 
-    async generatePaymentPix(
+    generatePaymentPix(
         token: string,
         paymentId: string,
         partType: "down-payment" | "installment",
         installmentNumber?: number
     ): Promise<ClientPixResponse> {
-        const response = await fetch(`${config.apiBaseUrl}/client/payments/${encodeURIComponent(paymentId)}/pix`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ partType, ...(installmentNumber === undefined ? {} : { installmentNumber }) })
-        });
-        const result = await response.json().catch(() => ({})) as Partial<ClientPixResponse> & { message?: string };
-        if (!response.ok || !result.payment || !result.pix) {
-            throw new Error(result.message ?? "Não foi possível gerar o código Pix.");
-        }
-        return parsePaymentPixResponse(result, parseClientPayment) as ClientPixResponse;
+        return this.payments.generatePaymentPix(token, paymentId, partType, installmentNumber);
     }
 
     approveProposal(token: string, proposalId: string, comment: string, files: File[] = []): Promise<ClientProposalDecision> {

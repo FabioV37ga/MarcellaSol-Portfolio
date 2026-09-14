@@ -4,7 +4,7 @@ import type { baseElements } from "../selectors/base.selector.js";
 import { getClientFinancialElements } from "../selectors/financial.selector.js";
 import type { system } from "../templates/interface.js";
 import { clientPaymentHighlight, clientPaymentItem, type PaymentPartReference } from "../templates/client-payment-item.template.js";
-import { ClientSystemApi, type ClientPayment } from "../infrastructure/client-system.api.js";
+import type { ClientPayment, ClientPaymentsGateway } from "../infrastructure/payments.api.js";
 import type { FinancialHighlightContract } from "@/shared/financial/payment-contract.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
 
@@ -17,7 +17,7 @@ export class ClientFinancialModule {
     constructor(
         private readonly view: ClientSystemView,
         private readonly models: system,
-        private readonly api: ClientSystemApi,
+        private readonly api: ClientPaymentsGateway,
         private readonly token: string,
         private readonly navigate: (route: ClientRoute) => void
     ) { }

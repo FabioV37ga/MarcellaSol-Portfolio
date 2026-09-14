@@ -2,14 +2,8 @@ import { config } from "@/utils/connection.js";
 import type { NewClientPayload } from "@/shared/briefing/briefing.types.js";
 import type { dbView } from "../templates/interface.js";
 import type { ProjectStage, ProjectStageKey, ProjectStageStatus } from "@/shared/project-stages.js";
-import type {
-    AdminPaymentContract,
-    PaymentPreviewContract,
-    PaymentInstallmentContract,
-    PaymentPageContract,
-    PaymentPartContract
-} from "@/shared/financial/payment-contract.js";
-import { parseAdminPayment, parsePaymentPage, parsePaymentPreview } from "@/shared/financial/payment-contract.js";
+import { AdminPaymentsApi, type AdminPaymentsGateway, type ClientPayment, type PaymentFields, type PaymentPage, type PaymentPreview, type PaymentPreviewFields } from "./payments.api.js";
+export type { ClientPayment, PaymentFields, PaymentInstallment, PaymentPage, PaymentPart, PaymentPreview, PaymentPreviewFields } from "./payments.api.js";
 
 export interface AdminSession {
     token: string;
@@ -73,87 +67,27 @@ export interface ProposalFields {
     attachments?: File[];
 }
 
-export interface PaymentPart extends PaymentPartContract { }
-
-export interface PaymentInstallment extends PaymentInstallmentContract { }
-
-export interface ClientPayment extends AdminPaymentContract {
-    downPayment: PaymentPart;
-    installments: PaymentInstallment[];
-}
-
-export interface PaymentPage extends PaymentPageContract<ClientPayment> { }
-
-export interface PaymentFields {
-    title: string;
-    totalAmount: string;
-    installmentCount: number;
-    firstDueDate: string;
-    downPaymentPercentage?: string;
-    discountPercentage?: string;
-    interestPercentage?: string;
-    downPaymentIsPaid?: boolean;
-    paidInstallmentNumbers?: number[];
-    version?: number;
-}
-
-export type PaymentPreviewFields = Pick<PaymentFields,
-    "totalAmount" | "installmentCount" | "firstDueDate"
-    | "downPaymentPercentage" | "discountPercentage" | "interestPercentage"
->;
-
-export interface PaymentPreview extends PaymentPreviewContract { }
-
 export class AdminSystemApi {
+    constructor(private readonly payments: AdminPaymentsGateway = new AdminPaymentsApi()) { }
+
     private authorization(session: AdminSession): HeadersInit {
         return { Authorization: `Bearer ${session.token}` };
     }
 
-    private async paymentRequest(response: Response): Promise<{
-        payment?: ClientPayment;
-        payments?: ClientPayment[];
-        preview?: PaymentPreview;
-        page?: PaymentPage["page"];
-        summary?: PaymentPage["summary"];
-        highlight?: PaymentPage["highlight"];
-    }> {
-        const result = await response.json().catch(() => ({})) as {
-            payment?: ClientPayment;
-            payments?: ClientPayment[];
-            preview?: PaymentPreview;
-            message?: string;
-        };
-        if (!response.ok) throw new Error(result.message ?? "Não foi possível processar o pagamento");
-        return result;
+    loadPayments(session: AdminSession, clientId: string, cursor?: string): Promise<PaymentPage> {
+        return this.payments.loadPayments(session, clientId, cursor);
     }
 
-    async loadPayments(session: AdminSession, clientId: string, cursor?: string): Promise<PaymentPage> {
-        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
-        const response = await fetch(`${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments${query}`, {
-            headers: this.authorization(session)
-        });
-        const result = await this.paymentRequest(response);
-        return parsePaymentPage(result, parseAdminPayment) as PaymentPage;
-    }
-
-    async previewPayment(
+    previewPayment(
         session: AdminSession,
         fields: PaymentPreviewFields,
         signal?: AbortSignal
     ): Promise<PaymentPreview> {
-        const response = await fetch(`${config.apiBaseUrl}/admin/payments/preview`, {
-            method: "POST",
-            headers: { ...this.authorization(session), "Content-Type": "application/json" },
-            body: JSON.stringify(fields),
-            signal
-        });
-        const preview = (await this.paymentRequest(response)).preview;
-        if (!preview) throw new Error("Resposta inválida ao calcular o pagamento");
-        return parsePaymentPreview(preview);
+        return this.payments.previewPayment(session, fields, signal);
     }
 
     async createPayment(session: AdminSession, clientId: string, fields: PaymentFields): Promise<ClientPayment> {
-        return this.savePayment(session, clientId, fields);
+        return this.payments.createPayment(session, clientId, fields);
     }
 
     async editPayment(
@@ -162,46 +96,17 @@ export class AdminSystemApi {
         paymentId: string,
         fields: PaymentFields
     ): Promise<ClientPayment> {
-        return this.savePayment(session, clientId, fields, paymentId);
+        return this.payments.editPayment(session, clientId, paymentId, fields);
     }
 
-    async removePayment(
+    removePayment(
         session: AdminSession,
         clientId: string,
         paymentId: string,
         version: number,
         confirmedReceiptHistoryAcknowledged: boolean
     ): Promise<void> {
-        const response = await fetch(
-            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments/${encodeURIComponent(paymentId)}`,
-            {
-                method: "DELETE",
-                headers: { ...this.authorization(session), "Content-Type": "application/json" },
-                body: JSON.stringify({ version, confirmedReceiptHistoryAcknowledged })
-            }
-        );
-        if (response.status === 204) return;
-        await this.paymentRequest(response);
-    }
-
-    private async savePayment(
-        session: AdminSession,
-        clientId: string,
-        fields: PaymentFields,
-        paymentId?: string
-    ): Promise<ClientPayment> {
-        const suffix = paymentId ? `/${encodeURIComponent(paymentId)}` : "";
-        const response = await fetch(
-            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments${suffix}`,
-            {
-                method: paymentId ? "PUT" : "POST",
-                headers: { ...this.authorization(session), "Content-Type": "application/json" },
-                body: JSON.stringify(fields)
-            }
-        );
-        const payment = (await this.paymentRequest(response)).payment;
-        if (!payment) throw new Error("Resposta inválida ao salvar pagamento");
-        return parseAdminPayment(payment) as ClientPayment;
+        return this.payments.removePayment(session, clientId, paymentId, version, confirmedReceiptHistoryAcknowledged);
     }
 
     async setDownPaymentPaid(
@@ -211,7 +116,7 @@ export class AdminSystemApi {
         isPaid: boolean,
         version: number
     ): Promise<ClientPayment> {
-        return this.setPaymentPartPaid(session, clientId, paymentId, "down-payment", isPaid, version);
+        return this.payments.setDownPaymentPaid(session, clientId, paymentId, isPaid, version);
     }
 
     async setInstallmentPaid(
@@ -222,35 +127,7 @@ export class AdminSystemApi {
         isPaid: boolean,
         version: number
     ): Promise<ClientPayment> {
-        return this.setPaymentPartPaid(
-            session,
-            clientId,
-            paymentId,
-            `installments/${encodeURIComponent(installmentNumber)}`,
-            isPaid,
-            version
-        );
-    }
-
-    private async setPaymentPartPaid(
-        session: AdminSession,
-        clientId: string,
-        paymentId: string,
-        path: string,
-        isPaid: boolean,
-        version: number
-    ): Promise<ClientPayment> {
-        const response = await fetch(
-            `${config.apiBaseUrl}/admin/clients/${encodeURIComponent(clientId)}/payments/${encodeURIComponent(paymentId)}/${path}`,
-            {
-                method: "PATCH",
-                headers: { ...this.authorization(session), "Content-Type": "application/json" },
-                body: JSON.stringify({ isPaid, version })
-            }
-        );
-        const payment = (await this.paymentRequest(response)).payment;
-        if (!payment) throw new Error("Resposta inválida ao atualizar pagamento");
-        return parseAdminPayment(payment) as ClientPayment;
+        return this.payments.setInstallmentPaid(session, clientId, paymentId, installmentNumber, isPaid, version);
     }
 
     private async proposalRequest(
