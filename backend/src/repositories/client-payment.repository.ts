@@ -214,7 +214,7 @@ async function mutateWithEvent(
     return inTransaction(async session => {
         const updated = await payments.findOneAndUpdate(filter, update, {
             ...options,
-            new: true,
+            returnDocument: "after",
             runValidators: true,
             session
         });

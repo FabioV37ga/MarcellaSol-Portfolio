@@ -122,6 +122,8 @@ test("carrega a gestão do cliente e gera o relatório de briefing", async ({ pa
 });
 
 test("abre o financeiro do cliente e preserva a navegação de retorno", async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
     const client = {
         id: "client-financial-e2e",
         name: "Cliente Financeiro E2E",
@@ -169,6 +171,7 @@ test("abre o financeiro do cliente e preserva a navegação de retorno", async (
     await page.locator("#financial-back").click();
     await expect(page.locator("#client-management-name")).toHaveText("Cliente Financeiro E2E");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-management");
+    expect(pageErrors).toEqual([]);
 });
 
 test("encerra a sessão administrativa usando o cliente HTTP compartilhado", async ({ page }) => {

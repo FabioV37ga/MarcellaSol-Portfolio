@@ -65,7 +65,7 @@ export class ClientRepository {
         return clients.findByIdAndUpdate(
             id,
             { $set: { currentStageKey, projectStages } },
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         ).select({ _id: 1 }).lean();
     }
 }

@@ -25,7 +25,7 @@ export class ClientBriefingRepository {
         return clientBriefings.findOneAndUpdate(
             { clientId },
             { $set: { ...document, clientId } },
-            { upsert: true, new: true, runValidators: true }
+            { upsert: true, returnDocument: "after", runValidators: true }
         );
     }
 }

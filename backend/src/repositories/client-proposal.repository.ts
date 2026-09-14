@@ -29,14 +29,18 @@ export class ClientProposalRepository {
     }
 
     update(id: string, userId: string, data: Record<string, unknown>) {
-        return proposals.findOneAndUpdate({ _id: id, userId }, { $set: data }, { new: true });
+        return proposals.findOneAndUpdate(
+            { _id: id, userId },
+            { $set: data },
+            { returnDocument: "after" }
+        );
     }
 
     updateAttachments(id: string, userId: string, attachments: string[]) {
         return proposals.findOneAndUpdate(
             { _id: id, userId },
             { $set: { attachments }, $unset: { attachment: 1 } },
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         );
     }
 
@@ -54,7 +58,7 @@ export class ClientProposalRepository {
         return proposals.findOneAndUpdate(
             { _id: id, userId, status: { $in: ["sent", "resent"] } },
             update,
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         );
     }
 
@@ -71,7 +75,7 @@ export class ClientProposalRepository {
         return proposals.findOneAndUpdate(
             { _id: id, userId, status: expectedStatus },
             update,
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         );
     }
 
