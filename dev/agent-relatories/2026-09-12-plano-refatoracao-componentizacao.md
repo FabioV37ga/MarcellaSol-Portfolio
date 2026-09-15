@@ -720,3 +720,19 @@ Teste manual, em ambiente de teste:
 4. Gerar o relatório de briefing e acessar o resultado; simular falha de rede e verificar a nova tentativa.
 
 Não há migração nem sincronização de view. Próximo recorte: separar clientes e sessões; depois, briefing e views.
+
+## 26. Mudança funcional — confirmação das alterações de proposta
+
+Pedido de 15/09/2026: substituir reenvio por `Confirmar alterações`, mantendo aprovação inicial do cliente. Após confirmação no diálogo `Deseja alterar o status da proposta para 'Alterações concluídas'?`, a proposta muda de `beated` para `changes-completed` e a etapa vinculada fica `completed`. Não há nova aprovação do cliente.
+
+- Novo endpoint administrativo `POST /api/admin/clients/:id/proposals/:proposalId/complete-changes`; rota antiga de reenvio removida.
+- Atualização condicional por proprietário e status, rejeitando concorrência e estados incompatíveis. Falha na etapa compensa o status da proposta; histórico e anexos permanecem preservados.
+- Diálogo persistido em `client-proposals-view.json`, com selector próprio e componente responsável por foco, cancelamento, envio único, falha/nova tentativa e descarte. Labels de conclusão presentes nas duas áreas.
+- Compatibilidade de leitura mantida para `resent`, `beated` e demais registros antigos. Nenhuma migração de dados necessária. Propostas legadas sem etapa vinculada são concluídas sem criar vínculo artificial.
+- Sincronização manual necessária: `dev/database/client-proposals-view.json`, junto da publicação do frontend e backend. A view antiga não contém o novo diálogo. Banco e Drive reais não foram alterados.
+
+Teste manual: abrir proposta com alterações solicitadas; cancelar a confirmação e conferir que nada mudou; confirmar e verificar `Alterações concluídas`, etapa concluída e histórico preservado; entrar como cliente e conferir que não existe nova ação de aprovação. Propostas inicialmente enviadas ainda permitem aprovar ou solicitar alteração.
+
+A refatoração permanece na Etapa 4, com dois recortes concluídos. Próximo recorte estrutural: clientes e sessões.
+
+Validações finais: build completo, 15 views válidas, 56 testes frontend, 102 testes backend aprovados e uma integração MongoDB ignorada por não estar habilitada. Os 16 E2E passaram, incluindo cancelamento, falha/nova tentativa, conclusão da etapa e ausência de nova aprovação do cliente. `git diff --check` sem erros. Os testes usam serviços ou respostas HTTP simulados; não foi feita sincronização no banco real.

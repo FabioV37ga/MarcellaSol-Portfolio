@@ -2,7 +2,7 @@ import type { ClientProposal } from "../infrastructure/admin-system.api.js";
 import { projectStageLabels } from "@/shared/project-stages.js";
 
 function statusLabel(status: ClientProposal["status"]): string {
-    return ({ sent: "Enviada", resent: "Reenviada", beated: "Alterações solicitadas", approved: "Aprovada", Cancelled: "Cancelada" })[status];
+    return ({ sent: "Enviada", resent: "Reenviada", beated: "Alterações solicitadas", approved: "Aprovada", "changes-completed": "Alterações concluídas", Cancelled: "Cancelada" })[status];
 }
 
 export function clientProposalItem(proposal: ClientProposal): HTMLElement {
@@ -22,7 +22,7 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
         <p class="proposal-description"></p>
         <div class="proposal-attachments"></div>
         <div class="proposal-comment" hidden><strong>Comentário do cliente</strong><p></p></div>
-        ${proposal.status === "beated" ? '<button class="proposal-resend" type="button">Reenviar ao cliente</button>' : ""}
+        ${proposal.status === "beated" ? '<button class="proposal-confirm-changes" type="button">Confirmar alterações</button>' : ""}
     `;
     article.querySelector("h3")!.textContent = proposal.title;
     article.querySelector<HTMLElement>(".proposal-stage")!.textContent = proposal.stageKey

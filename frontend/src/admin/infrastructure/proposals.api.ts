@@ -2,7 +2,7 @@ import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
 import { httpClient, type HttpClient } from "@/shared/http/http-client.js";
 import type { AdminSession } from "./admin-system.api.js";
 
-export type ProposalStatus = "sent" | "beated" | "resent" | "approved" | "Cancelled";
+export type ProposalStatus = "sent" | "beated" | "resent" | "approved" | "changes-completed" | "Cancelled";
 
 export interface ClientProposal {
     _id: string;
@@ -48,7 +48,7 @@ export interface AdminProposalsGateway {
     loadProposals(session: AdminSession, clientId: string): Promise<ClientProposal[]>;
     createProposal(session: AdminSession, clientId: string, fields: ProposalFields): Promise<ProposalStageMutation>;
     editProposal(session: AdminSession, clientId: string, proposalId: string, fields: ProposalFields): Promise<ClientProposal>;
-    resendProposal(session: AdminSession, clientId: string, proposalId: string): Promise<ProposalStageMutation>;
+    confirmProposalChanges(session: AdminSession, clientId: string, proposalId: string): Promise<ProposalStageMutation>;
     deleteProposal(session: AdminSession, clientId: string, proposalId: string): Promise<void>;
     deleteProposalAttachment(session: AdminSession, clientId: string, proposalId: string, attachmentIndex: number): Promise<ClientProposal>;
 }
@@ -71,11 +71,11 @@ export class AdminProposalsApi implements AdminProposalsGateway {
         return proposal;
     }
 
-    async resendProposal(session: AdminSession, clientId: string, proposalId: string): Promise<ProposalStageMutation> {
-        const result = await this.http.request<ProposalEnvelope>(`${this.itemPath(clientId, proposalId)}/resend`, {
+    async confirmProposalChanges(session: AdminSession, clientId: string, proposalId: string): Promise<ProposalStageMutation> {
+        const result = await this.http.request<ProposalEnvelope>(`${this.itemPath(clientId, proposalId)}/complete-changes`, {
             method: "POST", token: session.token
         });
-        return this.stageMutation(result, "reenviar");
+        return this.stageMutation(result, "confirmar alterações da");
     }
 
     async deleteProposal(session: AdminSession, clientId: string, proposalId: string): Promise<void> {
@@ -101,7 +101,7 @@ export class AdminProposalsApi implements AdminProposalsGateway {
         });
     }
 
-    private stageMutation(result: ProposalEnvelope, action: "criar" | "reenviar"): ProposalStageMutation {
+    private stageMutation(result: ProposalEnvelope, action: "criar" | "confirmar alterações da"): ProposalStageMutation {
         if (!result?.proposal || !result.currentStageKey || !Array.isArray(result.projectStages)) {
             throw new Error(`Resposta inválida ao ${action} proposta`);
         }

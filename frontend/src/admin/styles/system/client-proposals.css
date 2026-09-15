@@ -556,7 +556,9 @@
 }
 
 #new-proposal,
-.proposal-resend,
+#proposal-changes-confirm,
+#proposal-changes-cancel,
+.proposal-confirm-changes,
 #proposal-save,
 #proposal-cancel,
 #proposal-delete-cancel,
@@ -569,7 +571,8 @@
 }
 
 #new-proposal,
-.proposal-resend,
+#proposal-changes-confirm,
+.proposal-confirm-changes,
 #proposal-save {
     border: 0;
     background: var(--orange);
@@ -577,6 +580,7 @@
 }
 
 #proposal-cancel,
+#proposal-changes-cancel,
 #proposal-delete-cancel,
 #proposals-back {
     border: 2px solid var(--orange);
@@ -635,7 +639,8 @@
     color: #555;
 }
 
-.proposal-status-approved {
+.proposal-status-approved,
+.proposal-status-changes-completed {
     background: #e4f3e8;
     color: #28723b;
 }
@@ -685,7 +690,7 @@
     line-height: 1.45;
 }
 
-.proposal-resend {
+.proposal-confirm-changes {
     width: 100%;
     margin-top: 14px;
 }

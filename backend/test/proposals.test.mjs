@@ -228,7 +228,7 @@ test("cliente anexa arquivos à resposta e preserva o histórico da proposta", a
     assert.equal(result.proposal.clientResponses.length, 1);
 });
 
-test("reenvio de proposta devolve a etapa para aguardando aprovação", async () => {
+test("confirmação de alterações encerra proposta e conclui etapa", async () => {
     const userId = "507f1f77bcf86cd799439011";
     const proposalId = "507f1f77bcf86cd799439012";
     const clients = {
@@ -254,16 +254,16 @@ test("reenvio de proposta devolve a etapa para aguardando aprovação", async ()
                 userComment: "Ajustar a bancada"
             };
         },
-        async update(_id, _userId, update) {
-            return { _id: proposalId, stageKey: "survey", userComment: "Ajustar a bancada", ...update };
+        async completeChanges(_id, _userId) {
+            return { _id: proposalId, stageKey: "survey", userComment: "Ajustar a bancada", status: "changes-completed" };
         }
     };
     const service = new ClientProposalService(clients, proposals, {});
 
-    const result = await service.resend(userId, proposalId);
+    const result = await service.confirmChanges(userId, proposalId);
 
-    assert.equal(result.proposal.status, "resent");
-    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "awaiting-approval");
+    assert.equal(result.proposal.status, "changes-completed");
+    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "completed");
 });
 
 test("administrador remove um anexo da proposta e atualiza o banco", async () => {

@@ -90,27 +90,27 @@ export class ClientProposalService {
         return this.proposals.update(proposalId, userId, update);
     }
 
-    async resend(userId: string, proposalId: string) {
+    async confirmChanges(userId: string, proposalId: string) {
         this.requireObjectId(proposalId, "Proposta não encontrada");
         const proposal = await this.proposals.findByIdAndUserId(proposalId, userId);
         if (!proposal) throw new ApplicationError("Proposta não encontrada", 404);
         if (proposal.status !== "beated") {
-            throw new ApplicationError("Somente propostas com alterações solicitadas podem ser reenviadas", 409);
+            throw new ApplicationError("Somente propostas com alterações solicitadas podem ser concluídas", 409);
         }
         const client = await this.requireClient(userId, false);
-        const updated = await this.proposals.update(proposalId, userId, { status: "resent" });
-        if (!updated) throw new ApplicationError("Proposta não encontrada", 404);
+        const updated = await this.proposals.completeChanges(proposalId, userId);
+        if (!updated) throw new ApplicationError("A proposta já foi alterada. Atualize a página.", 409);
 
         try {
             const projectState = proposal.stageKey
-                ? await this.synchronizeProjectStage(userId, client, proposal.stageKey, "awaiting-approval")
+                ? await this.synchronizeProjectStage(userId, client, proposal.stageKey, "completed")
                 : this.currentProjectState(client);
             return { proposal: updated, ...projectState };
         } catch (error) {
             await this.restoreProposalStatus(
                 proposalId,
                 userId,
-                "resent",
+                "changes-completed",
                 "beated",
                 proposal.userComment ?? ""
             );

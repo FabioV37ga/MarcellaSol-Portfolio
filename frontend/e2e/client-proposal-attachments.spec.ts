@@ -6,7 +6,7 @@ async function databaseView(fileName: string): Promise<Record<string, unknown>> 
     return JSON.parse(await readFile(resolve("../dev/database", fileName), "utf8")) as Record<string, unknown>;
 }
 
-async function mockClient(page: Page): Promise<void> {
+async function mockClient(page: Page, status = "sent"): Promise<void> {
     const views = await Promise.all([
         databaseView("client-base-view.json"),
         databaseView("client-home-view.json"),
@@ -34,13 +34,25 @@ async function mockClient(page: Page): Promise<void> {
                 userComment: "",
                 clientResponses: [],
                 stageKey: "briefing",
-                status: "sent",
+                status,
                 createdAt: "2026-09-14T10:00:00.000Z",
                 updatedAt: "2026-09-14T10:00:00.000Z"
             }]
         }
     }));
 }
+
+test("cliente vê alterações concluídas sem nova aprovação", async ({ page }) => {
+    await mockClient(page, "changes-completed");
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-stages-processes").click();
+    await expect(page.locator(".client-approval-status-changes-completed")).toHaveText("Alterações concluídas");
+    await expect(page.locator(".client-approval-approve")).toHaveCount(0);
+    await expect(page.locator(".client-approval-reject")).toHaveCount(0);
+});
 
 test("cliente preserva comentário e anexo após falha e aprova na nova tentativa", async ({ page }) => {
     let multipartBody = "";

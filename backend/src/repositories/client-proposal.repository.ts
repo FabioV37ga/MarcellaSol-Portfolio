@@ -62,6 +62,14 @@ export class ClientProposalRepository {
         );
     }
 
+    completeChanges(id: string, userId: string) {
+        return proposals.findOneAndUpdate(
+            { _id: id, userId, status: "beated" },
+            { $set: { status: "changes-completed" } },
+            { returnDocument: "after", runValidators: true }
+        );
+    }
+
     restoreStatus(
         id: string,
         userId: string,

@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import type { ClientProposalService } from "../application/client-proposal.service.js";
 
 export class AdminProposalsController {
-    constructor(private readonly proposals: Pick<ClientProposalService, "list" | "create" | "edit" | "resend" | "remove" | "removeAttachment">) { }
+    constructor(private readonly proposals: Pick<ClientProposalService, "list" | "create" | "edit" | "confirmChanges" | "remove" | "removeAttachment">) { }
 
     clientProposals = async (request: Request, response: Response): Promise<Response> => {
         const id = this.routeParameter(request.params.id);
@@ -22,10 +22,10 @@ export class AdminProposalsController {
         return response.status(200).json({ proposal });
     };
 
-    resendClientProposal = async (request: Request, response: Response): Promise<Response> => {
+    confirmClientProposalChanges = async (request: Request, response: Response): Promise<Response> => {
         const id = this.routeParameter(request.params.id);
         const proposalId = this.routeParameter(request.params.proposalId);
-        const result = await this.proposals.resend(id, proposalId);
+        const result = await this.proposals.confirmChanges(id, proposalId);
         return response.status(200).json(result);
     };
 

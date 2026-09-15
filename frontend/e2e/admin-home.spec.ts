@@ -12,7 +12,8 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
         databaseView("admin-home-view.json"),
         databaseView("admin-clients-view.json"),
         databaseView("client-management-view.json"),
-        databaseView("client-financial-view.json")
+        databaseView("client-financial-view.json"),
+        databaseView("client-proposals-view.json")
     ]);
     await page.route("**/api/admin/login", route => route.fulfill({
         json: { token: "e2e-admin-token", name: "Administrador E2E" }
@@ -20,6 +21,56 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
     await page.route("**/api/view/admin", route => route.fulfill({ json: { view: views } }));
     await page.route("**/api/admin/clients", route => route.fulfill({ json: { clients } }));
 }
+
+test("confirma alterações com cancelamento, falha, nova tentativa e conclusão da etapa", async ({ page }) => {
+    const client = { id: "changes-client", name: "Cliente Alterações", hasFilledBriefing: true,
+        currentStageKey: "layout", currentStageStatus: "changes-requested", type: "residencial",
+        projectStages: ["contract", "briefing", "layout", "project-development", "survey", "budgets-definitions", "executive-project", "final-delivery"]
+            .map((key, index) => ({ key, index, status: key === "layout" ? "changes-requested" : index < 2 ? "completed" : "not-started" })),
+        hasProjectStageOrder: true };
+    let proposal = { _id: "changes-proposal", userId: client.id, title: "Layout", description: "Ajustes",
+        stageKey: "layout", status: "beated", attachments: ["https://example.com/layout.pdf"], userComment: "Mover mesa",
+        clientResponses: [{ decision: "beated", comment: "Mover mesa", attachments: [], createdAt: "2026-09-15" }],
+        createdAt: "2026-09-15", updatedAt: "2026-09-15" };
+    let requests = 0;
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/changes-client", route => route.fulfill({ json: { client } }));
+    await page.route("**/api/admin/clients/changes-client/briefing-report", route => route.fulfill({ json: { exists: false } }));
+    await page.route("**/api/admin/clients/changes-client/proposals", route => route.fulfill({ json: { proposals: [proposal] } }));
+    await page.route("**/api/admin/clients/changes-client/proposals/changes-proposal/complete-changes", async route => {
+        requests++;
+        expect(route.request().method()).toBe("POST");
+        expect(route.request().headers().authorization).toBe("Bearer e2e-admin-token");
+        if (requests === 1) return route.fulfill({ status: 500, json: { message: "Não foi possível confirmar as alterações." } });
+        proposal = { ...proposal, status: "changes-completed" };
+        client.projectStages[2].status = "completed";
+        return route.fulfill({ json: { proposal, currentStageKey: "layout", projectStages: client.projectStages } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='changes-client']").click();
+    await page.locator("#client-management-proposals").click();
+    await expect(page.getByText("Reenviar ao cliente", { exact: true })).toHaveCount(0);
+    await page.locator(".proposal-confirm-changes").click();
+    const dialog = page.locator("#proposal-changes-dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("Deseja alterar o status da proposta para 'Alterações concluídas'?");
+    await page.locator("#proposal-changes-cancel").click();
+    expect(requests).toBe(0);
+    await page.locator(".proposal-confirm-changes").click();
+    await page.locator("#proposal-changes-confirm").click();
+    await expect(page.locator("#proposal-changes-feedback")).toHaveText("Não foi possível confirmar as alterações.");
+    await page.locator("#proposal-changes-confirm").click();
+    await expect(dialog).not.toBeVisible();
+    await expect(page.locator(".proposal-status-changes-completed")).toHaveText("Alterações concluídas");
+    await expect(page.locator(".proposal-confirm-changes")).toHaveCount(0);
+    await expect(page.locator(".proposal-client-response-history")).toContainText("Mover mesa");
+    await expect(page.locator(".project-step[data-stage-key='layout']")).toHaveAttribute("data-status", "completed");
+    expect(requests).toBe(2);
+});
 
 test("monta a home administrativa e navega pelo acesso rápido de clientes", async ({ page }) => {
     await mockAdminApi(page);

@@ -52,6 +52,7 @@ Stack atual:
 - Não criar abstrações genéricas ou arquivos sem responsabilidade concreta.
 - Preservar compatibilidade e comportamento durante refatorações.
 - Ao pedir `resumo`, responder de forma simples, por exemplo: `Etapa 1: concluída`, `Etapa 2: 3/4`.
+- Nos resumos com etapas, marcar os itens concluídos com ✅.
 - Ao final de toda implementação, fornecer:
   - resumo do resultado;
   - validações executadas;
@@ -208,14 +209,18 @@ Preservar valores persistidos e contratos definidos em `projectStage` e nos cont
 ### Propostas
 
 - Uma proposta administrativa pertence a uma etapa.
-- Ao criar ou reenviar, a etapa associada vira `aguardando aprovação` e etapas anteriores são concluídas.
+- Ao criar, a etapa associada vira `aguardando aprovação` e etapas anteriores são concluídas.
 - Aprovação do cliente marca a proposta como aprovada e atualiza a etapa.
 - Solicitação de alteração marca a proposta e a etapa como alterações solicitadas.
 - O termo visual correto é `Solicitar alteração`, não `rebater`.
 - O valor legado `beated` ainda pode existir no contrato persistido e deve ser migrado somente com compatibilidade explícita.
 - Aprovar e solicitar alteração abrem diálogo com comentário.
 - Solicitar alteração exige checkbox confirmando o uso de uma rodada.
-- Administrador pode editar título, descrição, anexar novos arquivos, remover anexos e reenviar.
+- Administrador pode editar título, descrição, anexar novos arquivos e remover anexos; não há mais reenvio.
+- A aprovação inicial do cliente permanece. Depois de uma solicitação de alteração (`beated`), o administrador usa `Confirmar alterações`.
+- O diálogo pergunta: `Deseja alterar o status da proposta para 'Alterações concluídas'?` e oferece cancelamento ou confirmação.
+- Confirmar muda a proposta para `changes-completed` (`Alterações concluídas`), conclui a etapa vinculada e encerra a proposta sem nova aprovação do cliente. Histórico e anexos são preservados.
+- O status legado `resent` permanece legível; novos reenvios não são permitidos. O endpoint vigente é `POST /api/admin/clients/:id/proposals/:proposalId/complete-changes`.
 - Cliente pode anexar um ou mais arquivos tanto ao aprovar quanto ao solicitar alteração.
 - Respostas e anexos formam histórico e não devem ser sobrescritos.
 

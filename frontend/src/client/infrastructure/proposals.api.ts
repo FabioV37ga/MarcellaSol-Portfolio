@@ -1,7 +1,7 @@
 import type { ProjectStage, ProjectStageKey } from "@/shared/project-stages.js";
 import { httpClient, type HttpClient } from "@/shared/http/http-client.js";
 
-export type ClientProposalStatus = "sent" | "beated" | "resent" | "approved" | "Cancelled";
+export type ClientProposalStatus = "sent" | "beated" | "resent" | "approved" | "changes-completed" | "Cancelled";
 export interface ClientProposalResponse { decision: "approved" | "beated"; comment: string; attachments: string[]; createdAt: string; }
 export interface ClientProposal {
     _id: string; title: string; description: string; attachments: string[]; userComment: string;

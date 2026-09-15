@@ -72,7 +72,7 @@ function multipart(fields = {}, count = 2) {
 test("propostas administrativas preservam parâmetros, envelopes e status em todas as operações", async () => {
     const calls = [];
     const results = { list: [proposal], create: { proposal, ...projectState }, edit: proposal,
-        resend: { proposal, ...projectState }, removeAttachment: proposal, remove: undefined };
+        confirmChanges: { proposal, ...projectState }, removeAttachment: proposal, remove: undefined };
     const proposals = Object.fromEntries(Object.entries(results).map(([method, result]) => [method, async (...args) => {
         calls.push([method, ...args]); return result;
     }]));
@@ -82,7 +82,7 @@ test("propostas administrativas preservam parâmetros, envelopes e status em tod
             ["GET", "", undefined, 200, { proposals: [proposal] }],
             ["POST", "", multipart({ title: "Título", description: "Texto", stageKey: "layout" }), 201, { proposal, ...projectState }],
             ["PUT", "/proposal-1", multipart({ title: "Editado", description: "Texto", stageKey: "layout" }), 200, { proposal }],
-            ["POST", "/proposal-1/resend", undefined, 200, { proposal, ...projectState }],
+            ["POST", "/proposal-1/complete-changes", undefined, 200, { proposal, ...projectState }],
             ["DELETE", "/proposal-1/attachments/1", undefined, 200, { proposal }],
             ["DELETE", "/proposal-1", undefined, 204, undefined]
         ]) {
@@ -102,7 +102,7 @@ test("propostas administrativas preservam parâmetros, envelopes e status em tod
         assert.deepEqual(args.at(-1).map(file => [file.originalname, file.mimetype, file.buffer.toString()]),
             [["anexo-1.pdf", "application/pdf", "arquivo-1"], ["anexo-2.pdf", "application/pdf", "arquivo-2"]]);
     }
-    assert.deepEqual(calls.slice(3), [["resend", "client-123", "proposal-1"],
+    assert.deepEqual(calls.slice(3), [["confirmChanges", "client-123", "proposal-1"],
         ["removeAttachment", "client-123", "proposal-1", "1"], ["remove", "client-123", "proposal-1"]]);
 });
 
@@ -216,7 +216,7 @@ test("uploads rejeitam excesso antes de executar o caso de uso", async () => {
 test("todas as rotas de propostas e relatórios exigem o papel correto", async () => {
     for (const [role, endpoints] of [
         ["admin", [["GET", "proposals"], ["POST", "proposals"], ["PUT", "proposals/p"],
-            ["POST", "proposals/p/resend"], ["DELETE", "proposals/p"], ["DELETE", "proposals/p/attachments/0"],
+            ["POST", "proposals/p/complete-changes"], ["DELETE", "proposals/p"], ["DELETE", "proposals/p/attachments/0"],
             ["GET", "briefing-report"], ["POST", "briefing-report"]]],
         ["client", [["GET", "proposals"], ["POST", "proposals/p/approve"], ["POST", "proposals/p/beat"]]]
     ]) {

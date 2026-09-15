@@ -9,6 +9,7 @@ import { clientProposalItem } from "../templates/client-proposal-item.template.j
 import type { AdminSystemView } from "../views/adminSystem.view.js";
 import { projectStageLabels, type ProjectStage, type ProjectStageKey } from "@/shared/project-stages.js";
 import { ProjectStageEditor } from "../ui/project-stage-editor.js";
+import { ProposalChangesConfirmation } from "../ui/proposal-changes-confirmation.js";
 
 export class AdminClientProposalsModule {
     private requestId = 0;
@@ -159,11 +160,11 @@ export class AdminClientProposalsModule {
                 target.append(item);
                 u(item.querySelector(".proposal-edit") as HTMLElement).on("click", () => openEditor(proposal));
                 u(item.querySelector(".proposal-delete") as HTMLElement).on("click", () => openDeleteDialog(proposal));
-                const resend = item.querySelector<HTMLButtonElement>(".proposal-resend");
-                if (resend) u(resend).on("click", () => void resendProposal(proposal, resend));
+                const confirm = item.querySelector<HTMLButtonElement>(".proposal-confirm-changes");
+                confirm?.addEventListener("click", () => changesConfirmation.open(proposal._id, proposal.title));
             });
             this.toggleProposalEmpty(openList, "Nenhuma proposta aberta.");
-            this.toggleProposalEmpty(closedList, "Nenhuma proposta com alterações solicitadas ou cancelada.");
+            this.toggleProposalEmpty(closedList, "Nenhuma proposta respondida ou cancelada.");
         };
 
         const openDeleteDialog = (proposal: ClientProposal): void => {
@@ -188,19 +189,15 @@ export class AdminClientProposalsModule {
             dialog.showModal();
         };
 
-        const resendProposal = async (proposal: ClientProposal, button: HTMLButtonElement): Promise<void> => {
-            button.disabled = true;
-            try {
-                const result = await this.api.resendProposal(this.session, clientId, proposal._id);
-                proposals = proposals.map(item => item._id === result.proposal._id ? result.proposal : item);
-                projectStageEditor?.replaceState(result);
-                feedback.textContent = "Proposta reenviada com sucesso.";
-                render();
-            } catch (error) {
-                feedback.textContent = error instanceof Error ? error.message : "Não foi possível reenviar a proposta.";
-                button.disabled = false;
-            }
-        };
+        const changesConfirmation = new ProposalChangesConfirmation(root, async proposalId => {
+            const result = await this.api.confirmProposalChanges(this.session, clientId, proposalId);
+            if (requestId !== this.requestId) return;
+            proposals = proposals.map(item => item._id === result.proposal._id ? result.proposal : item);
+            projectStageEditor?.replaceState(result);
+            feedback.textContent = "Alterações concluídas.";
+            render();
+        });
+        this.view.registerDisposer(() => changesConfirmation.dispose());
 
         u(root.querySelector("#proposals-clients-index") as HTMLElement).off("click").on("click", () => this.navigate("clients"));
         u(root.querySelector("#proposals-client-index") as HTMLElement).off("click").on("click", () => this.navigate("client-management", clientId));

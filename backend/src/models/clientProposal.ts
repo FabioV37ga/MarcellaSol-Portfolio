@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { projectStageKeys, type ProjectStageKey } from "./projectStage.js";
 
-export const proposalStatuses = ["sent", "beated", "resent", "approved", "Cancelled"] as const;
+export const proposalStatuses = ["sent", "beated", "resent", "approved", "changes-completed", "Cancelled"] as const;
 export type ProposalStatus = typeof proposalStatuses[number];
 
 export interface ClientProposalResponse {

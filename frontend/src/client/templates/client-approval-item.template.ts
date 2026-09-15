@@ -4,6 +4,7 @@ import { projectStageLabels } from "@/shared/project-stages.js";
 const statusLabels: Record<ClientProposalStatus, string> = {
     sent: "Aguardando aprovação",
     resent: "Atualizada",
+    "changes-completed": "Alterações concluídas",
     beated: "Alterações solicitadas",
     approved: "Aprovada",
     Cancelled: "Cancelada"

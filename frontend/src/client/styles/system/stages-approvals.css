@@ -284,7 +284,8 @@
     color: #555;
 }
 
-.client-approval-status-approved {
+.client-approval-status-approved,
+.client-approval-status-changes-completed {
     background: #e4f3e8;
     color: #28723b;
 }
