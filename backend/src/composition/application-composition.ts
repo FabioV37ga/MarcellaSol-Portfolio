@@ -9,6 +9,7 @@ import { CreateClientService } from "../application/create-client.service.js";
 import { DeleteClientService } from "../application/delete-client.service.js";
 import { PixPresentationService } from "../application/financial/pix-presentation.service.js";
 import { ListClientsService } from "../application/list-clients.service.js";
+import { ListClientApprovalsService } from "../application/list-client-approvals.service.js";
 import { SubmitBriefingService } from "../application/submit-briefing.service.js";
 import { UpdateClientProjectStageService } from "../application/update-client-project-stage.service.js";
 import { SystemClock } from "../application/ports/clock.js";
@@ -17,6 +18,9 @@ import { AdminController } from "../controllers/admin.controller.js";
 import { AdminPaymentsController } from "../controllers/admin-payments.controller.js";
 import { ClientPaymentsController } from "../controllers/client-payments.controller.js";
 import { ClientController } from "../controllers/client.controller.js";
+import { AdminProposalsController } from "../controllers/admin-proposals.controller.js";
+import { AdminReportsController } from "../controllers/admin-reports.controller.js";
+import { ClientApprovalsController } from "../controllers/client-approvals.controller.js";
 import { ViewController } from "../controllers/view.controller.js";
 import { createAuthenticationGuard, type AuthenticationGuard } from "../middleware/authentication.middleware.js";
 import { AdminRepository } from "../repositories/admin.repository.js";
@@ -37,6 +41,9 @@ export interface ApplicationComposition {
     client: ClientController;
     adminPayments: AdminPaymentsController;
     clientPayments: ClientPaymentsController;
+    adminProposals: AdminProposalsController;
+    adminReports: AdminReportsController;
+    clientApprovals: ClientApprovalsController;
     views: ViewController;
     requireAuthentication: AuthenticationGuard;
 }
@@ -72,8 +79,6 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             new CreateClientService(clients, passwords, drive),
             authenticate,
             new ListClientsService(clients, briefings),
-            new ClientBriefingReportService(clients, briefings, drive),
-            proposalService,
             new UpdateClientProjectStageService(clients),
             new DeleteClientService(clients, new ClientDeletionRepository(), drive),
             sessions
@@ -82,12 +87,14 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             clients,
             submitBriefing,
             authenticate,
-            proposalService,
             sessions
         ),
         views: new ViewController(views, clients),
         adminPayments: new AdminPaymentsController(paymentService),
         clientPayments: new ClientPaymentsController(paymentService),
+        adminProposals: new AdminProposalsController(proposalService),
+        adminReports: new AdminReportsController(new ClientBriefingReportService(clients, briefings, drive)),
+        clientApprovals: new ClientApprovalsController(new ListClientApprovalsService(clients, proposalService), proposalResponses),
         requireAuthentication: createAuthenticationGuard(sessions)
     };
 }

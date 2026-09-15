@@ -697,3 +697,26 @@ Teste manual, em ambiente de teste:
 4. Entrar como cliente, abrir Financeiro e gerar Pix de uma parcela pendente.
 
 Não há migração nem sincronização de view. Próximo recorte: extrair propostas e relatórios, preservando compensações, uploads e contratos existentes.
+
+### Segundo recorte — propostas, aprovações e relatórios
+
+Estado em 15/09/2026: **segundo recorte concluído; etapa em andamento**.
+
+- Seis endpoints administrativos de propostas foram movidos para `AdminProposalsController`; consulta e geração do relatório ficaram em `AdminReportsController`.
+- Os três endpoints de aprovações do cliente ficaram em `ClientApprovalsController`, com respostas delegadas ao `ClientProposalResponseService` já existente.
+- Consulta de propostas e cliente, tratamento de cliente ausente e normalização de etapas foram movidos para `ListClientApprovalsService`, com dependências injetadas. O presenter `presentClientProposal` preserva campos públicos, histórico e fallback de anexos legados nas listagens e respostas.
+- `asyncRoute` e o middleware central preservam mensagens e status por recurso. A política distingue erros de validação e conversão: propostas administrativas mantêm `ValidationError` como 400 e `CastError` como 500; financeiro mantém ambos como 400.
+- Upload multipart, limites, autenticação, compensações e geração de PDF no processo principal foram preservados. Os novos controllers não acessam repositórios nem integrações diretamente.
+
+Validação: oito testes HTTP de caracterização passaram antes e depois da extração; três testes de aplicação/presenter cobrem falhas de consulta, ausência de cliente, histórico, campos públicos e ordem das etapas. Build completo e 15 views válidas; 56 testes frontend e 97 backend aprovados, com uma integração MongoDB ignorada por não estar habilitada. Os 14 E2E passaram; os fluxos de relatório e aprovação agora também cobrem falha e nova tentativa, preservando comentário e arquivo na aprovação. `git diff --check` sem erros.
+
+Os testes HTTP usam rotas e middleware de upload reais com serviços simulados. Os E2E usam respostas HTTP simuladas; nenhuma operação foi executada no banco ou Drive reais. Os avisos preexistentes de CSS no build permanecem registrados no primeiro recorte.
+
+Teste manual, em ambiente de teste:
+
+1. Criar e editar uma proposta com anexos no admin; remover um anexo e verificar que os demais permanecem.
+2. Como cliente, solicitar alteração com comentário, confirmação da rodada e anexo; como admin, reenviar a proposta.
+3. Aprovar com comentário e anexo; conferir histórico e atualização da etapa.
+4. Gerar o relatório de briefing e acessar o resultado; simular falha de rede e verificar a nova tentativa.
+
+Não há migração nem sincronização de view. Próximo recorte: separar clientes e sessões; depois, briefing e views.

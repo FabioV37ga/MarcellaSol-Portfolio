@@ -471,7 +471,9 @@ Objetivo:
 - retirar regras, persistência, compensações e integrações dos controllers;
 - preservar contratos e ampliar testes HTTP/E2E.
 
-Primeiro recorte concluído em 15/09/2026: endpoints financeiros extraídos para `AdminPaymentsController` e `ClientPaymentsController`, com dependências recebidas pela composição. `asyncRoute` encaminha falhas ao middleware central, que traduz `ApplicationError` e preserva as mensagens financeiras legadas. Autenticação, rate limits, paginação, auditoria e contratos HTTP foram preservados; testes HTTP e E2E ampliados. Próximo recorte: propostas e relatórios, antes de clientes, sessões, briefing e views.
+Primeiro recorte concluído em 15/09/2026: endpoints financeiros extraídos para `AdminPaymentsController` e `ClientPaymentsController`, com dependências recebidas pela composição. `asyncRoute` encaminha falhas ao middleware central, que traduz `ApplicationError` e preserva as mensagens financeiras legadas. Autenticação, rate limits, paginação, auditoria e contratos HTTP foram preservados; testes HTTP e E2E ampliados.
+
+Segundo recorte concluído em 15/09/2026: propostas administrativas, relatórios e aprovações do cliente extraídos para `AdminProposalsController`, `AdminReportsController` e `ClientApprovalsController`. `ListClientApprovalsService` concentra consulta e normalização das etapas; `presentClientProposal` centraliza a saída pública com leitura de anexos legados. As políticas de erro distinguem `ValidationError` e `CastError` para manter os status anteriores de cada recurso. Uploads, histórico e compensações permanecem nos componentes existentes. Próximo recorte: clientes e sessões; depois, briefing e views.
 
 ### Etapa priorizada 5 — briefing administrativo e criação de cliente
 

@@ -42,13 +42,19 @@ async function mockClient(page: Page): Promise<void> {
     }));
 }
 
-test("cliente envia anexo ao aprovar proposta e visualiza o histórico", async ({ page }) => {
+test("cliente preserva comentário e anexo após falha e aprova na nova tentativa", async ({ page }) => {
     let multipartBody = "";
     let authorization = "";
+    let attempts = 0;
     await mockClient(page);
     await page.route("**/api/client/proposals/proposal-id/approve", async route => {
         multipartBody = route.request().postDataBuffer()?.toString("utf8") ?? "";
         authorization = route.request().headers().authorization ?? "";
+        attempts += 1;
+        if (attempts === 1) {
+            await route.fulfill({ status: 500, json: { message: "Erro interno ao registrar decisão." } });
+            return;
+        }
         await route.fulfill({
             json: {
                 currentStageKey: "briefing",
@@ -88,6 +94,14 @@ test("cliente envia anexo ao aprovar proposta e visualiza o histórico", async (
     });
     await page.locator("#client-approval-approve-confirm").click();
 
+    await expect(page.locator("#client-approval-approve-feedback")).toHaveText("Erro interno ao registrar decisão.");
+    await expect(page.locator("#client-approval-approve-comment")).toHaveValue("Aprovado com referência");
+    await expect.poll(() => page.locator("#client-approval-approve-attachments").evaluate(
+        (input: HTMLInputElement) => input.files?.[0]?.name
+    )).toBe("referencia-cliente.pdf");
+    await expect(page.locator("#client-approval-approve-confirm")).toBeEnabled();
+    await page.locator("#client-approval-approve-confirm").click();
+
     await expect(page.locator(".client-approval-response-history")).toContainText("Aprovado com referência");
     await expect(page.locator(".client-approval-response-history a")).toHaveAttribute(
         "href", "https://drive.google.com/file/d/client/view"
@@ -95,4 +109,5 @@ test("cliente envia anexo ao aprovar proposta e visualiza o histórico", async (
     expect(multipartBody).toContain("referencia-cliente.pdf");
     expect(multipartBody).toContain("Aprovado com referência");
     expect(authorization).toBe("Bearer client-token");
+    expect(attempts).toBe(2);
 });

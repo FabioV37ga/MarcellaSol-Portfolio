@@ -8,17 +8,14 @@ import {
 import { ClientRepository } from "../repositories/client.repository.js";
 import { AuthenticateService } from "../application/authenticate.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
-import { ClientProposalService } from "../application/client-proposal.service.js";
 import { SessionService } from "../services/session.service.js";
 import { loginCredentials } from "./login-credentials.js";
-import { normalizedProjectStages } from "../models/projectStage.js";
 
 export class ClientController {
     constructor(
         private readonly clients: ClientRepository,
         private readonly submitBriefing: SubmitBriefingService,
         private readonly authenticate: AuthenticateService,
-        private readonly proposals: ClientProposalService,
         private readonly sessions: SessionService
     ) { }
 
@@ -50,47 +47,6 @@ export class ClientController {
             console.error("Erro ao revogar sessão de cliente:", error);
             return response.status(500).json({ message: "Erro interno ao encerrar sessão" });
         }
-    };
-
-    approvals = async (_request: Request, response: Response): Promise<Response> => {
-        try {
-            const principal = authenticatedPrincipal(response);
-            const [proposals, client] = await Promise.all([
-                this.proposals.list(principal.subject),
-                this.clients.findById(principal.subject)
-            ]);
-            if (!client) throw new ApplicationError("Cliente não encontrado", 404);
-            return response.status(200).json({
-                currentStageKey: client.currentStageKey ?? "briefing",
-                projectStages: normalizedProjectStages(client.projectStages, client.hasFilledBriefing),
-                proposals: proposals.map(proposal => ({
-                    _id: proposal._id,
-                    title: proposal.title,
-                    description: proposal.description,
-                    attachments: proposal.attachments?.length
-                        ? proposal.attachments
-                        : proposal.attachment ? [proposal.attachment] : [],
-                    userComment: proposal.userComment,
-                    clientResponses: proposal.clientResponses ?? [],
-                    stageKey: proposal.stageKey,
-                    status: proposal.status,
-                    createdAt: proposal.createdAt,
-                    updatedAt: proposal.updatedAt
-                }))
-            });
-        } catch (error: unknown) {
-            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            console.error("Erro ao carregar aprovações do cliente:", error);
-            return response.status(500).json({ message: "Erro ao carregar aprovações." });
-        }
-    };
-
-    approveProposal = async (request: Request, response: Response): Promise<Response> => {
-        return this.decideProposal(request, response, "approved");
-    };
-
-    beatProposal = async (request: Request, response: Response): Promise<Response> => {
-        return this.decideProposal(request, response, "beated");
     };
 
     session = async (_request: Request, response: Response): Promise<Response> => {
@@ -142,54 +98,6 @@ export class ClientController {
             manifest,
             files
         };
-    }
-
-    private async decideProposal(
-        request: Request,
-        response: Response,
-        decision: "approved" | "beated"
-    ): Promise<Response> {
-        try {
-            const principal = authenticatedPrincipal(response);
-            const proposalId = String(request.params.proposalId ?? "");
-            const result = decision === "approved"
-                ? await this.proposals.approve(
-                    principal.subject,
-                    proposalId,
-                    request.body?.comment,
-                    request.files as Express.Multer.File[] | undefined
-                )
-                : await this.proposals.beat(
-                    principal.subject,
-                    proposalId,
-                    request.body?.comment,
-                    request.body?.confirmRevisionRound === true || request.body?.confirmRevisionRound === "true",
-                    request.files as Express.Multer.File[] | undefined
-                );
-            const proposal = result.proposal;
-            return response.status(200).json({
-                currentStageKey: result.currentStageKey,
-                projectStages: result.projectStages,
-                proposal: {
-                    _id: proposal._id,
-                    title: proposal.title,
-                    description: proposal.description,
-                    attachments: proposal.attachments?.length
-                        ? proposal.attachments
-                        : proposal.attachment ? [proposal.attachment] : [],
-                    userComment: proposal.userComment,
-                    clientResponses: proposal.clientResponses ?? [],
-                    stageKey: proposal.stageKey,
-                    status: proposal.status,
-                    createdAt: proposal.createdAt,
-                    updatedAt: proposal.updatedAt
-                }
-            });
-        } catch (error: unknown) {
-            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            console.error("Erro ao registrar decisão do cliente:", error);
-            return response.status(500).json({ message: "Erro interno ao registrar decisão." });
-        }
     }
 
     private parseMultipartPayload(body: Record<string, unknown>): Record<string, unknown> {

@@ -2,7 +2,8 @@ import type { Request, Response, RequestHandler } from "express";
 
 export interface RouteErrorPolicy {
     unexpectedMessage: string;
-    invalidDataMessage?: string;
+    validationErrorMessage?: string;
+    castErrorMessage?: string;
 }
 
 export class RouteFailure extends Error {

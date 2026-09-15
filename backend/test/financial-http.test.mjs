@@ -7,6 +7,9 @@ import { AdminController } from "../dist/src/controllers/admin.controller.js";
 import { ClientController } from "../dist/src/controllers/client.controller.js";
 import { AdminPaymentsController } from "../dist/src/controllers/admin-payments.controller.js";
 import { ClientPaymentsController } from "../dist/src/controllers/client-payments.controller.js";
+import { AdminProposalsController } from "../dist/src/controllers/admin-proposals.controller.js";
+import { AdminReportsController } from "../dist/src/controllers/admin-reports.controller.js";
+import { ClientApprovalsController } from "../dist/src/controllers/client-approvals.controller.js";
 import adminRoutes from "../dist/src/routes/adminRoutes.js";
 import clientRoutes from "../dist/src/routes/clientRoutes.js";
 import { createAuthenticationGuard } from "../dist/src/middleware/authentication.middleware.js";
@@ -24,10 +27,10 @@ function financialApp(service, role = "admin") {
     app.use(express.json());
     // Os demais casos de uso não são executados por esta suíte.
     app.use(role === "admin"
-        ? adminRoutes(new AdminController(undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined),
-            guard, new AdminPaymentsController(service))
-        : clientRoutes(new ClientController(undefined, undefined, undefined, undefined, undefined),
-            guard, new ClientPaymentsController(service)));
+        ? adminRoutes(new AdminController(undefined, undefined, undefined, undefined, undefined, undefined),
+            guard, new AdminPaymentsController(service), new AdminProposalsController({}), new AdminReportsController({}))
+        : clientRoutes(new ClientController(undefined, undefined, undefined, undefined),
+            guard, new ClientPaymentsController(service), new ClientApprovalsController({}, {})));
     app.use(errorHandler);
     return app;
 }

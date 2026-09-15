@@ -26,9 +26,11 @@ export const errorHandler: ErrorRequestHandler = (error: HttpParserError, reques
     }
     if (error instanceof RouteFailure) {
         const { policy } = error;
-        if (policy.invalidDataMessage && (original instanceof mongoose.Error.ValidationError
-            || original instanceof mongoose.Error.CastError)) {
-            response.status(400).json({ message: policy.invalidDataMessage });
+        const invalidDataMessage = original instanceof mongoose.Error.ValidationError
+            ? policy.validationErrorMessage
+            : original instanceof mongoose.Error.CastError ? policy.castErrorMessage : undefined;
+        if (invalidDataMessage) {
+            response.status(400).json({ message: invalidDataMessage });
             return;
         }
         console.error(policy.unexpectedMessage, original instanceof Error ? original.name : "UnknownError");

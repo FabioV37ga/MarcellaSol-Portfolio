@@ -70,7 +70,7 @@ test("lista e exclui um cliente com confirmação nominal", async ({ page }) => 
     expect(JSON.parse(deletionBody)).toEqual({ confirmationName: "Cliente Exclusão E2E" });
 });
 
-test("carrega a gestão do cliente e gera o relatório de briefing", async ({ page }) => {
+test("recupera falha ao gerar relatório de briefing e permite acessar após nova tentativa", async ({ page }) => {
     const client = {
         id: "client-management-e2e",
         name: "Cliente Gestão E2E",
@@ -94,7 +94,11 @@ test("carrega a gestão do cliente e gera o relatório de briefing", async ({ pa
     await page.route("**/api/admin/clients/client-management-e2e/briefing-report", route => {
         if (route.request().method() === "POST") {
             reportGenerationRequests += 1;
+            if (reportGenerationRequests === 1) return route.fulfill({
+                status: 500, json: { message: "Erro interno ao processar relatório do briefing" }
+            });
             return route.fulfill({
+                status: 201,
                 json: {
                     exists: true,
                     folderUrl: "https://drive.google.com/drive/folders/client-management-e2e"
@@ -117,8 +121,11 @@ test("carrega a gestão do cliente e gera o relatório de briefing", async ({ pa
     const report = page.locator("#client-management-briefing-report");
     await expect(report).toContainText("Gerar relatório");
     await report.click();
+    await expect(report).toContainText("Tentar novamente");
+    await expect(report).toBeEnabled();
+    await report.click();
     await expect(report).toContainText("Acessar");
-    expect(reportGenerationRequests).toBe(1);
+    expect(reportGenerationRequests).toBe(2);
 });
 
 test("financeiro preserva formulário após erro de prévia, permite nova tentativa e retorna à gestão", async ({ page }) => {
