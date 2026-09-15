@@ -54,6 +54,8 @@ test("confirma alterações com cancelamento, falha, nova tentativa e conclusão
     await page.locator("[data-client-id='changes-client']").click();
     await page.locator("#client-management-proposals").click();
     await expect(page.getByText("Reenviar ao cliente", { exact: true })).toHaveCount(0);
+    await expect(page.locator("#open-proposals-list [data-proposal-id='changes-proposal']")).toBeVisible();
+    await expect(page.locator("#closed-proposals-list [data-proposal-id='changes-proposal']")).toHaveCount(0);
     await page.locator(".proposal-confirm-changes").click();
     const dialog = page.locator("#proposal-changes-dialog");
     await expect(dialog).toBeVisible();
@@ -66,6 +68,8 @@ test("confirma alterações com cancelamento, falha, nova tentativa e conclusão
     await page.locator("#proposal-changes-confirm").click();
     await expect(dialog).not.toBeVisible();
     await expect(page.locator(".proposal-status-changes-completed")).toHaveText("Alterações concluídas");
+    await expect(page.locator("#open-proposals-list [data-proposal-id='changes-proposal']")).toHaveCount(0);
+    await expect(page.locator("#closed-proposals-list [data-proposal-id='changes-proposal']")).toBeVisible();
     await expect(page.locator(".proposal-confirm-changes")).toHaveCount(0);
     await expect(page.locator(".proposal-client-response-history")).toContainText("Mover mesa");
     await expect(page.locator(".project-step[data-stage-key='layout']")).toHaveAttribute("data-status", "completed");

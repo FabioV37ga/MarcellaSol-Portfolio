@@ -156,7 +156,8 @@ export class AdminClientProposalsModule {
             closedList.replaceChildren();
             proposals.forEach(proposal => {
                 const item = clientProposalItem(proposal);
-                const target = proposal.status === "sent" || proposal.status === "resent" ? openList : closedList;
+                const target = proposal.status === "sent" || proposal.status === "resent" || proposal.status === "beated"
+                    ? openList : closedList;
                 target.append(item);
                 u(item.querySelector(".proposal-edit") as HTMLElement).on("click", () => openEditor(proposal));
                 u(item.querySelector(".proposal-delete") as HTMLElement).on("click", () => openDeleteDialog(proposal));
@@ -164,7 +165,7 @@ export class AdminClientProposalsModule {
                 confirm?.addEventListener("click", () => changesConfirmation.open(proposal._id, proposal.title));
             });
             this.toggleProposalEmpty(openList, "Nenhuma proposta aberta.");
-            this.toggleProposalEmpty(closedList, "Nenhuma proposta respondida ou cancelada.");
+            this.toggleProposalEmpty(closedList, "Nenhuma proposta no histórico.");
         };
 
         const openDeleteDialog = (proposal: ClientProposal): void => {

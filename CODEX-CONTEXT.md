@@ -209,6 +209,7 @@ Preservar valores persistidos e contratos definidos em `projectStage` e nos cont
 ### Propostas
 
 - Uma proposta administrativa pertence a uma etapa.
+- Na tela administrativa, propostas enviadas, reenviadas legadas e com alterações solicitadas ficam em `Propostas abertas`; aprovadas, com alterações concluídas e canceladas ficam em `Histórico de propostas`.
 - Ao criar, a etapa associada vira `aguardando aprovação` e etapas anteriores são concluídas.
 - Aprovação do cliente marca a proposta como aprovada e atualiza a etapa.
 - Solicitação de alteração marca a proposta e a etapa como alterações solicitadas.

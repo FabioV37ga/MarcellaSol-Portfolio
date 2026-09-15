@@ -723,6 +723,8 @@ Não há migração nem sincronização de view. Próximo recorte: separar clien
 
 ## 26. Mudança funcional — confirmação das alterações de proposta
 
+Ajuste de organização: propostas com alterações solicitadas (`beated`) ficam em `Propostas abertas`; após confirmar alterações, passam para `Histórico de propostas`. E2E ampliado para verificar os dois containers. Build, 56 testes frontend, 102 backend e 16 E2E aprovados; uma integração MongoDB ignorada. A classificação não exige mudança na view; a renomeação anterior do título continua dependendo da sincronização de `client-proposals-view.json`.
+
 Pedido de 15/09/2026: substituir reenvio por `Confirmar alterações`, mantendo aprovação inicial do cliente. Após confirmação no diálogo `Deseja alterar o status da proposta para 'Alterações concluídas'?`, a proposta muda de `beated` para `changes-completed` e a etapa vinculada fica `completed`. Não há nova aprovação do cliente.
 
 - Novo endpoint administrativo `POST /api/admin/clients/:id/proposals/:proposalId/complete-changes`; rota antiga de reenvio removida.
