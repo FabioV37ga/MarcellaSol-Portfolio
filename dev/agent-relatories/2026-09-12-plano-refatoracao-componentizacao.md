@@ -678,3 +678,22 @@ Estado em 14/09/2026: **segundo recorte concluído**. Endpoints administrativos 
 Estado em 14/09/2026: **terceiro recorte concluído**. Consulta, criação multipart, edição, reenvio, exclusão e remoção de anexos administrativos foram concentrados em `AdminProposalsApi`; consulta e respostas multipart do cliente foram concentradas em `ClientProposalsApi`. As duas APIs usam `HttpClient`, expõem gateways específicos e permanecem acessíveis pelas fachadas durante a migração. Etapa priorizada 3: **3/4 concluída**. O último recorte separará clientes, etapas, relatórios e views residuais.
 
 Estado em 14/09/2026: **quarto recorte concluído**. Clientes, criação e exclusão, etapas e relatórios foram concentrados em `AdminClientsApi`; carregamento das views administrativas e do cliente foi separado em gateways próprios. `AdminSystemApi` e `ClientSystemApi` deixaram de executar `fetch` e agora são fachadas puras de compatibilidade sobre APIs por responsabilidade. Etapa priorizada 3: **4/4 concluída**.
+
+## 25. Execução da Etapa priorizada 4 — controllers HTTP do backend
+
+Estado em 15/09/2026: **primeiro recorte concluído; etapa em andamento**. Os nove endpoints financeiros foram extraídos dos agregadores para `AdminPaymentsController` e `ClientPaymentsController`, com dependências mínimas recebidas pela composition root. Os controllers fazem parsing HTTP, chamam o serviço financeiro e retornam a resposta.
+
+`asyncRoute` encaminha exceções e rejeições com a política de mensagens da rota; `errorHandler` centraliza a tradução de `ApplicationError`, preserva os erros Mongoose administrativos como HTTP 400 e mantém as mensagens inesperadas anteriores. As falhas financeiras inesperadas registram somente a categoria do erro, sem serializar detalhes potencialmente sensíveis. URLs, métodos, autenticação, rate limits, paginação, autoria da sessão, versão e confirmação de histórico permanecem compatíveis.
+
+Validações: build completo, 15 views válidas, 56 testes frontend, 86 testes backend aprovados e uma integração MongoDB ignorada por não estar habilitada. Os 14 E2E passaram, com ampliação do financeiro administrativo para erro de prévia, preservação do formulário e nova tentativa. Os testes HTTP percorrem as rotas reais com serviços simulados; o E2E usa respostas HTTP simuladas. Nenhum dado real foi alterado.
+
+Ambiente local: dependências restauradas pelos lockfiles. No PowerShell foi usado `npm.cmd`; cache npm e navegadores Playwright ficaram em diretórios temporários graváveis. Para repetir os E2E nesta instalação, definir `$env:PLAYWRIGHT_BROWSERS_PATH="$env:TEMP/marcellasol-playwright"`. O Node local 22.20.0 ficou abaixo do requisito declarado por jsdom 30.0.1, embora os testes tenham passado; o build também emitiu avisos preexistentes de referências CSS do portfólio.
+
+Teste manual, em ambiente de teste:
+
+1. Abrir um cliente no admin e acessar Financeiro; conferir listagem e paginação.
+2. Gerar uma prévia, criar e editar uma cobrança, marcar recebimento e conferir persistência ao recarregar.
+3. Remover uma cobrança de teste, verificando a confirmação adicional quando houver histórico de recebimentos.
+4. Entrar como cliente, abrir Financeiro e gerar Pix de uma parcela pendente.
+
+Não há migração nem sincronização de view. Próximo recorte: extrair propostas e relatórios, preservando compensações, uploads e contratos existentes.

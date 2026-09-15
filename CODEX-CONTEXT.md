@@ -460,7 +460,7 @@ Quando o usuário pedir apenas status ou resumo, não repetir todos os detalhes:
 
 As três primeiras prioridades estão concluídas. A fila restante priorizada por legibilidade e componentização é:
 
-### Etapa priorizada 4 — controllers HTTP do backend: próxima
+### Etapa priorizada 4 — controllers HTTP do backend: em andamento
 
 Objetivo:
 
@@ -471,7 +471,7 @@ Objetivo:
 - retirar regras, persistência, compensações e integrações dos controllers;
 - preservar contratos e ampliar testes HTTP/E2E.
 
-Começar por um recorte pequeno e bem coberto, preferencialmente endpoints financeiros, antes de avançar para clientes, propostas, briefing e views.
+Primeiro recorte concluído em 15/09/2026: endpoints financeiros extraídos para `AdminPaymentsController` e `ClientPaymentsController`, com dependências recebidas pela composição. `asyncRoute` encaminha falhas ao middleware central, que traduz `ApplicationError` e preserva as mensagens financeiras legadas. Autenticação, rate limits, paginação, auditoria e contratos HTTP foram preservados; testes HTTP e E2E ampliados. Próximo recorte: propostas e relatórios, antes de clientes, sessões, briefing e views.
 
 ### Etapa priorizada 5 — briefing administrativo e criação de cliente
 

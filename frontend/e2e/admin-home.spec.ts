@@ -121,7 +121,7 @@ test("carrega a gestão do cliente e gera o relatório de briefing", async ({ pa
     expect(reportGenerationRequests).toBe(1);
 });
 
-test("abre o financeiro do cliente e preserva a navegação de retorno", async ({ page }) => {
+test("financeiro preserva formulário após erro de prévia, permite nova tentativa e retorna à gestão", async ({ page }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", error => pageErrors.push(error.message));
     const client = {
@@ -143,6 +143,16 @@ test("abre o financeiro do cliente e preserva a navegação de retorno", async (
         }
     }));
     let paymentsAuthorization = "";
+    let previewFails = true;
+    await page.route("**/api/admin/payments/preview", route => {
+        if (previewFails) return route.fulfill({ status: 400, json: { message: "Dados do pagamento inválidos" } });
+        return route.fulfill({ json: { preview: {
+            downPaymentCents: 0,
+            firstDueDate: "2026-10-01",
+            installments: [{ amountCents: 120000, dueDate: "2026-10-01" }],
+            finalAmountCents: 120000
+        } } });
+    });
     await page.route("**/api/admin/clients/client-financial-e2e/payments", route => {
         paymentsAuthorization = route.request().headers().authorization ?? "";
         return route.fulfill({ json: {
@@ -168,6 +178,19 @@ test("abre o financeiro do cliente e preserva a navegação de retorno", async (
     await expect(page.locator("#financial-payments-list")).toContainText("Nenhum pagamento cadastrado");
     expect(paymentsAuthorization).toBe("Bearer e2e-admin-token");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-financial");
+    await page.locator("#financial-new-payment").click();
+    await page.locator("#financial-payment-title").fill("Projeto E2E");
+    await page.locator("#financial-payment-total").fill("1000");
+    await page.locator("#financial-payment-first-due-date").fill("2026-10-01");
+    await page.locator("#financial-payment-count").fill("1");
+    await expect(page.locator("#financial-payment-form-feedback")).toHaveText("Dados do pagamento inválidos");
+    await expect(page.locator("#financial-payment-title")).toHaveValue("Projeto E2E");
+    await expect(page.locator("#financial-payment-total")).toHaveValue("1000");
+    previewFails = false;
+    await page.locator("#financial-payment-total").fill("1200");
+    await expect(page.locator("#financial-payment-form-feedback")).toBeEmpty();
+    await expect(page.locator("#financial-preview-final")).toContainText("1.200,00");
+    await page.locator("#financial-payment-cancel").click();
     await page.locator("#financial-back").click();
     await expect(page.locator("#client-management-name")).toHaveText("Cliente Financeiro E2E");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-management");

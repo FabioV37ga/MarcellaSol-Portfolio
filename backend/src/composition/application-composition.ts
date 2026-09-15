@@ -14,6 +14,8 @@ import { UpdateClientProjectStageService } from "../application/update-client-pr
 import { SystemClock } from "../application/ports/clock.js";
 import { RandomUuidGenerator } from "../application/ports/id-generator.js";
 import { AdminController } from "../controllers/admin.controller.js";
+import { AdminPaymentsController } from "../controllers/admin-payments.controller.js";
+import { ClientPaymentsController } from "../controllers/client-payments.controller.js";
 import { ClientController } from "../controllers/client.controller.js";
 import { ViewController } from "../controllers/view.controller.js";
 import { createAuthenticationGuard, type AuthenticationGuard } from "../middleware/authentication.middleware.js";
@@ -33,6 +35,8 @@ import { SessionTokenService } from "../services/session-token.service.js";
 export interface ApplicationComposition {
     admin: AdminController;
     client: ClientController;
+    adminPayments: AdminPaymentsController;
+    clientPayments: ClientPaymentsController;
     views: ViewController;
     requireAuthentication: AuthenticationGuard;
 }
@@ -65,7 +69,6 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
 
     return {
         admin: new AdminController(
-            paymentService,
             new CreateClientService(clients, passwords, drive),
             authenticate,
             new ListClientsService(clients, briefings),
@@ -76,7 +79,6 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             sessions
         ),
         client: new ClientController(
-            paymentService,
             clients,
             submitBriefing,
             authenticate,
@@ -84,6 +86,8 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             sessions
         ),
         views: new ViewController(views, clients),
+        adminPayments: new AdminPaymentsController(paymentService),
+        clientPayments: new ClientPaymentsController(paymentService),
         requireAuthentication: createAuthenticationGuard(sessions)
     };
 }

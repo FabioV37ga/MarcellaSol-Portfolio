@@ -8,10 +8,14 @@ import type { AdminController } from "../controllers/admin.controller.js";
 import type { ClientController } from "../controllers/client.controller.js";
 import type { ViewController } from "../controllers/view.controller.js";
 import type { AuthenticationGuard } from "../middleware/authentication.middleware.js";
+import type { AdminPaymentsController } from "../controllers/admin-payments.controller.js";
+import type { ClientPaymentsController } from "../controllers/client-payments.controller.js";
 
 interface RouteControllers {
     admin: AdminController;
     client: ClientController;
+    adminPayments: AdminPaymentsController;
+    clientPayments: ClientPaymentsController;
     views: ViewController;
     requireAuthentication: AuthenticationGuard;
 }
@@ -20,8 +24,8 @@ const routes = (app: Application, controllers: RouteControllers, isProduction: b
     app.use(express.json({ limit: "100kb" }));
     app.use(createOperationalRoutes(isProduction, controllers.requireAuthentication));
     app.use(
-        createAdminRoutes(controllers.admin, controllers.requireAuthentication),
-        createClientRoutes(controllers.client, controllers.requireAuthentication),
+        createAdminRoutes(controllers.admin, controllers.requireAuthentication, controllers.adminPayments),
+        createClientRoutes(controllers.client, controllers.requireAuthentication, controllers.clientPayments),
         createViewRoutes(controllers.views, controllers.requireAuthentication)
     );
     app.use(notFoundHandler);

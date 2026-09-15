@@ -12,11 +12,9 @@ import { ClientProposalService } from "../application/client-proposal.service.js
 import { SessionService } from "../services/session.service.js";
 import { loginCredentials } from "./login-credentials.js";
 import { normalizedProjectStages } from "../models/projectStage.js";
-import { ClientPaymentService } from "../application/client-payment.service.js";
 
 export class ClientController {
     constructor(
-        private readonly paymentService: ClientPaymentService,
         private readonly clients: ClientRepository,
         private readonly submitBriefing: SubmitBriefingService,
         private readonly authenticate: AuthenticateService,
@@ -84,37 +82,6 @@ export class ClientController {
             if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
             console.error("Erro ao carregar aprovações do cliente:", error);
             return response.status(500).json({ message: "Erro ao carregar aprovações." });
-        }
-    };
-
-    payments = async (request: Request, response: Response): Promise<Response> => {
-        try {
-            const principal = authenticatedPrincipal(response);
-            return response.status(200).json(await this.paymentService.listForClient(
-                principal.subject, request.query.cursor, request.query.limit
-            ));
-        } catch (error: unknown) {
-            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            console.error("Erro ao carregar pagamentos do cliente:", error instanceof Error ? error.name : "UnknownError");
-            return response.status(500).json({ message: "Erro ao carregar pagamentos." });
-        }
-    };
-
-    generatePaymentPix = async (request: Request, response: Response): Promise<Response> => {
-        try {
-            const principal = authenticatedPrincipal(response);
-            const result = await this.paymentService.generatePix(
-                principal.subject,
-                String(request.params.paymentId ?? ""),
-                request.body?.partType,
-                request.body?.installmentNumber,
-                { id: principal.subject, sessionId: principal.sessionId, role: "client" }
-            );
-            return response.status(200).json(result);
-        } catch (error: unknown) {
-            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            console.error("Erro ao gerar código Pix:", error instanceof Error ? error.name : "UnknownError");
-            return response.status(500).json({ message: "Não foi possível gerar o código Pix." });
         }
     };
 

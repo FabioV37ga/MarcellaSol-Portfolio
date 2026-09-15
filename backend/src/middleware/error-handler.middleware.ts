@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { ErrorRequestHandler, RequestHandler } from "express";
+import mongoose from "mongoose";
+import { ApplicationError } from "../application/errors/application-error.js";
+import { RouteFailure } from "./async-route.js";
 
 interface HttpParserError extends Error {
     status?: number;
@@ -13,6 +16,23 @@ export const notFoundHandler: RequestHandler = (_request, response) => {
 export const errorHandler: ErrorRequestHandler = (error: HttpParserError, request, response, next) => {
     if (response.headersSent) {
         next(error);
+        return;
+    }
+
+    const original = error instanceof RouteFailure ? error.original : error;
+    if (original instanceof ApplicationError) {
+        response.status(original.status).json({ message: original.message });
+        return;
+    }
+    if (error instanceof RouteFailure) {
+        const { policy } = error;
+        if (policy.invalidDataMessage && (original instanceof mongoose.Error.ValidationError
+            || original instanceof mongoose.Error.CastError)) {
+            response.status(400).json({ message: policy.invalidDataMessage });
+            return;
+        }
+        console.error(policy.unexpectedMessage, original instanceof Error ? original.name : "UnknownError");
+        response.status(500).json({ message: policy.unexpectedMessage });
         return;
     }
 
