@@ -45,6 +45,7 @@ Stack atual:
 ## 3. Preferências permanentes do responsável pelo projeto
 
 - Conversar e entregar respostas em português do Brasil.
+- Incluir neste `CODEX-CONTEXT.md` novas preferências expressas durante o chat, registrando o escopo quando forem específicas de uma tarefa ou situação.
 - Implementar com autonomia quando o escopo estiver claro.
 - Perguntar antes de alterar decisões relevantes de arquitetura, experiência, dados, segurança, custos, integrações externas ou escopo.
 - Preferir componentização real e separação por responsabilidade.
