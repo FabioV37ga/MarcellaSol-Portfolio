@@ -61,10 +61,11 @@ function considerationPage(roomType: string): HTMLElement | undefined {
 export class BriefingPageFactory {
     create(briefing: ResolvedBriefingDefinition): HTMLElement[] {
         const rooms = briefing.rooms;
-        const residents = briefing.description.residentAmount;
+        const { adultAmount, childrenAmount } = briefing.description;
+        const residents = adultAmount + childrenAmount;
         const fixedPages = [
             ["welcome", home()],
-            ["about-property", about_1(residents, true)],
+            ["about-property", about_1(adultAmount, childrenAmount, true)],
             ["about-residents", about_2()],
             ["routine", routine()],
             ["investment", investment(briefing.investmentFlexibility)],
@@ -85,7 +86,7 @@ export class BriefingPageFactory {
             ...fixedPages.map(([key, page]) => this.identify(page, key)),
             ...configuredRoomPages,
             this.identify(existing.existingFurniture(), "existing-furniture"),
-            this.identify(ending(), "ending")
+            this.identify(ending(briefing.description.type, adultAmount, childrenAmount), "ending")
         ];
     }
 

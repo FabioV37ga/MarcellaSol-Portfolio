@@ -1,34 +1,58 @@
 import html from 'nanohtml'
 
-function residentInfo(amount: number) {
-    var model: HTMLElement[] = []
-    var id = 1;
-    for (let i = 1; i <= amount; i++) {
+function adultInfo(amount: number) {
+    const model: HTMLElement[] = []
+    for (let id = 1; id <= amount; id++) {
         model.push(
             html`
             <div class="briefing-input-box">
                 <label>Nome completo do responsável ${id}</label>
-                <input type="text" class="briefing-input" autocomplete="name" id="resident-${id}-name">
+                <input type="text" class="briefing-input" autocomplete="name" id="adult-${id}-name">
+            </div>
+            <div class="briefing-input-box">
+                <label>Data de nascimento</label>
+                <input type="date" class="briefing-input" autocomplete="bday" id="adult-${id}-birth-date">
+            </div>
+            <div class="briefing-input-box">
+                <label>Altura</label>
+                <input type="number" class="briefing-input" min="50" max="250" step="1" inputmode="numeric" placeholder="Em centímetros" id="adult-${id}-height">
             </div>
 
             <div class="briefing-input-flex-box client-contact-fields">
                 <div class="briefing-input-box">
                     <label>Telefone</label>
-                    <input type="tel" class="briefing-input-half" autocomplete="tel" id="resident-${id}-phone">
+                    <input type="tel" class="briefing-input-half" autocomplete="tel" id="adult-${id}-phone">
                 </div>
 
                 <div class="briefing-input-box">
                     <label>E-mail</label>
-                    <input type="email" class="briefing-input-half" autocomplete="email" id="resident-${id}-mail">
+                    <input type="email" class="briefing-input-half" autocomplete="email" id="adult-${id}-mail">
                 </div>
             </div>
             `
         )
-        id++
     }
-
     return model
+}
 
+function childrenInfo(amount: number) {
+    return Array.from({ length: amount }, (_, index) => {
+        const id = index + 1;
+        return html`
+            <div class="briefing-input-box">
+                <label>Nome completo da criança ${id}</label>
+                <input type="text" class="briefing-input" autocomplete="name" id="child-${id}-name">
+            </div>
+            <div class="briefing-input-box">
+                <label>Data de nascimento</label>
+                <input type="date" class="briefing-input" autocomplete="bday" id="child-${id}-birth-date">
+            </div>
+            <div class="briefing-input-box">
+                <label>Altura</label>
+                <input type="number" class="briefing-input" min="30" max="220" step="1" inputmode="numeric" placeholder="Em centímetros" id="child-${id}-height">
+            </div>
+        `;
+    });
 }
 
 function airConditionerOptions() {
@@ -60,7 +84,7 @@ function airConditionerOptions() {
     `
 }
 
-export function about_1(residentAmount: number, showAirConditioner: boolean) {
+export function about_1(adultAmount: number, childrenAmount: number, showAirConditioner: boolean) {
     return html`
         <div class="form-page-01">
             <h1 class="briefing-title">Sobre vocês e o imóvel — parte 1</h1>
@@ -68,7 +92,8 @@ export function about_1(residentAmount: number, showAirConditioner: boolean) {
                 Vamos conhecer mais sobre vocês e alguns detalhes essenciais do imóvel.
             </p>
 
-           ${residentInfo(residentAmount)}
+           ${adultInfo(adultAmount)}
+           ${childrenInfo(childrenAmount)}
 
             <div class="briefing-input-box">
                     <label>Contato principal do projeto</label>

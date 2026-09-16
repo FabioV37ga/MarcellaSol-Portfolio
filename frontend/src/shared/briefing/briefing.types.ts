@@ -11,7 +11,8 @@ export interface BriefingDescription {
     category: string;
     type: string;
     name: string;
-    residentAmount: number;
+    adultAmount: number;
+    childrenAmount: number;
 }
 
 export interface BriefingDefinition {

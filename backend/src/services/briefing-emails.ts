@@ -1,4 +1,4 @@
-const residentEmailKey = /^resident-\d+-mail$/i;
+const residentEmailKey = /^(?:adult|resident)-\d+-mail$/i;
 
 function normalizeEmail(value: string): string | undefined {
     const email = value.trim().toLowerCase();

@@ -7,7 +7,8 @@ interface briefingHome {
     category: HTMLSelectElement;
     type: HTMLSelectElement
     name: HTMLInputElement,
-    peopleAmount: HTMLInputElement
+    adultAmount: HTMLInputElement
+    childrenAmount: HTMLInputElement
 }
 
 function getBriefingHome(): briefingHome {
@@ -25,7 +26,8 @@ function getBriefingHome(): briefingHome {
         category: inputs[0] as HTMLSelectElement,
         type: inputs[1] as HTMLSelectElement,
         name: inputs[2] as HTMLInputElement,
-        peopleAmount: inputs[3] as HTMLInputElement
+        adultAmount: inputs[3] as HTMLInputElement,
+        childrenAmount: inputs[4] as HTMLInputElement
     }
 }
 

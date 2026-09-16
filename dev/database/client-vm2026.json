@@ -46,7 +46,8 @@
       "category": "residencial",
       "type": "apartamento",
       "name": "Átrio de Dois",
-      "residentAmount": 2
+      "adultAmount": 2,
+      "childrenAmount": 0
     },
     "investmentFlexibility": false,
     "rooms": [

@@ -39,7 +39,8 @@ export function normalizeBriefingData(
                 category: typeof description.category === "string" ? description.category : "",
                 type: typeof description.type === "string" ? description.type : "",
                 name: typeof description.name === "string" ? description.name : "",
-                residentAmount: Math.max(0, Number(description.residentAmount) || 0)
+                adultAmount: Math.max(1, Math.floor(Number(description.adultAmount) || 1)),
+                childrenAmount: Math.max(0, Math.floor(Number(description.childrenAmount) || 0))
             },
             investmentFlexibility: Boolean(rawBriefing.investmentFlexibility),
             rooms

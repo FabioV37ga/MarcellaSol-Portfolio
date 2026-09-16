@@ -25,7 +25,8 @@ export class Briefing {
             category: "",
             type: "",
             name: "",
-            residentAmount: 0
+            adultAmount: 1,
+            childrenAmount: 0
         },
         investmentFlexibility: false,
         rooms: []
@@ -62,13 +63,15 @@ export class Briefing {
                 this.home.category.value = this.briefingObject.description?.category ?? ""
                 this.home.type.value = this.briefingObject.description?.type ?? ""
                 this.home.name.value = this.briefingObject.description?.name ?? ""
-                this.home.peopleAmount.value = String(this.briefingObject.description?.residentAmount || "")
+                this.home.adultAmount.value = String(this.briefingObject.description?.adultAmount || "")
+                this.home.childrenAmount.value = String(this.briefingObject.description?.childrenAmount ?? "")
 
                 const homeFields = [
                     this.home.category,
                     this.home.type,
                     this.home.name,
-                    this.home.peopleAmount
+                    this.home.adultAmount,
+                    this.home.childrenAmount
                 ]
 
                 homeFields.forEach(field => {
@@ -181,7 +184,10 @@ export class Briefing {
                     this.home.category.value &&
                     this.home.type.value &&
                     this.home.name.value &&
-                    this.home.peopleAmount.value
+                Number.isInteger(Number(this.home.adultAmount.value)) &&
+                Number(this.home.adultAmount.value) >= 1 &&
+                Number.isInteger(Number(this.home.childrenAmount.value)) &&
+                Number(this.home.childrenAmount.value) >= 0
                 ) {
                     return true
                 } else {
@@ -197,7 +203,8 @@ export class Briefing {
             category: this.home.category.value,
             type: this.home.type.value,
             name: this.home.name.value.trim(),
-            residentAmount: Number(this.home.peopleAmount.value) || 0
+            adultAmount: Math.max(1, Math.floor(Number(this.home.adultAmount.value) || 1)),
+            childrenAmount: Math.max(0, Math.floor(Number(this.home.childrenAmount.value) || 0))
         }
     }
 

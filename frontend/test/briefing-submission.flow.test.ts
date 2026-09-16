@@ -5,7 +5,8 @@ const project = {
     category: "residencial",
     type: "apartamento",
     name: "Projeto teste",
-    residentAmount: 2
+    adultAmount: 2,
+    childrenAmount: 1
 };
 
 function pageWithFiles(): { page: HTMLElement; first: HTMLInputElement; ignored: HTMLInputElement } {

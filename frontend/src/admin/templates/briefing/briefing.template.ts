@@ -30,7 +30,8 @@ export interface FinishBriefingSummary {
     projectName?: string;
     category?: string;
     propertyType?: string;
-    residentAmount?: number;
+    adultAmount?: number;
+    childrenAmount?: number;
 }
 
 const roomNames: Record<string, string> = {
@@ -169,8 +170,12 @@ export function finishBriefing(
 
                     <dl class="briefing-finish-project-data">
                         <div>
-                            <dt>Moradores</dt>
-                            <dd>${summary.residentAmount ?? 0}</dd>
+                            <dt>Adultos</dt>
+                            <dd>${summary.adultAmount ?? 0}</dd>
+                        </div>
+                        <div>
+                            <dt>Crianças</dt>
+                            <dd>${summary.childrenAmount ?? 0}</dd>
                         </div>
                         <div>
                             <dt>Cômodos</dt>

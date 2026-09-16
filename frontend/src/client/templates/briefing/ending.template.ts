@@ -1,6 +1,8 @@
 import html from 'nanohtml'
 
-export function ending() {
+export function ending(propertyType: string, adultAmount: number, childrenAmount: number) {
+    const adults = `${adultAmount} ${adultAmount === 1 ? "adulto" : "adultos"}`;
+    const children = `${childrenAmount} ${childrenAmount === 1 ? "criança" : "crianças"}`;
     return html`
         <div class="form-page-18">
 
@@ -16,7 +18,7 @@ export function ending() {
                         <img class="briefing-summary-icon" src="/images/briefing/summary/sobre-imovel.png" alt="">
                         <div>
                             <h2>Sobre vocês e o imóvel</h2>
-                            <p>Casa&nbsp; • &nbsp;3 moradores&nbsp; • &nbsp;São Paulo, SP</p>
+                            <p>${propertyType}&nbsp; • &nbsp;${adults}&nbsp; • &nbsp;${children}</p>
                         </div>
                         <button type="button" class="briefing-edit-button">Editar</button>
                     </section>

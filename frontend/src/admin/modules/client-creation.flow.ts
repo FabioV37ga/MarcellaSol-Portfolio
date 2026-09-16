@@ -76,7 +76,8 @@ export class ClientCreationFlow {
                 projectName: description?.name,
                 category: description?.category,
                 propertyType: description?.type,
-                residentAmount: description?.residentAmount
+                adultAmount: description?.adultAmount,
+                childrenAmount: description?.childrenAmount
             }
         );
         this.view.render(page, ".page-content");

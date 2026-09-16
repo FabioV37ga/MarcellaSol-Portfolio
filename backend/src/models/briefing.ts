@@ -18,7 +18,8 @@ export interface BriefingObject {
         category: string;
         type: string;
         name: string;
-        residentAmount: number;
+        adultAmount: number;
+        childrenAmount: number;
     };
     investmentFlexibility?: boolean;
     rooms?: BriefingRoom[];
@@ -41,7 +42,8 @@ const briefingDescriptionSchema = new mongoose.Schema({
     category: { type: String, required: true },
     type: { type: String, required: true },
     name: { type: String, required: true },
-    residentAmount: { type: Number, required: true }
+    adultAmount: { type: Number, required: true, min: 1, validate: Number.isInteger },
+    childrenAmount: { type: Number, required: true, min: 0, validate: Number.isInteger }
 }, { _id: false });
 
 export const briefingSchema = new mongoose.Schema<BriefingObject>({

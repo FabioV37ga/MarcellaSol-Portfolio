@@ -1,0 +1,1621 @@
+{
+  "_id": {
+    "$oid": "6a8a07342667cfee544caa84"
+  },
+  "clientId": {
+    "$oid": "6a865d38f5b3864b8b45fc89"
+  },
+  "__v": 0,
+  "attachments": [
+    {
+      "uploadId": "global:existing-furniture:field-3:0",
+      "pageKey": "existing-furniture",
+      "answerKey": "field-3",
+      "fileIndex": 0,
+      "originalName": "Screenshot_20260822_171940_Mobly.jpg",
+      "id": "1trYA3i0nZnkUa0A6JFoqPEGbMok9e_Fr",
+      "name": "Screenshot_20260822_171940_Mobly.jpg",
+      "mimeType": "image/jpeg",
+      "size": 437054,
+      "webViewLink": "https://drive.google.com/file/d/1trYA3i0nZnkUa0A6JFoqPEGbMok9e_Fr/view?usp=drivesdk"
+    }
+  ],
+  "briefingDefinition": {
+    "user": {
+      "name": "Vinicius e Monique"
+    },
+    "description": {
+      "category": "residencial",
+      "type": "apartamento",
+      "name": "Átrio de Dois",
+      "adultAmount": 2,
+      "childrenAmount": 0
+    },
+    "investmentFlexibility": false,
+    "rooms": [
+      {
+        "id": 2,
+        "index": 0,
+        "name": "Cozinha",
+        "type": "cozinha",
+        "options": [
+          false
+        ]
+      },
+      {
+        "id": 3,
+        "index": 1,
+        "name": "Área de Serviço",
+        "type": "lavanderia",
+        "options": []
+      },
+      {
+        "id": 1,
+        "index": 2,
+        "name": "Sala de Jantar",
+        "type": "sala-jantar",
+        "options": []
+      },
+      {
+        "id": 0,
+        "index": 3,
+        "name": "Sala de Estar",
+        "type": "sala-estar",
+        "options": []
+      },
+      {
+        "id": 4,
+        "index": 4,
+        "name": "Varanda",
+        "type": "varanda",
+        "options": [
+          false
+        ]
+      },
+      {
+        "id": 5,
+        "index": 5,
+        "name": "Lavabo",
+        "type": "lavabo",
+        "options": []
+      },
+      {
+        "id": 6,
+        "index": 6,
+        "name": "Dormitório",
+        "type": "quarto",
+        "subtype": "dormitorio",
+        "options": [
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "id": 7,
+        "index": 7,
+        "name": "Suíte",
+        "type": "quarto",
+        "subtype": "suite",
+        "options": [
+          false,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "id": 8,
+        "index": 8,
+        "name": "Banheiro",
+        "type": "banheiro",
+        "options": []
+      }
+    ]
+  },
+  "clientLogin": "VM2026",
+  "createdAt": {
+    "$date": "2026-08-22T20:31:47.213Z"
+  },
+  "driveFolderId": "1YmwiDNTR_W2Sr4lcI2skM2vp-_MiGnsF",
+  "responses": {
+    "version": 1,
+    "project": {
+      "category": "residencial",
+      "type": "apartamento",
+      "name": "Átrio de Dois",
+      "adultAmount": 2,
+      "childrenAmount": 0
+    },
+    "sections": [
+      {
+        "key": "welcome",
+        "title": "Bem-vindo(a) ao seu briefing.",
+        "answers": []
+      },
+      {
+        "key": "about-property",
+        "title": "Sobre vocês e o imóvel — parte 1",
+        "answers": [
+          {
+            "key": "adult-1-name",
+            "question": "Nome completo do responsável 1",
+            "controlType": "text",
+            "value": "Vinícius Ribeiro da Fonseca"
+          },
+          {
+            "key": "adult-1-birth-date",
+            "question": "Data de nascimento",
+            "controlType": "date",
+            "value": "1993-07-14"
+          },
+          {
+            "key": "adult-1-height",
+            "question": "Altura",
+            "controlType": "number",
+            "value": 180
+          },
+          {
+            "key": "adult-1-phone",
+            "question": "Telefone",
+            "controlType": "tel",
+            "value": "1199171-5469"
+          },
+          {
+            "key": "adult-1-mail",
+            "question": "E-mail",
+            "controlType": "email",
+            "value": "vini.ribeiro.fonseca@gmail.com"
+          },
+          {
+            "key": "adult-2-name",
+            "question": "Nome completo do responsável 2",
+            "controlType": "text",
+            "value": "Monique Popin"
+          },
+          {
+            "key": "adult-2-birth-date",
+            "question": "Data de nascimento",
+            "controlType": "date",
+            "value": "1998-10-20"
+          },
+          {
+            "key": "adult-2-height",
+            "question": "Altura",
+            "controlType": "number",
+            "value": 170
+          },
+          {
+            "key": "adult-2-phone",
+            "question": "Telefone",
+            "controlType": "tel",
+            "value": "11 97230-8659"
+          },
+          {
+            "key": "adult-2-mail",
+            "question": "E-mail",
+            "controlType": "email",
+            "value": "monique0popin@gmail.com"
+          },
+          {
+            "key": "field-7",
+            "question": "Contato principal do projeto",
+            "controlType": "text",
+            "value": "Vinícius "
+          },
+          {
+            "key": "field-8",
+            "question": "Endereço completo do imóvel",
+            "controlType": "text",
+            "value": "Av. Nossa Senhora do Ó, 2050, apto 1404- Freguesia do Ó, São Paulo - SP, 02715-000·"
+          },
+          {
+            "key": "property-area",
+            "question": "Metragem aproximada",
+            "controlType": "number",
+            "value": 55
+          },
+          {
+            "key": "property-ownership",
+            "question": "Propriedade",
+            "controlType": "select",
+            "value": "propria"
+          },
+          {
+            "key": "property-status",
+            "question": "Situação atual do imóvel",
+            "controlType": "select",
+            "value": "em-construcao"
+          },
+          {
+            "key": "field-12",
+            "question": "Data importante",
+            "controlType": "text",
+            "value": "Entrega de chave prevista para março de 2027"
+          },
+          {
+            "key": "air-conditioning-structure",
+            "question": "O imóvel possui estrutura para ar-condicionado?",
+            "controlType": "radio",
+            "value": "sim"
+          },
+          {
+            "key": "air-conditioning-room",
+            "question": "Em qual cômodo desejam instalar o ar-condicionado?",
+            "controlType": "checkbox",
+            "value": [
+              "sala-de-estar",
+              "suite"
+            ]
+          },
+          {
+            "key": "field-23",
+            "question": "Anexar especificação do condomínio",
+            "controlType": "file",
+            "value": []
+          },
+          {
+            "key": "home-automation",
+            "question": "Desejam integrar automação?",
+            "controlType": "radio",
+            "value": "sim"
+          },
+          {
+            "key": "automation-types",
+            "question": "Quais tipos de automação desejam integrar?",
+            "controlType": "checkbox",
+            "value": [
+              "iluminacao",
+              "cortinas-persianas",
+              "fechaduras-acesso",
+              "eletrodomesticos"
+            ]
+          },
+          {
+            "key": "automation-rooms",
+            "question": "Em quais cômodos desejam instalar as automações?",
+            "controlType": "checkbox",
+            "value": [
+              "sala-de-estar",
+              "sala-de-jantar",
+              "cozinha",
+              "suite",
+              "segundo-quarto",
+              "banheiro-lavabo"
+            ]
+          },
+          {
+            "key": "field-43",
+            "question": "Plantas estruturais e plantas dos sistemas existentes fornecidas pela construtora",
+            "controlType": "file",
+            "value": []
+          }
+        ]
+      },
+      {
+        "key": "about-residents",
+        "title": "Sobre vocês e o imóvel — parte 2",
+        "answers": [
+          {
+            "key": "field-1",
+            "question": "Quem vive atualmente no imóvel?",
+            "controlType": "textarea",
+            "value": "Somos um casal, nós dois trabalhamos de segunda a sexta de forma presencial.\nGostaríamos de receber amigos e família no nosso apartamento em alguns finais de semana.\nQueremos ter filho em até 3 anos"
+          },
+          {
+            "key": "has-pets",
+            "question": "Pets?",
+            "controlType": "radio",
+            "value": "nao"
+          },
+          {
+            "key": "future-changes",
+            "question": "Mudanças futuras nos próximos anos",
+            "controlType": "checkbox",
+            "value": [
+              "filhos"
+            ]
+          },
+          {
+            "key": "residence-time",
+            "question": "Quanto tempo vocês imaginam permanecer neste imóvel?",
+            "controlType": "radio",
+            "value": "mais-5-anos"
+          }
+        ]
+      },
+      {
+        "key": "routine",
+        "title": "Rotina",
+        "answers": [
+          {
+            "key": "field-1",
+            "question": "Como costuma ser a rotina da semana?",
+            "controlType": "textarea",
+            "value": "Nos trabalhamos de segunda a sexta presencial. Saímos cedo de casa e voltamos a noite apenas. \nCozinhamos, jantamos todos os dias da semana em casa. \nAos finais de semana acabamos ficando um pouco mais em casa, mas sem uma rotina fixa. \nNo geral, passamos pouco tempo em casa."
+          },
+          {
+            "key": "field-2",
+            "question": "Com que frequência vocês recebem visitas?",
+            "controlType": "select",
+            "value": "raramente"
+          },
+          {
+            "key": "field-3",
+            "question": "Quantas pessoas normalmente recebem?",
+            "controlType": "select",
+            "value": "6-10"
+          },
+          {
+            "key": "field-4",
+            "question": "Quais atividades vocês mais gostam de fazer em casa?",
+            "controlType": "textarea",
+            "value": "Assistir séries e filmes, descansar.\nGostaríamos de receber amigos e família em casa. \nOnde moramos atualmente nao nos proporciona isso, por esse motivo recebemos raramente visitas"
+          },
+          {
+            "key": "field-5",
+            "question": "Hobbies e interesses",
+            "controlType": "textarea",
+            "value": "Não temos nenhum hobbie ou interesse relevante"
+          },
+          {
+            "key": "field-6",
+            "question": "Alguma particularidade importante que devemos saber?",
+            "controlType": "textarea",
+            "value": "Não "
+          },
+          {
+            "key": "field-7",
+            "question": "Três prioridades do projeto, em ordem de importância",
+            "controlType": "select",
+            "value": "conforto"
+          },
+          {
+            "key": "field-8",
+            "question": "Três prioridades do projeto, em ordem de importância",
+            "controlType": "select",
+            "value": "estetica"
+          },
+          {
+            "key": "field-9",
+            "question": "Três prioridades do projeto, em ordem de importância",
+            "controlType": "select",
+            "value": "armazenamento"
+          },
+          {
+            "key": "main-priorities",
+            "question": "Principais prioridades",
+            "controlType": "checkbox",
+            "value": [
+              "conforto",
+              "praticidade",
+              "armazenamento",
+              "iluminacao",
+              "estetica"
+            ]
+          },
+          {
+            "key": "field-18",
+            "question": "O que mais incomoda hoje na sua casa?",
+            "controlType": "textarea",
+            "value": "Pouco armazenamento no geral;\nCozinha e lavanderia muito apertadas;\nNao poder receber visitas de forma confortável por falta de espaço.\n"
+          }
+        ]
+      },
+      {
+        "key": "investment",
+        "title": "Investimento",
+        "answers": [
+          {
+            "key": "investment-range",
+            "question": "Qual a sua expectativa de investimento?",
+            "controlType": "radio",
+            "value": "ate-250-mil"
+          },
+          {
+            "key": "field-5",
+            "question": "Valor máximo disponível (opcional)",
+            "controlType": "number",
+            "value": 100
+          },
+          {
+            "key": "investment-includes",
+            "question": "O investimento inclui:",
+            "controlType": "checkbox",
+            "value": [
+              "obra",
+              "marcenaria",
+              "marmoraria",
+              "revestimentos",
+              "iluminacao",
+              "loucas-metais",
+              "ar-condicionado"
+            ]
+          }
+        ]
+      },
+      {
+        "key": "preferences-atmosphere",
+        "title": "Preferências — atmosfera geral",
+        "answers": [
+          {
+            "key": "form-input-65",
+            "question": "Escolha a atmosfera que mais combina com vocês:",
+            "controlType": "checkbox",
+            "value": [
+              "contemporaneo-brasileiro",
+              "japandi"
+            ]
+          },
+          {
+            "key": "form-input-66",
+            "question": "O que mais chamou a atenção nas imagens escolhidas?",
+            "controlType": "checkbox",
+            "value": [
+              "cores",
+              "materiais",
+              "iluminacao",
+              "sensacao-de-aconchego"
+            ]
+          },
+          {
+            "key": "form-input-67",
+            "question": "Como vocês descreveriam a casa dos sonhos?",
+            "controlType": "checkbox",
+            "value": [
+              "acolhedora",
+              "leve",
+              "funcional",
+              "moderna",
+              "confortavel"
+            ]
+          },
+          {
+            "key": "field-36",
+            "question": "O que definitivamente não combina com vocês?",
+            "controlType": "textarea",
+            "value": "Nao gostamos de ambientes e cores escuras\nNao gostamos de excesso de informações\nCores fortes ou muito colorido\nAmbientes monocromáticos\nCoisas douradas ou brilhantes\nMuitos perfis de led\nPisos polidos \nIluminação fria\nExcesso de plantas\n"
+          }
+        ]
+      },
+      {
+        "key": "preferences-colors",
+        "title": "Preferências — cores, madeiras e formas",
+        "answers": [
+          {
+            "key": "form-input-65",
+            "question": "Qual família de cores vocês mais gostam?",
+            "controlType": "checkbox",
+            "value": [
+              "neutros-quentes",
+              "tons-terrosos-naturais"
+            ]
+          },
+          {
+            "key": "field-6",
+            "question": "Quais cores vocês gostam?",
+            "controlType": "textarea",
+            "value": "Off white\nBege\nMarrom\nVerde oliva ou similares \nBranco\n"
+          },
+          {
+            "key": "field-7",
+            "question": "Quais cores vocês preferem evitar?",
+            "controlType": "textarea",
+            "value": "Cores vibrantes em geral\nDourado\nCores escuras\nCinza"
+          },
+          {
+            "key": "form-input-68",
+            "question": "Qual tonalidade de madeira vocês preferem?",
+            "controlType": "checkbox",
+            "value": [
+              "madeira-3",
+              "madeira-6"
+            ]
+          },
+          {
+            "key": "form-input-69",
+            "question": "Qual linguagem de formas combina mais com vocês?",
+            "controlType": "radio",
+            "value": "mistura-equilibrada"
+          }
+        ]
+      },
+      {
+        "key": "preferences-materials",
+        "title": "Preferências — texturas, materiais e referências",
+        "answers": [
+          {
+            "key": "form-input-70",
+            "question": "Elementos que vocês gostam e desejam considerar no projeto",
+            "controlType": "checkbox",
+            "value": [
+              "palhinha-fibra-natural",
+              "marcenaria-curva",
+              "paineis-lisos"
+            ]
+          },
+          {
+            "key": "field-9",
+            "question": "Materiais que vocês gostam",
+            "controlType": "textarea",
+            "value": "Madeira\nLinho\nPorcelanato acetinado\nTexturas \nMármores nao tao marcantes\nRevestimentos pequenos quadrados e retangulares"
+          },
+          {
+            "key": "field-10",
+            "question": "Materiais que vocês não gostam",
+            "controlType": "textarea",
+            "value": "Materiais brilhantes\nVidros fume\nCouro\nRevestimento estampado/ desenhado\nLouças, metais, puxadores dourados, rosa, etc "
+          },
+          {
+            "key": "form-input-73",
+            "question": "Preferência de manutenção",
+            "controlType": "radio",
+            "value": "moderada"
+          },
+          {
+            "key": "field-14",
+            "question": "Referências visuais (opcional)",
+            "controlType": "file",
+            "value": []
+          },
+          {
+            "key": "form-input-75",
+            "question": "Links de referências (obrigatório)",
+            "controlType": "url",
+            "value": "https://pin.it/2xOxhrFpF"
+          },
+          {
+            "key": "form-input-76",
+            "question": "Links de referências (obrigatório)",
+            "controlType": "url",
+            "value": "https://pin.it/2xOxhrFpF"
+          }
+        ]
+      },
+      {
+        "key": "environments-overview",
+        "title": "Ambientes — visão geral",
+        "answers": []
+      },
+      {
+        "key": "existing-furniture",
+        "title": "Itens a manter",
+        "answers": [
+          {
+            "key": "moveis-nao-considerar",
+            "question": "Móveis, medidas e ambientes",
+            "controlType": "checkbox",
+            "value": []
+          },
+          {
+            "key": "field-2",
+            "question": "Móveis, medidas e ambientes",
+            "controlType": "textarea",
+            "value": "Temos 4 cadeiras que poderíamos aproveitar. (Foto em anexo)\nTemos um aparador na sala de jantar que gostaríamos de verificar a possibilidade de aproveitamento em conjunto com você (foto em anexo)"
+          },
+          {
+            "key": "field-3",
+            "question": "Coloque as fotos dos móveis",
+            "controlType": "file",
+            "value": [
+              {
+                "name": "Screenshot_20260822_171940_Mobly.jpg",
+                "size": 437054,
+                "type": "image/jpeg",
+                "uploadId": "global:existing-furniture:field-3:0",
+                "driveFile": {
+                  "id": "1trYA3i0nZnkUa0A6JFoqPEGbMok9e_Fr",
+                  "name": "Screenshot_20260822_171940_Mobly.jpg",
+                  "mimeType": "image/jpeg",
+                  "size": 437054,
+                  "webViewLink": "https://drive.google.com/file/d/1trYA3i0nZnkUa0A6JFoqPEGbMok9e_Fr/view?usp=drivesdk"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "ending",
+        "title": "Finalizar",
+        "answers": [
+          {
+            "key": "field-1",
+            "question": "Observações finais (opcional)",
+            "controlType": "textarea",
+            "value": "Como comentamos no início, nós dois trabalhamos presencialmente de segunda a sexta e temos uma rotina corrida. Contamos com uma faxineira a cada 15 dias e, durante a semana, fazemos apenas a manutenção necessária. Por isso, embora a estética seja muito importante para nós, queremos que a praticidade e a facilidade de manutenção sejam premissas do projeto. Não queremos algo que exija cuidados detalhados ou seja trabalhoso de limpar/manter"
+          },
+          {
+            "key": "field-2",
+            "question": "O que esperam que esteja diferente?",
+            "controlType": "textarea",
+            "value": "Esperamos uma casa mais confortável, com espaços melhor aproveitados"
+          },
+          {
+            "key": "field-3",
+            "question": "O que esperam no final do projeto?",
+            "controlType": "textarea",
+            "value": "Esperamos uma casa aconchegante, bonita, funcional, principalmente em relacao a armazenamentos e que tenha a nossa cara."
+          },
+          {
+            "key": "form-input-119",
+            "question": "Confirmo que as informações acima estão corretas e completas.",
+            "controlType": "checkbox",
+            "value": [
+              "confirmado"
+            ]
+          }
+        ]
+      }
+    ],
+    "rooms": [
+      {
+        "id": 2,
+        "index": 0,
+        "name": "Cozinha",
+        "type": "cozinha",
+        "sections": [
+          {
+            "key": "room-2",
+            "title": "Cozinha",
+            "answers": [
+              {
+                "key": "form-input-86",
+                "question": "Qual a relação de vocês com a cozinha?",
+                "controlType": "select",
+                "value": "cozinhamos-por-necessidade"
+              },
+              {
+                "key": "form-input-87",
+                "question": "Com que frequência usam a cozinha?",
+                "controlType": "select",
+                "value": "todos-os-dias"
+              },
+              {
+                "key": "form-input-88",
+                "question": "Mais de uma pessoa cozinha ao mesmo tempo?",
+                "controlType": "radio",
+                "value": "nao"
+              },
+              {
+                "key": "form-input-89",
+                "question": "Quais eletrodomésticos são essenciais?",
+                "controlType": "checkbox",
+                "value": [
+                  "geladeira",
+                  "forno",
+                  "micro-ondas",
+                  "cooktop",
+                  "lava-loucas",
+                  "outro"
+                ]
+              },
+              {
+                "key": "field-14",
+                "question": "Quais eletrodomésticos são essenciais?",
+                "controlType": "text",
+                "value": "Purificador de agua e depurador de fumaça "
+              },
+              {
+                "key": "form-input-90",
+                "question": "Acessórios especiais desejados:",
+                "controlType": "checkbox",
+                "value": [
+                  "dispenser-de-detergente",
+                  "torres-tomadas-embutidas"
+                ]
+              },
+              {
+                "key": "form-input-91",
+                "question": "O que precisa de mais armazenamento?",
+                "controlType": "select",
+                "value": "mantimentos"
+              },
+              {
+                "key": "field-23",
+                "question": "Há algum hábito, problema ou desejo especial?",
+                "controlType": "textarea",
+                "value": "Hoje o problema que temos é a falta de espaço para armazenar nossas coisas de cozinha em geral.\nNao so mantimentos, mas panelas, utensílios, eletrodomésticos. E, ainda, o espaço limitado para preparar refeições (falta de bancada, pouco espaço)"
+              }
+            ]
+          },
+          {
+            "key": "room-2-considerations",
+            "title": "Cozinha",
+            "answers": [
+              {
+                "key": "geladeira-voltagem-nao-considerar",
+                "question": "Geladeira",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-2",
+                "question": "Geladeira",
+                "controlType": "text",
+                "value": "https://share.google/mbg41vzAqWdwuIUN8"
+              },
+              {
+                "key": "geladeira-voltagem",
+                "question": "Geladeira",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "fogao-cooktop-voltagem-nao-considerar",
+                "question": "Fogão de piso ou cooktop",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-5",
+                "question": "Fogão de piso ou cooktop",
+                "controlType": "text",
+                "value": "Cooktop normal a definir"
+              },
+              {
+                "key": "fogao-cooktop-voltagem",
+                "question": "Fogão de piso ou cooktop",
+                "controlType": "select",
+                "value": "a-definir"
+              },
+              {
+                "key": "forno-voltagem-nao-considerar",
+                "question": "Forno de embutir",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-8",
+                "question": "Forno de embutir",
+                "controlType": "text",
+                "value": "A definir"
+              },
+              {
+                "key": "forno-voltagem",
+                "question": "Forno de embutir",
+                "controlType": "select",
+                "value": "a-definir"
+              },
+              {
+                "key": "depurador-coifa-voltagem-nao-considerar",
+                "question": "Depurador ou coifa",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-11",
+                "question": "Depurador ou coifa",
+                "controlType": "text",
+                "value": "https://www.suggar.com.br/produto/depurador-de-ar-slim-60-cm-prata-suggar-64282?srsltid=AfmBOoq5t7UIdBvNMJyqXzYl3rS1qWhqNCvrpXs-hS-tUnUq3_PNzhRe"
+              },
+              {
+                "key": "depurador-coifa-voltagem",
+                "question": "Depurador ou coifa",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "micro-ondas-voltagem-nao-considerar",
+                "question": "Micro-ondas",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-14",
+                "question": "Micro-ondas",
+                "controlType": "text",
+                "value": "https://loja.electrolux.com.br/micro-ondas-painel-integrado-electrolux-mi41s/p"
+              },
+              {
+                "key": "micro-ondas-voltagem",
+                "question": "Micro-ondas",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "lava-loucas-voltagem-nao-considerar",
+                "question": "Lava-louças",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-17",
+                "question": "Lava-louças",
+                "controlType": "text",
+                "value": "A definir"
+              },
+              {
+                "key": "lava-loucas-voltagem",
+                "question": "Lava-louças",
+                "controlType": "select",
+                "value": "a-definir"
+              },
+              {
+                "key": "filtro-agua-voltagem-nao-considerar",
+                "question": "Filtro de água",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-20",
+                "question": "Filtro de água",
+                "controlType": "text",
+                "value": "https://loja.electrolux.com.br/pe12g-pe12g-purif-agua-pelt-bivolt/p"
+              },
+              {
+                "key": "filtro-agua-voltagem",
+                "question": "Filtro de água",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "field-22",
+                "question": "Algum outro item?",
+                "controlType": "textarea",
+                "value": ""
+              },
+              {
+                "key": "field-23",
+                "question": "Fotos da cozinha",
+                "controlType": "file",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "index": 1,
+        "name": "Área de Serviço",
+        "type": "lavanderia",
+        "sections": [
+          {
+            "key": "room-3",
+            "title": "Área de Serviço",
+            "answers": [
+              {
+                "key": "form-input-100",
+                "question": "1. Quais são as necessidades de armazenamento?",
+                "controlType": "checkbox",
+                "value": [
+                  "produtos-de-limpeza",
+                  "vassouras-utensilios",
+                  "cestos-para-roupas",
+                  "aspirador-de-po"
+                ]
+              },
+              {
+                "key": "field-8",
+                "question": "2. Há algum hábito ou necessidade especial que devemos considerar?",
+                "controlType": "textarea",
+                "value": "Costumamos lavar roupas com bastante frequência para nao acumular. Usamos varal de chão, por necessidades, o ideal é termos um varal suspenso para evita-lo\nHoje nao temos lava e seca, mas é um desejo para a nova casa.\nTemos um robozinho aspirador, seria interessante termos um espaço para ele"
+              }
+            ]
+          },
+          {
+            "key": "room-3-considerations",
+            "title": "Área de Serviço",
+            "answers": [
+              {
+                "key": "maquina-lavar-nao-considerar",
+                "question": "Máquina de lavar roupas",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-2",
+                "question": "Máquina de lavar roupas",
+                "controlType": "select",
+                "value": "lava-e-seca"
+              },
+              {
+                "key": "field-3",
+                "question": "Máquina de lavar roupas",
+                "controlType": "text",
+                "value": "A definir "
+              },
+              {
+                "key": "maquina-lavar-voltagem",
+                "question": "Máquina de lavar roupas",
+                "controlType": "select",
+                "value": "a-definir"
+              },
+              {
+                "key": "field-5",
+                "question": "Algum outro item?",
+                "controlType": "textarea",
+                "value": "https://www.mi.com/br/product/xiaomi-robot-vacuum-s10/"
+              },
+              {
+                "key": "field-6",
+                "question": "Fotos da área de serviço",
+                "controlType": "file",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "index": 2,
+        "name": "Sala de Jantar",
+        "type": "sala-jantar",
+        "sections": [
+          {
+            "key": "room-1",
+            "title": "Sala de Jantar",
+            "answers": [
+              {
+                "key": "form-input-82",
+                "question": "Quantas pessoas usam a mesa normalmente?",
+                "controlType": "select",
+                "value": "2"
+              },
+              {
+                "key": "form-input-83",
+                "question": "Quantas pessoas vocês gostariam de acomodar?",
+                "controlType": "select",
+                "value": "6"
+              },
+              {
+                "key": "form-input-84",
+                "question": "A mesa também é usada para trabalho/estudo/jogos/apoio?",
+                "controlType": "checkbox",
+                "value": [
+                  "apenas-refeicoes"
+                ]
+              },
+              {
+                "key": "field-8",
+                "question": "Há alguma necessidade de armazenamento ou desejo especial?",
+                "controlType": "textarea",
+                "value": "Gostaríamos de um aparador de apoio ou local de armazenamento; cantinho do café."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 0,
+        "index": 3,
+        "name": "Sala de Estar",
+        "type": "sala-estar",
+        "sections": [
+          {
+            "key": "room-0",
+            "title": "Sala de Estar",
+            "answers": [
+              {
+                "key": "form-input-77",
+                "question": "Como vocês usam a sala de estar?",
+                "controlType": "checkbox",
+                "value": [
+                  "assistir-tv-filmes",
+                  "descansar-relaxar"
+                ]
+              },
+              {
+                "key": "form-input-79",
+                "question": "Quantas pessoas precisam sentar confortavelmente no dia a dia?",
+                "controlType": "select",
+                "value": "2"
+              },
+              {
+                "key": "form-input-80",
+                "question": "Quais elementos precisam ser considerados na sala de estar?",
+                "controlType": "checkbox",
+                "value": [
+                  "sofa",
+                  "estante-marcenaria",
+                  "tv-home-theater",
+                  "iluminacao"
+                ]
+              },
+              {
+                "key": "field-16",
+                "question": "Desejos ou necessidades especiais",
+                "controlType": "textarea",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "key": "room-0-considerations",
+            "title": "Sala de Estar",
+            "answers": [
+              {
+                "key": "tv-voltagem-nao-considerar",
+                "question": "TV",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-2",
+                "question": "TV",
+                "controlType": "text",
+                "value": "https://www.lg.com/br/business/paineis-profissionais/commercial-tv/55uq801c0sb/?srsltid=AfmBOood2pupgXDE9e1CwZhwlHiW9kE1W1xQABvmTFH8mpKmiNq5Y7xN"
+              },
+              {
+                "key": "tv-voltagem",
+                "question": "TV",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "internet-tv-cabo-voltagem-nao-considerar",
+                "question": "Aparelhos de internet ou TV a cabo",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-5",
+                "question": "Aparelhos de internet ou TV a cabo",
+                "controlType": "text",
+                "value": "Roteador internet"
+              },
+              {
+                "key": "internet-tv-cabo-voltagem",
+                "question": "Aparelhos de internet ou TV a cabo",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "som-voltagem-nao-considerar",
+                "question": "Aparelhos de som",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-8",
+                "question": "Aparelhos de som",
+                "controlType": "text",
+                "value": "https://www.jbl.com.br/SB595.html"
+              },
+              {
+                "key": "som-voltagem",
+                "question": "Aparelhos de som",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "videogame-voltagem-nao-considerar",
+                "question": "Videogame",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-11",
+                "question": "Videogame",
+                "controlType": "text",
+                "value": "https://www.xbox.com/pt-BR/consoles/xbox-series-s"
+              },
+              {
+                "key": "videogame-voltagem",
+                "question": "Videogame",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "fechadura-digital-nao-considerar",
+                "question": "Fechadura digital",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-14",
+                "question": "Fechadura digital",
+                "controlType": "text",
+                "value": "https://www.intelbras.com/pt-br/fechadura-smart-de-embutir-com-macaneta-ifr-3000"
+              },
+              {
+                "key": "field-15",
+                "question": "Algum outro item?",
+                "controlType": "textarea",
+                "value": "Gostaria de incluir uma central de automação pequena na parede. \nhttps://www.novadigitalsmart.com.br/produtos/painel-central-inteligente-pci01-z\n"
+              },
+              {
+                "key": "field-16",
+                "question": "Fotos da sala",
+                "controlType": "file",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "index": 4,
+        "name": "Varanda",
+        "type": "varanda",
+        "sections": [
+          {
+            "key": "room-4",
+            "title": "Varanda",
+            "answers": [
+              {
+                "key": "form-input-94",
+                "question": "Quais usos vocês pretendem para a varanda?",
+                "controlType": "checkbox",
+                "value": [
+                  "estar-descanso",
+                  "churrasco-gourmet"
+                ]
+              },
+              {
+                "key": "form-input-95",
+                "question": "Desejam realizar o envidraçamento da sacada?",
+                "controlType": "radio",
+                "value": "sim"
+              },
+              {
+                "key": "field-13",
+                "question": "Há alguma necessidade ou desejo especial?",
+                "controlType": "textarea",
+                "value": "Sabemos que a varanda é pequena, mas gostariamos de tentar encaixar uma churrasqueira eletrica de embutir e uma cervejeira.\nGostariamos de usar o espaco para para receber visita, entao desejamos considerar um banco no espaço que sobrar. A condensadora do ar condicionado por norma do prédio, ficará na varanda."
+              }
+            ]
+          },
+          {
+            "key": "room-4-considerations",
+            "title": "Varanda",
+            "answers": [
+              {
+                "key": "cervejeira-voltagem-nao-considerar",
+                "question": "Cervejeira",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-2",
+                "question": "Cervejeira",
+                "controlType": "text",
+                "value": "A definir "
+              },
+              {
+                "key": "cervejeira-voltagem",
+                "question": "Cervejeira",
+                "controlType": "select",
+                "value": "a-definir"
+              },
+              {
+                "key": "chopeira-voltagem-nao-considerar",
+                "question": "Chopeira",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "adega-voltagem-nao-considerar",
+                "question": "Adega climatizada",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "churrasqueira-voltagem-nao-considerar",
+                "question": "Churrasqueira",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-11",
+                "question": "Churrasqueira",
+                "controlType": "text",
+                "value": "https://www.churrasqueirasrefracon.com.br/churrasqueiras/eletrica/churrasqueira-eletrica-de-embutir-em-inox-304-com-tampa-abafador-mod-mini-fit-steak-49x36cm"
+              },
+              {
+                "key": "churrasqueira-voltagem",
+                "question": "Churrasqueira",
+                "controlType": "select",
+                "value": "220v"
+              },
+              {
+                "key": "tv-voltagem-nao-considerar",
+                "question": "TV",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "field-16",
+                "question": "Algum outro item?",
+                "controlType": "textarea",
+                "value": ""
+              },
+              {
+                "key": "field-17",
+                "question": "Fotos da varanda gourmet",
+                "controlType": "file",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "index": 5,
+        "name": "Lavabo",
+        "type": "lavabo",
+        "sections": [
+          {
+            "key": "room-5",
+            "title": "Lavabo",
+            "answers": [
+              {
+                "key": "lavabo-users",
+                "question": "Quem utiliza MAIS este ambiente?",
+                "controlType": "radio",
+                "value": "moradores-da-casa"
+              },
+              {
+                "key": "lavabo-storage",
+                "question": "O que precisa ser armazenado ou ter à disposição?",
+                "controlType": "checkbox",
+                "value": [
+                  "itens-de-higiene-pessoal",
+                  "maquiagem",
+                  "secador-modeladores",
+                  "produtos-de-reposicao",
+                  "toalhas"
+                ]
+              },
+              {
+                "key": "lavabo-identity",
+                "question": "Como esse ambiente deve se comportar?",
+                "controlType": "radio",
+                "value": "seguir-identidade-imovel"
+              },
+              {
+                "key": "field-12",
+                "question": "Equipamentos, acabamentos ou desejos especiais",
+                "controlType": "textarea",
+                "value": "Espelho com armário para armazenamento de produtos. Gabinete com espaco para armazenamento de secador; escova; chapinha; etc. Aquecedor de toalhas eletrico. Nao consideraremos ele como lavabo, esse sera o banheiro social e futuramente do filho.\nMas sera utilizado pela monique para secar cabelo, maquiagem, etc "
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "index": 6,
+        "name": "Dormitório",
+        "type": "quarto",
+        "subtype": "dormitorio",
+        "sections": [
+          {
+            "key": "room-6",
+            "title": "Dormitório",
+            "answers": [
+              {
+                "key": "form-input-110",
+                "question": "Quem utilizará o quarto?",
+                "controlType": "select",
+                "value": "uso-compartilhado"
+              },
+              {
+                "key": "form-input-111",
+                "question": "Qual será a principal função do cômodo?",
+                "controlType": "select",
+                "value": "multiuso"
+              },
+              {
+                "key": "field-3",
+                "question": "2. Como deve funcionar no dia a dia?",
+                "controlType": "textarea",
+                "value": "Será o quarto para um futuro filho. No momento pretendemos apenas fazer a parte de piso; pintura e forro nele. Inicialmente será utilizado como um \"quartinho da bagunça\". Vamos levar alguns móveis que ja temos no nosso apto atual de maneira provisória. "
+              },
+              {
+                "key": "form-input-103",
+                "question": "3. O que não pode faltar no quarto?",
+                "controlType": "checkbox",
+                "value": [
+                  "guarda-roupa"
+                ]
+              },
+              {
+                "key": "form-input-105",
+                "question": "4. Quantidade aproximada de roupas e acessórios",
+                "controlType": "select",
+                "value": "pequena"
+              },
+              {
+                "key": "form-input-106",
+                "question": "5. O que precisa de mais espaço/armazenamento?",
+                "controlType": "checkbox",
+                "value": [
+                  "malas"
+                ]
+              },
+              {
+                "key": "form-input-108",
+                "question": "6. Como preferem o equilíbrio entre armazenamento e leveza visual?",
+                "controlType": "range",
+                "value": "50"
+              },
+              {
+                "key": "field-22",
+                "question": "7. Existe algum desejo especial para o quarto?",
+                "controlType": "textarea",
+                "value": "Nao "
+              }
+            ]
+          },
+          {
+            "key": "room-6-considerations",
+            "title": "Dormitório",
+            "answers": [
+              {
+                "key": "tv-voltagem-nao-considerar",
+                "question": "TV",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "computador-voltagem-nao-considerar",
+                "question": "Computador (CPU, monitor ou notebook)",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "impressora-voltagem-nao-considerar",
+                "question": "Impressora",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "frigobar-voltagem-nao-considerar",
+                "question": "Frigobar",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "internet-tv-cabo-voltagem-nao-considerar",
+                "question": "Aparelhos de TV a cabo ou internet",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "videogame-voltagem-nao-considerar",
+                "question": "Videogame",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "field-19",
+                "question": "Algum outro item?",
+                "controlType": "textarea",
+                "value": ""
+              },
+              {
+                "key": "field-20",
+                "question": "Fotos dos dormitórios",
+                "controlType": "file",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "index": 7,
+        "name": "Suíte",
+        "type": "quarto",
+        "subtype": "suite",
+        "sections": [
+          {
+            "key": "room-7",
+            "title": "Suíte",
+            "answers": [
+              {
+                "key": "form-input-103",
+                "question": "3. O que não pode faltar no quarto?",
+                "controlType": "checkbox",
+                "value": [
+                  "cama",
+                  "tv",
+                  "guarda-roupa"
+                ]
+              },
+              {
+                "key": "form-input-104",
+                "question": "3. O que não pode faltar no quarto?",
+                "controlType": "select",
+                "value": "queen"
+              },
+              {
+                "key": "form-input-105",
+                "question": "4. Quantidade aproximada de roupas e acessórios",
+                "controlType": "select",
+                "value": "grande"
+              },
+              {
+                "key": "form-input-106",
+                "question": "5. O que precisa de mais espaço/armazenamento?",
+                "controlType": "checkbox",
+                "value": [
+                  "sapatos"
+                ]
+              },
+              {
+                "key": "form-input-108",
+                "question": "6. Como preferem o equilíbrio entre armazenamento e leveza visual?",
+                "controlType": "range",
+                "value": "28"
+              },
+              {
+                "key": "field-21",
+                "question": "7. Existe algum desejo especial para o quarto?",
+                "controlType": "textarea",
+                "value": "Nao abrimos mao da cama Queen. Mas queremos o máximo de armazenamento possível. \nIluminação indireta \nAo menos 1 espelho de corpo inteiro\n "
+              }
+            ]
+          },
+          {
+            "key": "room-7-considerations",
+            "title": "Suíte",
+            "answers": [
+              {
+                "key": "tv-voltagem-nao-considerar",
+                "question": "TV",
+                "controlType": "checkbox",
+                "value": []
+              },
+              {
+                "key": "field-2",
+                "question": "TV",
+                "controlType": "text",
+                "value": "Tv a definir modelo"
+              },
+              {
+                "key": "tv-voltagem",
+                "question": "TV",
+                "controlType": "select",
+                "value": "110v"
+              },
+              {
+                "key": "computador-voltagem-nao-considerar",
+                "question": "Computador (CPU, monitor ou notebook)",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "impressora-voltagem-nao-considerar",
+                "question": "Impressora",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "frigobar-voltagem-nao-considerar",
+                "question": "Frigobar",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "internet-tv-cabo-voltagem-nao-considerar",
+                "question": "Aparelhos de TV a cabo ou internet",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "videogame-voltagem-nao-considerar",
+                "question": "Videogame",
+                "controlType": "checkbox",
+                "value": [
+                  "nao-considerar"
+                ]
+              },
+              {
+                "key": "field-19",
+                "question": "Algum outro item?",
+                "controlType": "textarea",
+                "value": "Não "
+              },
+              {
+                "key": "field-20",
+                "question": "Fotos dos dormitórios",
+                "controlType": "file",
+                "value": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "index": 8,
+        "name": "Banheiro",
+        "type": "banheiro",
+        "sections": [
+          {
+            "key": "room-8",
+            "title": "Banheiro",
+            "answers": [
+              {
+                "key": "form-input-115",
+                "question": "Quem utiliza este ambiente?",
+                "controlType": "checkbox",
+                "value": [
+                  "moradores-da-casa"
+                ]
+              },
+              {
+                "key": "form-input-116",
+                "question": "O que precisa ser armazenado ou ter à disposição?",
+                "controlType": "checkbox",
+                "value": [
+                  "itens-de-higiene-pessoal",
+                  "produtos-de-reposicao",
+                  "toalhas"
+                ]
+              },
+              {
+                "key": "field-10",
+                "question": "Acessibilidade, equipamentos específicos ou desejos especiais",
+                "controlType": "textarea",
+                "value": "Box até o teto\nAquecedor de toalhas elétrico\nEspelho com armário para armazenamento \nGabinete com espaco de armazenamento \nNicho no shaft (se possível) ou prateleira para apoio de produtos de banho "
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "submittedAt": "2026-08-22T20:31:42.005Z"
+  },
+  "submittedAt": {
+    "$date": "2026-08-22T20:31:47.212Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-22T20:31:47.213Z"
+  }
+}
+

@@ -20,7 +20,8 @@ const briefingResponse = {
             category: "residencial",
             type: "apartamento",
             name: "Projeto E2E",
-            residentAmount: 1
+            adultAmount: 2,
+            childrenAmount: 1
         },
         investmentFlexibility: false,
         rooms: []
@@ -74,6 +75,24 @@ async function moveStoredDraftToPage(page: Page, currentPage: number): Promise<v
         window.history.replaceState({ scope: "client", page: "briefing", briefingStep: targetPage }, "");
     }, currentPage);
 }
+
+test("renderiza adultos e crianças com os campos de contato corretos", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+
+    const about = page.locator("[data-briefing-page-key='about-property']");
+    await expect(about.locator("[id^='adult-'][id$='-name']")).toHaveCount(2);
+    await expect(about.locator("[id^='adult-'][id$='-height']")).toHaveCount(2);
+    await expect(about.locator("[id^='adult-'][id$='-birth-date']")).toHaveCount(2);
+    await expect(about.locator("[id^='adult-'][id$='-phone']")).toHaveCount(2);
+    await expect(about.locator("[id^='adult-'][id$='-mail']")).toHaveCount(2);
+    await expect(about.locator("[id^='child-'][id$='-name']")).toHaveCount(1);
+    await expect(about.locator("[id^='child-'][id$='-height']")).toHaveCount(1);
+    await expect(about.locator("[id^='child-'][id$='-birth-date']")).toHaveCount(1);
+    await expect(about.locator("[id^='child-'][id$='-phone'], [id^='child-'][id$='-mail']"))
+        .toHaveCount(0);
+});
 
 test("restaura respostas e anexos do briefing depois de recarregar a página", async ({ page }) => {
     await mockClientApi(page);

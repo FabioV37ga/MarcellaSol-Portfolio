@@ -63,9 +63,9 @@ test("extrai, normaliza e deduplica somente e-mails dos responsáveis", () => {
     const briefing = {
         sections: [{
             answers: [
-                { key: "resident-1-mail", value: " Cliente@Example.com " },
-                { key: "resident-2-mail", value: "cliente@example.com" },
-                { key: "resident-3-mail", value: "email-invalido" },
+                { key: "adult-1-mail", value: " Cliente@Example.com " },
+                { key: "adult-2-mail", value: "cliente@example.com" },
+                { key: "adult-3-mail", value: "email-invalido" },
                 { key: "contato-secundario", value: "outro@example.com" }
             ]
         }]
@@ -86,9 +86,9 @@ test("compartilhamento de briefing continua após falha e identifica permissões
     const service = new BriefingFolderAccessService(storage);
     const result = await service.execute("pasta-1", {
         answers: [
-            { key: "resident-1-mail", value: "novo@example.com" },
-            { key: "resident-2-mail", value: "existente@example.com" },
-            { key: "resident-3-mail", value: "falha@example.com" }
+            { key: "adult-1-mail", value: "novo@example.com" },
+            { key: "adult-2-mail", value: "existente@example.com" },
+            { key: "adult-3-mail", value: "falha@example.com" }
         ]
     });
 
@@ -199,4 +199,3 @@ test("atualização de etapa rejeita chaves e status fora da legenda", async () 
         error => error.status === 400
     );
 });
-

@@ -49,7 +49,7 @@ function room(ambients: string[]) {
     }
     return model
 }
-export function ambient(ambients: string[], residentAmount: number) {
+export function ambient(ambients: string[], peopleAmount: number) {
     return html`
         <div class="form-page-09">
 
@@ -66,7 +66,7 @@ export function ambient(ambients: string[], residentAmount: number) {
                         <span data-briefing-property-area>Não informado</span>
                     </div>
                     <div>
-                        <span>${residentAmount} ${residentAmount === 1 ? "pessoa" : "pessoas"}.</span>
+                        <span>${peopleAmount} ${peopleAmount === 1 ? "pessoa" : "pessoas"}.</span>
                     </div>
                 </div>
 
