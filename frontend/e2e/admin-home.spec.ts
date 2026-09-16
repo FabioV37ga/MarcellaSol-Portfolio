@@ -79,6 +79,14 @@ test("confirma alterações com cancelamento, falha, nova tentativa e etapa agua
 
 test("usa Voltar, preserva o rascunho e inicia novo cliente com campos vazios", async ({ page }) => {
     await mockAdminApi(page);
+    let creationRequests = 0;
+    await page.route("**/api/admin/user", route => {
+        creationRequests++;
+        if (creationRequests === 1) {
+            return route.fulfill({ status: 500, json: { message: "Falha simulada ao criar cliente" } });
+        }
+        return route.fulfill({ status: 201, json: { client: { id: "created-client" } } });
+    });
     const briefingViews = await Promise.all([
         databaseView("admin-briefing-home-view.json"),
         databaseView("admin-briefing-investment-view.json"),
@@ -131,7 +139,14 @@ test("usa Voltar, preserva o rascunho e inicia novo cliente com campos vazios", 
     await expect(page.locator("#briefing-finish-back")).toHaveText("Voltar");
     await page.locator("#briefing-finish-back").click();
     await expect(page.locator("#briefing-rooms-cancel")).toBeVisible();
-    await page.locator(".root-index").first().click();
+    await page.locator("#briefing-rooms-confirm").click();
+    const finishConfirm = page.locator("#briefing-finish-confirm");
+    await finishConfirm.click();
+    await expect(finishConfirm).toBeEnabled();
+    expect(creationRequests).toBe(1);
+    await finishConfirm.click();
+    await expect(page.locator("#add-client")).toBeVisible();
+    expect(creationRequests).toBe(2);
     await page.locator("#add-client").click();
     await expect(page.locator(".add-client-form-input").nth(0)).toHaveValue("");
     await expect(page.locator(".add-client-form-input").nth(1)).toHaveValue("");

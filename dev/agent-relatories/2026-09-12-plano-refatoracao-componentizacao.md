@@ -790,3 +790,9 @@ Testes isolados cobrem restauração das opções marcada e desmarcada e atualiz
 Estado em 16/09/2026: **concluído; etapa em andamento**. Criação, restauração, personalização por tipo, exclusão, arraste, reordenação e sincronização do payload foram movidos para `AdminBriefingRoomsEditor`. O controller deixou de manter IDs, índices e estado visual dos cômodos. Um log temporário da montagem do template também foi removido.
 
 Testes isolados cobrem adição, edição de nome e tipo, opções personalizadas, restauração ao voltar, exclusão e sincronização da ordem visual. Views e payload não mudaram. Próximo recorte: submissão da criação do cliente.
+
+### Sexto recorte — submissão da criação do cliente
+
+Estado em 16/09/2026: **concluído; etapa em andamento**. A chamada de criação, o bloqueio de envio duplicado, o estado desabilitado do botão, a recuperação após falha e a navegação depois do sucesso foram extraídos para `ClientCreationSubmission`. `ClientCreationFlow` apenas entrega o payload montado na confirmação.
+
+Testes isolados cobrem concorrência, chamada única, sessão, payload, sucesso e nova tentativa após falha. O E2E simula falha HTTP, reativação da confirmação e criação na segunda tentativa. Views e payload não mudaram. Próximo recorte: simplificação final do `ClientCreationFlow`.

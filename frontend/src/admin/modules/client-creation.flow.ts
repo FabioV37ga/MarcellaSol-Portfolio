@@ -1,4 +1,3 @@
-import u from "umbrellajs";
 import { newClient, type NewClientCredentials } from "../controllers/newClient/newClient.controller.js";
 import type { AdminSession } from "../infrastructure/admin-system.api.js";
 import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
@@ -8,19 +7,23 @@ import { AdminBriefingNavigator } from "../navigation/admin-briefing.navigator.j
 import { finishBriefing } from "../templates/briefing/briefing.template.js";
 import type { briefing } from "../templates/interface.js";
 import type { AdminSystemView } from "../views/adminSystem.view.js";
+import { ClientCreationSubmission } from "./client-creation-submission.js";
 
 type BriefingRoute = "briefing-home" | "briefing-investment" | "briefing-rooms" | "briefing-finish";
 
 export class ClientCreationFlow {
     private client?: newClient;
     private models?: briefing;
+    private readonly submission: ClientCreationSubmission;
 
     constructor(
         private readonly view: AdminSystemView,
         private readonly api: Pick<AdminClientsGateway, "createClient"> & Pick<AdminViewsGateway, "loadBriefingViews">,
         private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute) => void
-    ) { }
+    ) {
+        this.submission = new ClientCreationSubmission(api, session, () => navigate("clients"));
+    }
 
     async start(name: string, login: string, password: string): Promise<void> {
         if (!name || !login || !password) return;
@@ -90,21 +93,8 @@ export class ClientCreationFlow {
             }
         );
         this.view.render(page, ".page-content");
-        this.client!.addUserInteractions("finish", () => { void this.commit(); });
-    }
-
-    private async commit(): Promise<void> {
-        const finishButton = u("#briefing-finish-confirm").first() as HTMLButtonElement | undefined;
-        if (finishButton) finishButton.disabled = true;
-
-        try {
-            const clientObject = this.client!.returnClientObject();
-            const createdClient = await this.api.createClient(this.session, clientObject);
-            console.log("Cliente criado com sucesso:", createdClient);
-            this.navigate("clients");
-        } catch (error) {
-            console.error("Erro ao criar cliente:", error);
-            if (finishButton) finishButton.disabled = false;
-        }
+        this.client!.addUserInteractions("finish", () => {
+            void this.submission.submit(this.client!.returnClientObject());
+        });
     }
 }
