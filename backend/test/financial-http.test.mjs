@@ -3,8 +3,10 @@ import { once } from "node:events";
 import test from "node:test";
 import express from "express";
 import mongoose from "mongoose";
-import { AdminController } from "../dist/src/controllers/admin.controller.js";
+import { AdminSessionsController } from "../dist/src/controllers/admin-sessions.controller.js";
+import { AdminClientsController } from "../dist/src/controllers/admin-clients.controller.js";
 import { ClientController } from "../dist/src/controllers/client.controller.js";
+import { ClientSessionsController } from "../dist/src/controllers/client-sessions.controller.js";
 import { AdminPaymentsController } from "../dist/src/controllers/admin-payments.controller.js";
 import { ClientPaymentsController } from "../dist/src/controllers/client-payments.controller.js";
 import { AdminProposalsController } from "../dist/src/controllers/admin-proposals.controller.js";
@@ -27,10 +29,12 @@ function financialApp(service, role = "admin") {
     app.use(express.json());
     // Os demais casos de uso não são executados por esta suíte.
     app.use(role === "admin"
-        ? adminRoutes(new AdminController(undefined, undefined, undefined, undefined, undefined, undefined),
-            guard, new AdminPaymentsController(service), new AdminProposalsController({}), new AdminReportsController({}))
-        : clientRoutes(new ClientController(undefined, undefined, undefined, undefined),
-            guard, new ClientPaymentsController(service), new ClientApprovalsController({}, {})));
+        ? adminRoutes(new AdminSessionsController(undefined, undefined),
+            guard, new AdminPaymentsController(service), new AdminProposalsController({}), new AdminReportsController({}),
+            new AdminClientsController(undefined, undefined, undefined, undefined))
+        : clientRoutes(new ClientController(undefined),
+            guard, new ClientPaymentsController(service), new ClientApprovalsController({}, {}),
+            new ClientSessionsController(undefined, undefined, undefined)));
     app.use(errorHandler);
     return app;
 }

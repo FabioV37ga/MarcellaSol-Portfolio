@@ -3,6 +3,7 @@ import type { ClientPaymentsController } from "../controllers/client-payments.co
 import { asyncRoute } from "../middleware/async-route.js";
 import type { ClientApprovalsController } from "../controllers/client-approvals.controller.js";
 import { ClientController } from "../controllers/client.controller.js";
+import type { ClientSessionsController } from "../controllers/client-sessions.controller.js";
 import { receiveBriefingFiles } from "../middleware/briefing-upload.middleware.js";
 import type { AuthenticationGuard } from "../middleware/authentication.middleware.js";
 import { clientLoginRateLimit } from "../middleware/login-rate-limit.middleware.js";
@@ -13,14 +14,15 @@ export default function clientRoutes(
     controller: ClientController,
     requireAuthentication: AuthenticationGuard,
     payments: ClientPaymentsController,
-    approvals: ClientApprovalsController
+    approvals: ClientApprovalsController,
+    sessions: ClientSessionsController
 ) {
     const router = express.Router();
     const decisionErrorPolicy = { unexpectedMessage: "Erro interno ao registrar decisão." };
 
-    router.post("/api/client/login", clientLoginRateLimit, controller.login);
-    router.post("/api/client/logout", requireAuthentication("client"), controller.logout);
-    router.get("/api/client/session", requireAuthentication("client"), controller.session);
+    router.post("/api/client/login", clientLoginRateLimit, asyncRoute(sessions.login, { unexpectedMessage: "Erro interno ao autenticar cliente" }));
+    router.post("/api/client/logout", requireAuthentication("client"), asyncRoute(sessions.logout, { unexpectedMessage: "Erro interno ao encerrar sessão" }));
+    router.get("/api/client/session", requireAuthentication("client"), asyncRoute(sessions.session, { unexpectedMessage: "Erro interno ao consultar sessão" }));
     router.get("/api/client/proposals", requireAuthentication("client"), asyncRoute(approvals.approvals, { unexpectedMessage: "Erro ao carregar aprovações." }));
     router.get("/api/client/payments", requireAuthentication("client"), financialReadRateLimit, asyncRoute(payments.payments, { unexpectedMessage: "Erro ao carregar pagamentos." }));
     router.post("/api/client/payments/:paymentId/pix", requireAuthentication("client"), financialMutationRateLimit, asyncRoute(payments.generatePaymentPix, { unexpectedMessage: "Não foi possível gerar o código Pix." }));

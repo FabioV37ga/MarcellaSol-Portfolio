@@ -481,6 +481,8 @@ Primeiro recorte concluído em 15/09/2026: endpoints financeiros extraídos para
 
 Segundo recorte concluído em 15/09/2026: propostas administrativas, relatórios e aprovações do cliente extraídos para `AdminProposalsController`, `AdminReportsController` e `ClientApprovalsController`. `ListClientApprovalsService` concentra consulta e normalização das etapas; `presentClientProposal` centraliza a saída pública com leitura de anexos legados. As políticas de erro distinguem `ValidationError` e `CastError` para manter os status anteriores de cada recurso. Uploads, histórico e compensações permanecem nos componentes existentes. Próximo recorte: clientes e sessões; depois, briefing e views.
 
+Terceiro recorte concluído em 16/09/2026: operações administrativas de clientes e etapas foram extraídas para `AdminClientsController`; autenticação, consulta e encerramento de sessão foram separadas em `AdminSessionsController` e `ClientSessionsController`. `AdminController` foi removido e `ClientController` ficou restrito ao envio do briefing. Rotas usam `asyncRoute` e políticas de erro específicas, mantendo autenticação, rate limits e contratos HTTP. Próximo recorte: briefing e views do backend.
+
 ### Etapa priorizada 5 — briefing administrativo e criação de cliente
 
 - dividir o fluxo por passo;

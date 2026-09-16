@@ -14,10 +14,12 @@ import { SubmitBriefingService } from "../application/submit-briefing.service.js
 import { UpdateClientProjectStageService } from "../application/update-client-project-stage.service.js";
 import { SystemClock } from "../application/ports/clock.js";
 import { RandomUuidGenerator } from "../application/ports/id-generator.js";
-import { AdminController } from "../controllers/admin.controller.js";
+import { AdminSessionsController } from "../controllers/admin-sessions.controller.js";
+import { AdminClientsController } from "../controllers/admin-clients.controller.js";
 import { AdminPaymentsController } from "../controllers/admin-payments.controller.js";
 import { ClientPaymentsController } from "../controllers/client-payments.controller.js";
 import { ClientController } from "../controllers/client.controller.js";
+import { ClientSessionsController } from "../controllers/client-sessions.controller.js";
 import { AdminProposalsController } from "../controllers/admin-proposals.controller.js";
 import { AdminReportsController } from "../controllers/admin-reports.controller.js";
 import { ClientApprovalsController } from "../controllers/client-approvals.controller.js";
@@ -37,8 +39,10 @@ import { SessionService } from "../services/session.service.js";
 import { SessionTokenService } from "../services/session-token.service.js";
 
 export interface ApplicationComposition {
-    admin: AdminController;
+    adminSessions: AdminSessionsController;
+    adminClients: AdminClientsController;
     client: ClientController;
+    clientSessions: ClientSessionsController;
     adminPayments: AdminPaymentsController;
     clientPayments: ClientPaymentsController;
     adminProposals: AdminProposalsController;
@@ -75,20 +79,15 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
     const proposalService = new ClientProposalService(clients, proposals, drive, proposalResponses);
 
     return {
-        admin: new AdminController(
+        adminSessions: new AdminSessionsController(authenticate, sessions),
+        adminClients: new AdminClientsController(
             new CreateClientService(clients, passwords, drive),
-            authenticate,
             new ListClientsService(clients, briefings),
             new UpdateClientProjectStageService(clients),
-            new DeleteClientService(clients, new ClientDeletionRepository(), drive),
-            sessions
+            new DeleteClientService(clients, new ClientDeletionRepository(), drive)
         ),
-        client: new ClientController(
-            clients,
-            submitBriefing,
-            authenticate,
-            sessions
-        ),
+        client: new ClientController(submitBriefing),
+        clientSessions: new ClientSessionsController(clients, authenticate, sessions),
         views: new ViewController(views, clients),
         adminPayments: new AdminPaymentsController(paymentService),
         clientPayments: new ClientPaymentsController(paymentService),

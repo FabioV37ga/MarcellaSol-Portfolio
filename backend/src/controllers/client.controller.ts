@@ -5,56 +5,12 @@ import {
     type FileManifestEntry,
     type SubmitBriefingCommand
 } from "../application/submit-briefing.service.js";
-import { ClientRepository } from "../repositories/client.repository.js";
-import { AuthenticateService } from "../application/authenticate.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
-import { SessionService } from "../services/session.service.js";
-import { loginCredentials } from "./login-credentials.js";
 
 export class ClientController {
     constructor(
-        private readonly clients: ClientRepository,
-        private readonly submitBriefing: SubmitBriefingService,
-        private readonly authenticate: AuthenticateService,
-        private readonly sessions: SessionService
+        private readonly submitBriefing: SubmitBriefingService
     ) { }
-
-    login = async (request: Request, response: Response): Promise<Response> => {
-        try {
-            const { login, password } = loginCredentials(request.body);
-
-            const { account: client, token } = await this.authenticate.execute("client", login, password);
-            return response.status(200).json({
-                message: "Login bem-sucedido",
-                name: client.name,
-                hasFilledBriefing: client.hasFilledBriefing,
-                token,
-                briefingObject: client.briefing,
-                clientObject: { id: client._id, name: client.name, hasFilledBriefing: client.hasFilledBriefing }
-            });
-        } catch (error: unknown) {
-            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            console.error("Erro ao autenticar cliente:", error);
-            return response.status(500).json({ message: "Erro interno ao autenticar cliente" });
-        }
-    };
-
-    logout = async (_request: Request, response: Response): Promise<Response> => {
-        try {
-            await this.sessions.revoke(authenticatedPrincipal(response));
-            return response.status(204).send();
-        } catch (error: unknown) {
-            console.error("Erro ao revogar sessão de cliente:", error);
-            return response.status(500).json({ message: "Erro interno ao encerrar sessão" });
-        }
-    };
-
-    session = async (_request: Request, response: Response): Promise<Response> => {
-        const principal = authenticatedPrincipal(response);
-        const client = await this.clients.findById(principal.subject);
-        if (!client) return response.status(404).json({ message: "Cliente não encontrado." });
-        return response.status(200).json({ name: client.name, hasFilledBriefing: client.hasFilledBriefing });
-    };
 
     submit = async (request: Request, response: Response): Promise<Response> => {
         try {

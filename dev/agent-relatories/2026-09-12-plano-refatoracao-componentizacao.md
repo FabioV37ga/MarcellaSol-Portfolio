@@ -735,8 +735,14 @@ Pedido de 15/09/2026: substituir reenvio por `Confirmar alterações`, mantendo 
 - Compatibilidade de leitura mantida para `resent`, `beated` e demais registros antigos. Nenhuma migração de dados necessária. Propostas legadas sem etapa vinculada são concluídas sem criar vínculo artificial.
 - Sincronização manual necessária: `dev/database/client-proposals-view.json`, junto da publicação do frontend e backend. A view antiga não contém o novo diálogo. Banco e Drive reais não foram alterados.
 
-Teste manual: abrir proposta com alterações solicitadas; cancelar a confirmação e conferir que nada mudou; confirmar e verificar `Alterações concluídas`, etapa concluída e histórico preservado; entrar como cliente e conferir que não existe nova ação de aprovação. Propostas inicialmente enviadas ainda permitem aprovar ou solicitar alteração.
+Teste manual: abrir proposta com alterações solicitadas; cancelar a confirmação e conferir que nada mudou; confirmar e verificar `Alterações concluídas`, etapa `Aguardando cliente` e histórico preservado; entrar como cliente e conferir que não existe nova ação de aprovação. Propostas inicialmente enviadas ainda permitem aprovar ou solicitar alteração.
 
-A refatoração permanece na Etapa 4, com dois recortes concluídos. Próximo recorte estrutural: clientes e sessões.
+A refatoração permanece na Etapa 4, agora com três recortes concluídos. Próximo recorte estrutural: briefing e views do backend.
 
-Validações finais: build completo, 15 views válidas, 56 testes frontend, 102 testes backend aprovados e uma integração MongoDB ignorada por não estar habilitada. Os 16 E2E passaram, incluindo cancelamento, falha/nova tentativa, conclusão da etapa e ausência de nova aprovação do cliente. `git diff --check` sem erros. Os testes usam serviços ou respostas HTTP simulados; não foi feita sincronização no banco real.
+Validações desse incremento funcional: build completo, 15 views válidas, 56 testes frontend, 102 testes backend aprovados e uma integração MongoDB ignorada por não estar habilitada. Os 16 E2E passaram, incluindo cancelamento, falha/nova tentativa, etapa `Aguardando cliente` e ausência de nova aprovação do cliente. `git diff --check` sem erros. Os testes usam serviços ou respostas HTTP simulados; não foi feita sincronização no banco real.
+
+### Terceiro recorte — clientes e sessões
+
+Estado em 16/09/2026: **concluído**. Consulta, criação, exclusão e atualização das etapas de clientes foram extraídas para `AdminClientsController`. Login, consulta e logout foram separados em `AdminSessionsController` e `ClientSessionsController`. O agregador `AdminController` foi removido; `ClientController` permaneceu responsável apenas pelo envio do briefing. A composição injeta dependências mínimas e as rotas usam o middleware central de erros com mensagens específicas por operação.
+
+Cobertura HTTP adicionada para listagem de clientes, mudança de etapa, login administrativo, consulta da sessão do cliente e logout. Build e testes unitários/integrados passaram. Não há migração nem sincronização de view. Teste manual: entrar como administrador, listar clientes e mudar uma etapa; encerrar a sessão; entrar como cliente e restaurar/encerrar a sessão. Próximo recorte: briefing e views do backend.
