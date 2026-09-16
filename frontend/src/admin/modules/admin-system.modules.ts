@@ -84,7 +84,10 @@ export class AdminSystemModules {
         switch (route) {
             case "base": this.shell.mount(); break;
             case "home": this.home.mount(); break;
-            case "clients": this.clients.mount(); break;
+            case "clients":
+                this.clientCreation.reset();
+                this.clients.mount();
+                break;
             case "client-management": void this.clientManagement.mount(id); break;
             case "client-proposals": void this.clientProposals.mount(id); break;
             case "client-financial": void this.clientFinancial.mount(id); break;
@@ -101,6 +104,12 @@ export class AdminSystemModules {
     private mountNewClient(): void {
         this.view.render(this.models.newClient!, ".page-content");
         this.newClient = getNewClientElements();
+        const credentials = this.clientCreation.getCredentials();
+        if (credentials) {
+            this.newClient.nameField.value = credentials.name;
+            this.newClient.loginField.value = credentials.login;
+            this.newClient.passwordField.value = credentials.password;
+        }
         u(this.newClient.cancel).off("click").on("click", () => this.navigate("clients"));
         u(this.newClient.root).off("click").on("click", () => this.navigate("clients"));
         u(this.newClient.confirm).off("click").on("click", () => {

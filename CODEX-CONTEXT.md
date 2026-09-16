@@ -489,6 +489,14 @@ Quarto recorte concluído em 16/09/2026: envio do briefing extraído para `Clien
 
 Estado: em andamento. Primeiro recorte iniciado em 16/09/2026: o carregamento das views do briefing administrativo saiu do controller e passou para `AdminViewsApi`, usando `HttpClient` e sessão injetada. `ClientCreationFlow` continua como orquestrador e as views persistidas e o payload permanecem inalterados.
 
+Segundo recorte concluído em 16/09/2026: `AdminBriefingNavigator` passou a controlar breadcrumbs, avanços, retornos, adição de cômodos e confirmação final. O controller mantém por enquanto o estado e a edição dos campos, sem conhecer rotas administrativas. Próximo recorte: separar os editores de residência, investimento e cômodos.
+
+Ajuste funcional em 16/09/2026: nas páginas `Dados do briefing` e `Cômodos do briefing`, o botão secundário deve exibir `Voltar`. Em `Dados do briefing`, ele retorna ao formulário `Dados do cliente`; em `Cômodos do briefing`, retorna para investimento. Os textos pertencem às views persistidas correspondentes.
+
+Ao voltar do briefing para `Dados do cliente`, nome, login e senha são preservados em memória, junto do briefing já editado. O rascunho é descartado ao retornar à listagem de clientes; portanto, acessar `Novo cliente` pela listagem sempre abre campos vazios.
+
+Na página `Revisar e finalizar`, o botão `Voltar` retorna para `Cômodos do briefing`, preservando o rascunho do fluxo.
+
 - dividir o fluxo por passo;
 - separar estado, validação e transformação;
 - reduzir `ClientCreationFlow` e controllers relacionados;

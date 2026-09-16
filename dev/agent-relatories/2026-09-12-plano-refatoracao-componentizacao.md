@@ -760,3 +760,15 @@ Cobertura HTTP ampliada para submissão de briefing sem anexos, view do briefing
 Estado em 16/09/2026: **concluído; etapa em andamento**. O `fetch` direto foi removido do controller administrativo de briefing. `AdminViewsApi` agora carrega `/view/admin/briefing` pelo `HttpClient`, e a sessão e o gateway são injetados desde `ClientCreationFlow`. O formato das views, os templates persistidos e o payload de criação do cliente não mudaram.
 
 Teste automatizado cobre URL, método, token e retorno das views. Teste manual: iniciar a criação de um cliente e confirmar que a primeira página do briefing carrega. Não há migração nem sincronização de view. Próximo recorte: separar navegação e estado dos editores de cada passo.
+
+### Segundo recorte — navegação do briefing administrativo
+
+Estado em 16/09/2026: **concluído; etapa em andamento**. Breadcrumbs, avanços, retornos, adição de cômodos e confirmação final foram extraídos para `AdminBriefingNavigator`. `ClientCreationFlow` injeta o navegador, enquanto o controller de briefing conserva apenas a preparação dos campos e o estado dos editores ainda não separados. Callbacks sem tipo e logs temporários foram removidos.
+
+Testes isolados cobrem bloqueio do avanço com campos inválidos, rotas de residência, investimento e cômodos, adição de ambiente e confirmação final. Views e payload não mudaram. Teste manual: percorrer todas as páginas da criação, usar breadcrumbs e botões de voltar, adicionar um cômodo e chegar à confirmação. Próximo recorte: editores de residência, investimento e cômodos.
+
+Ajuste funcional solicitado em 16/09/2026: o botão secundário de `Dados do briefing` foi renomeado de `Cancelar` para `Voltar` e agora retorna para `Dados do cliente`. O botão equivalente em `Cômodos do briefing`, que já retornava para investimento, também passou a exibir `Voltar`. As alterações estão em `admin-briefing-home-view.json` e `admin-briefing-rooms-view.json` e exigem sincronização manual dessas duas views. Testes unitários e E2E cobrem texto e navegação.
+
+Complemento do ajuste: o fluxo mantém nome, login, senha e o briefing em memória ao retornar das páginas seguintes para `Dados do cliente`. Ao montar novamente a listagem de clientes, esse rascunho é removido; um acesso posterior a `Novo cliente` começa vazio. O E2E verifica restauração e descarte no mesmo fluxo.
+
+Correção adicional: o botão `Voltar` de `Revisar e finalizar` foi conectado ao `AdminBriefingNavigator` e retorna para `Cômodos do briefing`, com cobertura unitária e E2E.

@@ -11,6 +11,7 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
         databaseView("admin-base-view.json"),
         databaseView("admin-home-view.json"),
         databaseView("admin-clients-view.json"),
+        databaseView("admin-new-client-view.json"),
         databaseView("client-management-view.json"),
         databaseView("client-financial-view.json"),
         databaseView("client-proposals-view.json")
@@ -74,6 +75,61 @@ test("confirma alterações com cancelamento, falha, nova tentativa e etapa agua
     await expect(page.locator(".proposal-client-response-history")).toContainText("Mover mesa");
     await expect(page.locator(".project-step[data-stage-key='layout']")).toHaveAttribute("data-status", "awaiting-client");
     expect(requests).toBe(2);
+});
+
+test("usa Voltar, preserva o rascunho e inicia novo cliente com campos vazios", async ({ page }) => {
+    await mockAdminApi(page);
+    const briefingViews = await Promise.all([
+        databaseView("admin-briefing-home-view.json"),
+        databaseView("admin-briefing-investment-view.json"),
+        databaseView("admin-briefing-rooms-view.json"),
+        databaseView("admin-briefing-added-room-view.json")
+    ]);
+    await page.route("**/api/view/admin/briefing", route => route.fulfill({ json: { views: briefingViews } }));
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("#add-client").click();
+    const clientFields = page.locator(".add-client-form-input");
+    await clientFields.nth(0).fill("Cliente E2E");
+    await clientFields.nth(1).fill("cliente-e2e");
+    await clientFields.nth(2).fill("senha-e2e");
+    await page.locator("#add-client-confirm").click();
+
+    const briefingBack = page.locator("#generate-briefing-cancel");
+    await expect(briefingBack).toHaveText("Voltar");
+    await briefingBack.click();
+    await expect(page.locator(".add-client-window-header-text")).toContainText("Dados do cliente");
+    const returnedClientFields = page.locator(".add-client-form-input");
+    await expect(returnedClientFields.nth(0)).toHaveValue("Cliente E2E");
+    await expect(returnedClientFields.nth(1)).toHaveValue("cliente-e2e");
+    await expect(returnedClientFields.nth(2)).toHaveValue("senha-e2e");
+    await page.locator("#add-client-confirm").click();
+    const briefingFields = page.locator(".generate-briefing-form-input");
+    await briefingFields.nth(0).selectOption("residencial");
+    await briefingFields.nth(1).selectOption("apartamento");
+    await briefingFields.nth(2).fill("Projeto E2E");
+    await briefingFields.nth(3).fill("2");
+    await briefingFields.nth(4).fill("0");
+    await page.locator("#generate-briefing-confirm").click();
+    await expect(page.locator("#briefing-investment-flexibility")).toBeVisible();
+    await page.locator("#briefing-rooms-confirm").click();
+    const roomsBack = page.locator("#briefing-rooms-cancel");
+    await expect(roomsBack).toHaveText("Voltar");
+    await roomsBack.click();
+    await expect(page.locator("#briefing-investment-flexibility")).toBeVisible();
+    await page.locator("#briefing-rooms-confirm").click();
+    await page.locator("#briefing-rooms-confirm").click();
+    await expect(page.locator("#briefing-finish-back")).toHaveText("Voltar");
+    await page.locator("#briefing-finish-back").click();
+    await expect(page.locator("#briefing-rooms-cancel")).toBeVisible();
+    await page.locator(".root-index").first().click();
+    await page.locator("#add-client").click();
+    await expect(page.locator(".add-client-form-input").nth(0)).toHaveValue("");
+    await expect(page.locator(".add-client-form-input").nth(1)).toHaveValue("");
+    await expect(page.locator(".add-client-form-input").nth(2)).toHaveValue("");
 });
 
 test("monta a home administrativa e navega pelo acesso rápido de clientes", async ({ page }) => {

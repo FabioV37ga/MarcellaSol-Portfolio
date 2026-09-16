@@ -5,6 +5,7 @@ import getTemplates from "@/admin/templates/getter.js";
 import { briefing } from "@/admin/templates/interface.js";
 import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";
 import type { AdminViewsGateway } from "@/admin/infrastructure/views.api.js";
+import type { AdminBriefingNavigator } from "@/admin/navigation/admin-briefing.navigator.js";
 import type { BriefingDefinition } from "@/shared/briefing/briefing.types.js";
 import u from "umbrellajs";
 
@@ -35,7 +36,8 @@ export class Briefing {
 
     constructor(
         private readonly views: Pick<AdminViewsGateway, "loadBriefingViews">,
-        private readonly session: AdminSession
+        private readonly session: AdminSession,
+        private readonly navigator: AdminBriefingNavigator
     ) { }
 
     async getModels(name: string) {
@@ -48,7 +50,7 @@ export class Briefing {
         return templates
     }
 
-    addUserInteractions(page: string, callback: any) {
+    addUserInteractions(page: string, onFinish?: () => void) {
         switch (page) {
             case "home":
                 this.home = getBriefingHome();
@@ -76,40 +78,11 @@ export class Briefing {
 
                 this.syncHomeFields()
 
-                var clientsRoot = u(this.home.root).nodes[0] as HTMLElement
-                u(clientsRoot)
-                    .off("click")
-                    .on("click", () => {
-                        callback("clients")
-                    })
-
-                var newClientRoot = u(this.home.root).nodes[1] as HTMLElement
-                u(newClientRoot)
-                    .off("click")
-                    .on("click", () => {
-                        callback("new-client")
-                    })
-
-                u(this.home.confirm)
-                    .off("click")
-                    .on("click", () => {
-                        this.checkFields(page) ? callback("briefing-investment") : null
-                    })
+                this.navigator.bindHome(this.home, () => this.checkFields(page))
                 break
             case "investment":
                 this.investment = getBriefingInvestment()
                 this.investment.flexibility.checked = this.briefingObject.investmentFlexibility ?? false
-
-                const investmentRoutes = ["clients", "new-client", "briefing-home"]
-                this.investment.root.forEach((root, index) => {
-                    u(root)
-                        .off("click")
-                        .on("click", () => callback(investmentRoutes[index]))
-                })
-
-                u(this.investment.cancel)
-                    .off("click")
-                    .on("click", () => callback("briefing-home"))
 
                 u(this.investment.flexibility)
                     .off("change")
@@ -117,53 +90,17 @@ export class Briefing {
 
                 this.syncInvestmentFields()
 
-                u(this.investment.confirm)
-                    .off("click")
-                    .on("click", () => {
-                        callback("briefing-rooms")
-                    })
+                this.navigator.bindInvestment(this.investment)
                 break;
             case "rooms":
                 this.rooms = getBriefingRooms();
                 this.restoreRoomsView()
 
-                const roomRoutes = ["clients", "new-client", "briefing-home"]
-                this.rooms.root.forEach((root, index) => {
-                    u(root)
-                        .off("click")
-                        .on("click", () => callback(roomRoutes[index]))
-                })
-
-                u(this.rooms.cancel)
-                    .off("click")
-                    .on("click", () => callback("briefing-investment"))
-
-                u(this.rooms.addRoom)
-                    .off("click")
-                    .on("click", () => {
-                        callback("added-room")
-                        // callback("investment")
-                        this.createRoomItem()
-
-                    })
-                u(this.rooms.confirm!)
-                    .off("click")
-                    .on("click", () => {
-                        // console.log(JSON.stringify(this.getBriefingObject()))
-                        callback("briefing-finish")
-                    })
-
-
+                this.navigator.bindRooms(this.rooms, () => this.createRoomItem())
                 break;
 
             case "finish":
-                var finishButton = u("#briefing-finish-confirm").first() as HTMLElement
-
-                u(finishButton)
-                    .off("click")
-                    .on("click", () => [
-                        callback(this.getBriefingObject())
-                    ])
+                if (onFinish) this.navigator.bindFinish(onFinish)
 
                 break;
         }
