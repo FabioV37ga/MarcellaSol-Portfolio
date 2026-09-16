@@ -90,46 +90,31 @@ export function routine() {
 
                     <div class="briefing-input-row">
                         <label>1ª prioridade</label>
-                        <select class="briefing-input">
+                        <select class="briefing-input" data-exclusive-project-priority>
                             <option value="" selected disabled>Selecione uma opção</option>
-                            <option value="conforto">Conforto</option>
-                            <option value="organizacao">Organização</option>
-                            <option value="praticidade">Praticidade</option>
-                            <option value="armazenamento">Armazenamento</option>
-                            <option value="integracao">Integração</option>
-                            <option value="privacidade">Privacidade</option>
-                            <option value="iluminacao">Iluminação</option>
-                            <option value="estetica">Estética</option>
+                            <option value="preco">Preço</option>
+                            <option value="qualidade">Qualidade</option>
+                            <option value="tempo">Tempo</option>
                         </select>
                     </div>
 
                     <div class="briefing-input-row">
                         <label>2ª prioridade</label>
-                        <select class="briefing-input">
+                        <select class="briefing-input" data-exclusive-project-priority>
                             <option value="" selected disabled>Selecione uma opção</option>
-                            <option value="conforto">Conforto</option>
-                            <option value="organizacao">Organização</option>
-                            <option value="praticidade">Praticidade</option>
-                            <option value="armazenamento">Armazenamento</option>
-                            <option value="integracao">Integração</option>
-                            <option value="privacidade">Privacidade</option>
-                            <option value="iluminacao">Iluminação</option>
-                            <option value="estetica">Estética</option>
+                            <option value="preco">Preço</option>
+                            <option value="qualidade">Qualidade</option>
+                            <option value="tempo">Tempo</option>
                         </select>
                     </div>
 
                     <div class="briefing-input-row">
                         <label>3ª prioridade</label>
-                        <select class="briefing-input">
+                        <select class="briefing-input" data-exclusive-project-priority>
                             <option value="" selected disabled>Selecione uma opção</option>
-                            <option value="conforto">Conforto</option>
-                            <option value="organizacao">Organização</option>
-                            <option value="praticidade">Praticidade</option>
-                            <option value="armazenamento">Armazenamento</option>
-                            <option value="integracao">Integração</option>
-                            <option value="privacidade">Privacidade</option>
-                            <option value="iluminacao">Iluminação</option>
-                            <option value="estetica">Estética</option>
+                            <option value="preco">Preço</option>
+                            <option value="qualidade">Qualidade</option>
+                            <option value="tempo">Tempo</option>
                         </select>
                     </div>
                 </fieldset>

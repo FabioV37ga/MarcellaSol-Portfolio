@@ -389,19 +389,19 @@
             "key": "field-7",
             "question": "Três prioridades do projeto, em ordem de importância",
             "controlType": "select",
-            "value": "conforto"
+            "value": "qualidade"
           },
           {
             "key": "field-8",
             "question": "Três prioridades do projeto, em ordem de importância",
             "controlType": "select",
-            "value": "estetica"
+            "value": "preco"
           },
           {
             "key": "field-9",
             "question": "Três prioridades do projeto, em ordem de importância",
             "controlType": "select",
-            "value": "armazenamento"
+            "value": "tempo"
           },
           {
             "key": "main-priorities",
@@ -1618,4 +1618,3 @@
     "$date": "2026-08-22T20:31:47.213Z"
   }
 }
-

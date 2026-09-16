@@ -94,6 +94,32 @@ test("renderiza adultos e crianças com os campos de contato corretos", async ({
         .toHaveCount(0);
 });
 
+test("mantém preço, qualidade e tempo exclusivos no ranking de prioridades", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+    await moveStoredDraftToPage(page, 3);
+    await page.reload();
+
+    const routine = page.locator("[data-briefing-page-key='routine']");
+    const priorities = routine.locator("select[data-exclusive-project-priority]");
+    await expect(priorities).toHaveCount(3);
+    await expect(priorities.first().locator("option")).toHaveText([
+        "Selecione uma opção", "Preço", "Qualidade", "Tempo"
+    ]);
+
+    await priorities.nth(0).selectOption("preco");
+    await priorities.nth(1).selectOption("preco");
+    await expect(priorities.nth(0)).toHaveValue("");
+    await expect(priorities.nth(1)).toHaveValue("preco");
+
+    await priorities.nth(0).selectOption("qualidade");
+    await priorities.nth(2).selectOption("tempo");
+    await expect(priorities.nth(0)).toHaveValue("qualidade");
+    await expect(priorities.nth(1)).toHaveValue("preco");
+    await expect(priorities.nth(2)).toHaveValue("tempo");
+});
+
 test("restaura respostas e anexos do briefing depois de recarregar a página", async ({ page }) => {
     await mockClientApi(page);
     await page.goto("/cliente.html");

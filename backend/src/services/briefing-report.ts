@@ -95,7 +95,7 @@ function escapeHtml(value: unknown): string {
 
 function humanize(value: string): string {
     const labels: Record<string, string> = {
-        sim: "Sim", nao: "Não", propria: "Própria", "em-construcao": "Em construção",
+        sim: "Sim", nao: "Não", propria: "Própria", preco: "Preço", qualidade: "Qualidade", tempo: "Tempo", "em-construcao": "Em construção",
         "mais-5-anos": "Mais de 5 anos", "ate-250-mil": "Até R$ 250 mil",
         "a-definir": "A definir", "apenas-refeicoes": "Apenas refeições",
         "uso-compartilhado": "Uso compartilhado", multiuso: "Multiuso"

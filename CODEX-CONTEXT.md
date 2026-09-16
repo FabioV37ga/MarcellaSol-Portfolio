@@ -592,5 +592,6 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - Adultos geram nome, data de nascimento, altura em centímetros, telefone e e-mail. Crianças geram nome, data de nascimento e altura em centímetros.
 - A idade não é persistida: é calculada pela data de nascimento no momento da geração do relatório.
 - No relatório, respostas pessoais de `about-property` devem ser agrupadas pelos prefixos `adult-N-*` e `child-N-*`; cada pessoa possui bloco visual próprio antes das demais informações do imóvel.
+- O ranking de três prioridades da página Rotina usa exclusivamente `preco`, `qualidade` e `tempo`; uma opção só pode ocupar uma posição por vez, e a seleção mais recente prevalece.
 - A quantidade mínima é 1 adulto e 0 crianças.
 - Dados legados devem ser migrados com `npm run briefing:migrate-resident-counts -- --apply`; execute antes sem `--apply` para visualizar o alcance.

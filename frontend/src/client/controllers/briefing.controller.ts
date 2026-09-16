@@ -96,7 +96,7 @@ export default class ClientBriefingController {
         });
 
         this.template.addEventListener("change", (event: Event) => {
-            const field = event.target as HTMLInputElement;
+            const field = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
             if (field instanceof HTMLInputElement && field.type === "file") {
                 void this.fileDraftService.save(field, this.pages);

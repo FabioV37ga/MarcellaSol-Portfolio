@@ -13,23 +13,49 @@ export class BriefingFormRules {
         this.syncOtherFields(page);
         this.syncBedSizeField(page);
         this.syncIgnoredItems(page);
+        this.syncExclusiveProjectPriorities(page);
         this.bindTextCounters(page);
     }
 
-    handleChange(field: HTMLInputElement, page: HTMLElement): void {
+    handleChange(field: BriefingField, page: HTMLElement): void {
         if (field.name === "home-automation") this.syncAutomationFields(page);
         if (field.name === "air-conditioning-structure") this.syncAirConditionerFields(page);
         if (field.name === "has-pets") this.syncPetFields(page);
 
-        if (field.type === "checkbox" && field.closest("[data-max-selections]")) {
+        if (field instanceof HTMLSelectElement && field.hasAttribute("data-exclusive-project-priority")) {
+            this.syncExclusiveProjectPriorities(page, field);
+        }
+
+        if (field instanceof HTMLInputElement && field.type === "checkbox" && field.closest("[data-max-selections]")) {
             this.syncMaximumSelections(field.closest<HTMLElement>("[data-max-selections]")!);
         }
         if (field.name === "form-input-66" && field.value === "outros") this.syncAttentionOtherField(page);
         if (/^(outro|outros)$/.test(field.value)) this.syncOtherFields(page);
-        if (field.type === "checkbox" && field.name === "form-input-103" && field.value === "cama") {
+        if (field instanceof HTMLInputElement && field.type === "checkbox" && field.name === "form-input-103" && field.value === "cama") {
             this.syncBedSizeField(page);
         }
         if (field.closest(".briefing-ignore-option")) this.syncIgnoredItems(page);
+    }
+
+    private syncExclusiveProjectPriorities(page: HTMLElement, changedField?: HTMLSelectElement): void {
+        const fields = Array.from(page.querySelectorAll<HTMLSelectElement>(
+            "select[data-exclusive-project-priority]"
+        ));
+        if (changedField?.value) {
+            fields.forEach(field => {
+                if (field !== changedField && field.value === changedField.value) field.value = "";
+            });
+            return;
+        }
+
+        const selected = new Set<string>();
+        fields.slice().reverse().forEach(field => {
+            if (!field.value || !selected.has(field.value)) {
+                if (field.value) selected.add(field.value);
+                return;
+            }
+            field.value = "";
+        });
     }
 
     validatePage(page: HTMLElement, form?: HTMLFormElement): boolean {
