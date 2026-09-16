@@ -95,7 +95,7 @@ function escapeHtml(value: unknown): string {
 
 function humanize(value: string): string {
     const labels: Record<string, string> = {
-        sim: "Sim", nao: "Não", propria: "Própria", preco: "Preço", qualidade: "Qualidade", tempo: "Tempo", "em-construcao": "Em construção",
+        sim: "Sim", nao: "Não", propria: "Própria", preco: "Preço", qualidade: "Qualidade", tempo: "Tempo", "sem-preferencia": "N/A", "em-construcao": "Em construção",
         "mais-5-anos": "Mais de 5 anos", "ate-250-mil": "Até R$ 250 mil",
         "a-definir": "A definir", "apenas-refeicoes": "Apenas refeições",
         "uso-compartilhado": "Uso compartilhado", multiuso: "Multiuso"
@@ -230,6 +230,26 @@ function renderAnswerGrid(answers: BriefingAnswer[], generatedAt: Date): string 
         </article>`).join("");
 }
 
+function renderSurfaceFinishesTable(answers: BriefingAnswer[]): string {
+    const rows = answers.filter(answer =>
+        answer.key?.startsWith("surface-finish-")
+        && answer.question
+        && meaningful(answer.value)
+    );
+    if (rows.length === 0) return "";
+
+    return `<div class="report-surface-finishes">
+        <h3>Preferências de acabamentos das superfícies</h3>
+        <table>
+            <thead><tr><th scope="col">Superfície</th><th scope="col">Acabamento</th></tr></thead>
+            <tbody>${rows.map(answer => `<tr>
+                <th scope="row">${escapeHtml(answer.question)}</th>
+                <td>${renderValue(answer.value)}</td>
+            </tr>`).join("")}</tbody>
+        </table>
+    </div>`;
+}
+
 function personDetail(label: string, value: unknown, formatter = renderValue): string {
     if (!meaningful(value)) return "";
     return `<div class="person-detail"><span>${escapeHtml(label)}</span><strong>${formatter(value)}</strong></div>`;
@@ -277,12 +297,18 @@ function renderPeopleSection(section: BriefingSection, generatedAt: Date): strin
 
 function renderSection(section: BriefingSection, assetBaseUrl: string, generatedAt: Date, heading?: string): string {
     if (section.key === "about-property") return renderPeopleSection(section, generatedAt);
-    const answers = renderAnswerGrid(section.answers ?? [], generatedAt);
-    if (!answers) return "";
+    const sectionAnswers = section.answers ?? [];
+    const surfaceFinishes = renderSurfaceFinishesTable(sectionAnswers);
+    const answers = renderAnswerGrid(
+        sectionAnswers.filter(answer => !answer.key?.startsWith("surface-finish-")),
+        generatedAt
+    );
+    if (!answers && !surfaceFinishes) return "";
 
     return `<section class="report-section">
         <h2>${escapeHtml(heading ?? section.title ?? "Informações")}</h2>
-        <div class="answer-grid">${answers}</div>
+        ${answers ? `<div class="answer-grid">${answers}</div>` : ""}
+        ${surfaceFinishes}
         ${renderVisualGallery(section, assetBaseUrl)}
     </section>`;
 }
@@ -421,6 +447,7 @@ export function buildBriefingReportHtml(
         .project-summary{margin:0 0 20px;padding:16px;border:1px solid #ded7d3;border-radius:10px}.project-summary h2,.room-index h2{margin:0 0 12px;color:#8f3c17;font-size:15px}.summary-environments{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #eadfd9}.summary-environments span,.summary-grid span{display:block;color:#8a7f7a;font-size:8px;text-transform:uppercase;letter-spacing:.06em}.summary-environments p{margin:4px 0 0}.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.summary-grid div{padding:9px;background:#faf8f7;border-radius:7px}.summary-grid strong{display:block;margin-top:3px;font-size:9px}.chapter-heading{margin:24px 0 12px;padding-bottom:8px;border-bottom:2px solid #b34f1e}.chapter-heading span{color:#8a7f7a;font-size:8px;text-transform:uppercase;letter-spacing:.1em}.chapter-heading h1{margin:2px 0 0;font-size:20px}.section-visuals{margin-top:14px;padding-top:12px;border-top:1px solid #eadfd9}.section-visuals>h3{margin:0 0 9px;color:#8f3c17;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.room-index{break-inside:avoid;margin-bottom:16px;padding:15px;border:1px solid #ded7d3;border-radius:10px}.room-index ol{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0;padding-left:22px}.room-index li{font-size:9px}.rooms>.chapter-heading{break-before:page}.room>header p{margin:2px 0 0;color:#756b67;font-size:9px}.room .section-visuals{padding:12px 15px 0}
         .answer,.answer div,.answer li{min-width:0;overflow-wrap:anywhere;word-break:break-word}.answer a{display:inline-block;white-space:nowrap;font-weight:700}
         .people-list{display:flex;flex-direction:column}.person-card{padding:13px 0;border-bottom:2px solid #eadfd9}.person-card:first-child{padding-top:2px}.person-card:last-child{border-bottom:0}.person-card header span,.person-detail span{display:block;color:#8a7f7a;font-size:8px;text-transform:uppercase;letter-spacing:.06em}.person-card header h3{margin:3px 0 10px;color:#292524;font-size:14px}.person-details{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px}.person-detail strong{display:block;margin-top:2px;font-size:10px;font-weight:400;overflow-wrap:anywhere}.other-information{margin-top:14px;padding-top:14px;border-top:2px solid #b34f1e}.other-information>h3{margin:0 0 11px;color:#8f3c17;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+        .report-surface-finishes{margin-top:14px;break-inside:avoid}.report-surface-finishes h3{margin:0 0 8px;color:#8f3c17;font-size:10px;text-transform:uppercase;letter-spacing:.05em}.report-surface-finishes table{width:100%;border:1px solid #ded7d3;border-collapse:separate;border-spacing:0;border-radius:8px;overflow:hidden}.report-surface-finishes th,.report-surface-finishes td{padding:8px 10px;border-bottom:1px solid #e5ded9;text-align:left}.report-surface-finishes thead th{background:#f8f3f0;color:#6b625f;font-size:8px;text-transform:uppercase;letter-spacing:.05em}.report-surface-finishes tbody th{width:58%;font-size:9px;font-weight:700}.report-surface-finishes tbody td{font-size:9px}.report-surface-finishes tbody tr:last-child th,.report-surface-finishes tbody tr:last-child td{border-bottom:0}
     </style></head><body>
         <header class="cover"><div class="brand">Marcella Sol · Relatório administrativo</div><h1>${escapeHtml(project.name ?? "Relatório de briefing")}</h1><h2>${escapeHtml(clientName)}</h2><div class="cover-meta">
             <div><span>Categoria</span><strong>${escapeHtml(humanize(project.category ?? "Não informada"))}</strong></div>

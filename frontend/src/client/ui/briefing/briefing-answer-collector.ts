@@ -162,6 +162,8 @@ export function briefingFileUploadId(page: HTMLElement, answerKey: string, fileI
 }
 
 function questionFor(field: BriefingField): string {
+    const declaredQuestion = field.dataset.briefingQuestion?.trim();
+    if (declaredQuestion) return declaredQuestion;
     const container = field.closest<HTMLElement>(".briefing-input-box, fieldset");
     const heading = container?.querySelector<HTMLElement>(
         ":scope > legend, :scope > p, :scope > label:not(.briefing-ignore-option)"

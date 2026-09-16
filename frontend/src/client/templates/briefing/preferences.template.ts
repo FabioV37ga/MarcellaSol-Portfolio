@@ -1,6 +1,7 @@
 import html from 'nanohtml'
 import { briefingDescriptiveOptions, briefingSimpleOptions } from './components/briefing-options.template.js'
 import { briefingVisualOptions } from './components/briefing-visual-options.template.js'
+import { surfaceFinishesTable } from './components/surface-finishes.template.js'
 
 const atmosphereOptions = [
     { value: "contemporaneo-brasileiro", imageSrc: "/images/briefing/styles/contemporaneo-brasileiro.png", imageAlt: "Ambiente no estilo contemporâneo brasileiro", badge: "Opção A", title: "Contemporâneo brasileiro" },
@@ -261,6 +262,8 @@ export function preferences_3(showCostObservation = true) {
                         <span>Ripados, muxarabi, palhinha e marcenaria curva costumam aumentar o custo da marcenaria.</span>
                     </div>` : null}
                 </div>
+
+                ${surfaceFinishesTable()}
 
                 <div class="briefing-input-box">
                     <p>Materiais que vocês gostam</p>

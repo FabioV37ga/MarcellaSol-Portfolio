@@ -120,6 +120,35 @@ test("mantém preço, qualidade e tempo exclusivos no ranking de prioridades", a
     await expect(priorities.nth(2)).toHaveValue("tempo");
 });
 
+test("permite escolher um acabamento por superfície", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+    await moveStoredDraftToPage(page, 7);
+    await page.reload();
+
+    const preferences = page.locator("[data-briefing-page-key='preferences-materials']");
+    const finishes = preferences.locator(".briefing-surface-finishes");
+    await expect(finishes).toBeVisible();
+    await expect(finishes.locator("tbody tr")).toHaveCount(4);
+    await expect(finishes.getByText("Brilhante", { exact: true })).toHaveCount(0);
+    await expect(finishes.getByText("N/A", { exact: true })).toBeVisible();
+    await expect.poll(() => finishes.locator(".briefing-surface-finishes-scroll").evaluate(element =>
+        element.scrollWidth <= element.clientWidth
+    )).toBe(true);
+
+    const cabinetry = finishes.locator("input[name='surface-finish-cabinetry']");
+    await expect(cabinetry).toHaveCount(5);
+    await expect(finishes.locator("input[name='surface-finish-stones']")).toHaveCount(5);
+    await expect(finishes.locator("input[name='surface-finish-floor']")).toHaveCount(5);
+    await expect(finishes.locator("input[name='surface-finish-metals']")).toHaveCount(5);
+    await cabinetry.nth(0).check();
+    await cabinetry.nth(3).check();
+    await expect(cabinetry.nth(0)).not.toBeChecked();
+    await expect(cabinetry.nth(3)).toBeChecked();
+    await expect(finishes.locator("input[type='radio']:checked")).toHaveCount(1);
+});
+
 test("restaura respostas e anexos do briefing depois de recarregar a página", async ({ page }) => {
     await mockClientApi(page);
     await page.goto("/cliente.html");

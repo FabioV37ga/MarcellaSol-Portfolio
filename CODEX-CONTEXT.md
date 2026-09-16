@@ -593,5 +593,7 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - A idade não é persistida: é calculada pela data de nascimento no momento da geração do relatório.
 - No relatório, respostas pessoais de `about-property` devem ser agrupadas pelos prefixos `adult-N-*` e `child-N-*`; cada pessoa possui bloco visual próprio antes das demais informações do imóvel.
 - O ranking de três prioridades da página Rotina usa exclusivamente `preco`, `qualidade` e `tempo`; uma opção só pode ocupar uma posição por vez, e a seleção mais recente prevalece.
+- A página de preferências de materiais possui uma matriz de acabamentos por superfície, com seleção única por linha: fosco, acetinado, cromado, polido ou sem preferência.
+- No relatório, as escolhas `surface-finish-*` devem ser removidas da grade genérica e apresentadas em uma tabela própria de superfície e acabamento.
 - A quantidade mínima é 1 adulto e 0 crianças.
 - Dados legados devem ser migrados com `npm run briefing:migrate-resident-counts -- --apply`; execute antes sem `--apply` para visualizar o alcance.

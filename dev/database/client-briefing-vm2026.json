@@ -556,6 +556,30 @@
             ]
           },
           {
+            "key": "surface-finish-cabinetry",
+            "question": "Marcenaria",
+            "controlType": "radio",
+            "value": "fosco"
+          },
+          {
+            "key": "surface-finish-stones",
+            "question": "Pedras / bancadas",
+            "controlType": "radio",
+            "value": "sem-preferencia"
+          },
+          {
+            "key": "surface-finish-floor",
+            "question": "Pisos e revestimentos",
+            "controlType": "radio",
+            "value": "acetinado"
+          },
+          {
+            "key": "surface-finish-metals",
+            "question": "Metais",
+            "controlType": "radio",
+            "value": "fosco"
+          },
+          {
             "key": "field-9",
             "question": "Materiais que vocês gostam",
             "controlType": "textarea",

@@ -48,3 +48,36 @@ test("relatório apresenta quantidades e dados dos adultos e crianças", () => {
     assert.match(html, /Rua Teste, 10/);
     assert.doesNotMatch(html, /Pessoa Adulta<span class="answer-separator">/);
 });
+
+test("relatório apresenta uma preferência de acabamento para cada superfície", () => {
+    const html = buildBriefingReportHtml({
+        briefingDefinition: { user: { name: "Cliente" } },
+        responses: {
+            project: { name: "Projeto" },
+            sections: [{
+                key: "preferences-materials",
+                title: "Preferências — texturas, materiais e referências",
+                answers: [
+                    { key: "surface-finish-cabinetry", question: "Marcenaria", value: "fosco" },
+                    { key: "surface-finish-stones", question: "Pedras / bancadas", value: "sem-preferencia" },
+                    { key: "surface-finish-floor", question: "Pisos e revestimentos", value: "acetinado" },
+                    { key: "surface-finish-metals", question: "Metais", value: "polido" }
+                ]
+            }],
+            rooms: []
+        }
+    });
+
+    assert.match(html, /Marcenaria/);
+    assert.match(html, /Fosco/);
+    assert.match(html, /Pedras \/ bancadas/);
+    assert.match(html, /N\/A/);
+    assert.match(html, /Pisos e revestimentos/);
+    assert.match(html, /Acetinado/);
+    assert.match(html, /Metais/);
+    assert.match(html, /Polido/);
+    assert.match(html, /class="report-surface-finishes"/);
+    assert.match(html, /<th scope="col">Superfície<\/th><th scope="col">Acabamento<\/th>/);
+    assert.match(html, /<th scope="row">Marcenaria<\/th>\s*<td>Fosco<\/td>/);
+    assert.doesNotMatch(html, /<h3>Marcenaria<\/h3>/);
+});
