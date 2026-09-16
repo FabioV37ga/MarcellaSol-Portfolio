@@ -11,7 +11,7 @@ import type { BriefingDefinition } from "@/shared/briefing/briefing.types.js";
 
 export type briefingObject = BriefingDefinition;
 
-export class Briefing {
+export class AdminBriefingController {
     private rooms!: briefingRooms
     private models!: briefing
     private readonly briefingObject: BriefingDefinition = {
@@ -37,7 +37,7 @@ export class Briefing {
         private readonly navigator: AdminBriefingNavigator
     ) { }
 
-    async getModels(name: string) {
+    async loadModels(name: string) {
         const views = await this.views.loadBriefingViews(this.session)
 
         this.briefingObject.user = { name }
@@ -47,7 +47,7 @@ export class Briefing {
         return templates
     }
 
-    addUserInteractions(page: string, onFinish?: () => void) {
+    mount(page: string, onFinish?: () => void) {
         switch (page) {
             case "home":
                 const home = getBriefingHome();
@@ -73,5 +73,9 @@ export class Briefing {
 
     public getBriefingObject(): briefingObject {
         return this.briefingObject
+    }
+
+    setClientName(name: string): void {
+        this.briefingObject.user = { name };
     }
 }

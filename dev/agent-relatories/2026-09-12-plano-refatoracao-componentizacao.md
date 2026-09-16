@@ -796,3 +796,9 @@ Testes isolados cobrem adição, edição de nome e tipo, opções personalizada
 Estado em 16/09/2026: **concluído; etapa em andamento**. A chamada de criação, o bloqueio de envio duplicado, o estado desabilitado do botão, a recuperação após falha e a navegação depois do sucesso foram extraídos para `ClientCreationSubmission`. `ClientCreationFlow` apenas entrega o payload montado na confirmação.
 
 Testes isolados cobrem concorrência, chamada única, sessão, payload, sucesso e nova tentativa após falha. O E2E simula falha HTTP, reativação da confirmação e criação na segunda tentativa. Views e payload não mudaram. Próximo recorte: simplificação final do `ClientCreationFlow`.
+
+### Sétimo recorte — simplificação final do fluxo
+
+Estado em 16/09/2026: **concluído; Etapa 5 concluída**. O wrapper `newClient`, que misturava credenciais e delegação ao controller, foi removido. O novo `ClientCreationDraft` mantém as credenciais e monta o payload sem depender do DOM. `ClientCreationFlow` passou a coordenar diretamente o rascunho, `AdminBriefingController`, navegador, resumo e submissão.
+
+Teste isolado cobre atualização das credenciais e montagem do payload sem perda do briefing. A suíte E2E preserva o fluxo completo, retorno entre páginas, restauração do rascunho, cômodos e falha/nova tentativa na criação. Não há migração nem nova sincronização de view. Próxima etapa priorizada: integrações Google Drive.

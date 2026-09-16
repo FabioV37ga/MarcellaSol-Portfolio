@@ -465,7 +465,7 @@ Quando o usuário pedir apenas status ou resumo, não repetir todos os detalhes:
 
 ## 15. Próximas etapas, em ordem
 
-As quatro primeiras prioridades estão concluídas. A fila restante priorizada por legibilidade e componentização é:
+As cinco primeiras prioridades estão concluídas. A fila restante priorizada por legibilidade e componentização é:
 
 ### Etapa priorizada 4 — controllers HTTP do backend: concluída
 
@@ -486,7 +486,7 @@ Terceiro recorte concluído em 16/09/2026: operações administrativas de client
 
 Quarto recorte concluído em 16/09/2026: envio do briefing extraído para `ClientBriefingController`; views separadas em `AdminViewsController` e `ClientViewsController`. Os agregadores `ClientController` e `ViewController` foram removidos. Upload multipart, identificação do cliente, payloads das views e mensagens HTTP foram preservados por meio de `asyncRoute`. A Etapa 4 está concluída. Próxima etapa: briefing administrativo e criação de cliente.
 
-### Etapa priorizada 5 — briefing administrativo e criação de cliente
+### Etapa priorizada 5 — briefing administrativo e criação de cliente: concluída
 
 Estado: em andamento. Primeiro recorte iniciado em 16/09/2026: o carregamento das views do briefing administrativo saiu do controller e passou para `AdminViewsApi`, usando `HttpClient` e sessão injetada. `ClientCreationFlow` continua como orquestrador e as views persistidas e o payload permanecem inalterados.
 
@@ -499,6 +499,8 @@ Quarto recorte concluído em 16/09/2026: `AdminBriefingInvestmentEditor` passou 
 Quinto recorte concluído em 16/09/2026: `AdminBriefingRoomsEditor` passou a controlar criação, restauração, personalização, exclusão, reordenação e sincronização dos cômodos. O controller administrativo do briefing ficou restrito à composição dos editores e do navegador. Próximo recorte: submissão da criação do cliente.
 
 Sexto recorte concluído em 16/09/2026: `ClientCreationSubmission` passou a controlar o envio final, impedir duplicidade, desativar a confirmação, reativá-la após falha e navegar após sucesso. Próximo recorte: simplificação final do `ClientCreationFlow`.
+
+Sétimo recorte concluído em 16/09/2026: o wrapper legado `newClient` foi removido. `ClientCreationDraft` concentra credenciais e montagem do payload; `ClientCreationFlow` coordena diretamente rascunho, `AdminBriefingController`, navegação, confirmação e submissão. A Etapa 5 está concluída. Próxima etapa: integrações Google Drive.
 
 Ajuste funcional em 16/09/2026: nas páginas `Dados do briefing` e `Cômodos do briefing`, o botão secundário deve exibir `Voltar`. Em `Dados do briefing`, ele retorna ao formulário `Dados do cliente`; em `Cômodos do briefing`, retorna para investimento. Os textos pertencem às views persistidas correspondentes.
 
