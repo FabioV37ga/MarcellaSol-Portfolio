@@ -5,7 +5,7 @@ import express from "express";
 import mongoose from "mongoose";
 import { AdminSessionsController } from "../dist/src/controllers/admin-sessions.controller.js";
 import { AdminClientsController } from "../dist/src/controllers/admin-clients.controller.js";
-import { ClientController } from "../dist/src/controllers/client.controller.js";
+import { ClientBriefingController } from "../dist/src/controllers/client-briefing.controller.js";
 import { ClientSessionsController } from "../dist/src/controllers/client-sessions.controller.js";
 import { AdminPaymentsController } from "../dist/src/controllers/admin-payments.controller.js";
 import { ClientPaymentsController } from "../dist/src/controllers/client-payments.controller.js";
@@ -32,7 +32,7 @@ function financialApp(service, role = "admin") {
         ? adminRoutes(new AdminSessionsController(undefined, undefined),
             guard, new AdminPaymentsController(service), new AdminProposalsController({}), new AdminReportsController({}),
             new AdminClientsController(undefined, undefined, undefined, undefined))
-        : clientRoutes(new ClientController(undefined),
+        : clientRoutes(new ClientBriefingController(undefined),
             guard, new ClientPaymentsController(service), new ClientApprovalsController({}, {}),
             new ClientSessionsController(undefined, undefined, undefined)));
     app.use(errorHandler);

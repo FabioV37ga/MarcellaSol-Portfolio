@@ -746,3 +746,9 @@ Validações desse incremento funcional: build completo, 15 views válidas, 56 t
 Estado em 16/09/2026: **concluído**. Consulta, criação, exclusão e atualização das etapas de clientes foram extraídas para `AdminClientsController`. Login, consulta e logout foram separados em `AdminSessionsController` e `ClientSessionsController`. O agregador `AdminController` foi removido; `ClientController` permaneceu responsável apenas pelo envio do briefing. A composição injeta dependências mínimas e as rotas usam o middleware central de erros com mensagens específicas por operação.
 
 Cobertura HTTP adicionada para listagem de clientes, mudança de etapa, login administrativo, consulta da sessão do cliente e logout. Build e testes unitários/integrados passaram. Não há migração nem sincronização de view. Teste manual: entrar como administrador, listar clientes e mudar uma etapa; encerrar a sessão; entrar como cliente e restaurar/encerrar a sessão. Próximo recorte: briefing e views do backend.
+
+### Quarto recorte — briefing e views
+
+Estado em 16/09/2026: **concluído; Etapa 4 concluída**. O envio do briefing foi movido para `ClientBriefingController`, mantendo parsing multipart, validação do manifesto, identidade autenticada e delegação ao serviço de aplicação. As respostas de views foram separadas em `AdminViewsController` e `ClientViewsController`; os antigos agregadores `ClientController` e `ViewController` foram removidos. Rotas e composição passaram a depender diretamente dos controllers específicos e encaminham falhas pelo middleware central.
+
+Cobertura HTTP ampliada para submissão de briefing sem anexos, view do briefing administrativo e view autenticada do cliente. Não há migração nem sincronização de view, pois os contratos persistidos não mudaram. Teste manual: enviar um briefing como cliente, recarregar a área do cliente e abrir o fluxo administrativo de briefing. Próxima etapa priorizada: briefing administrativo e criação de cliente.

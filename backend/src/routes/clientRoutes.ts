@@ -2,7 +2,7 @@ import express from "express";
 import type { ClientPaymentsController } from "../controllers/client-payments.controller.js";
 import { asyncRoute } from "../middleware/async-route.js";
 import type { ClientApprovalsController } from "../controllers/client-approvals.controller.js";
-import { ClientController } from "../controllers/client.controller.js";
+import type { ClientBriefingController } from "../controllers/client-briefing.controller.js";
 import type { ClientSessionsController } from "../controllers/client-sessions.controller.js";
 import { receiveBriefingFiles } from "../middleware/briefing-upload.middleware.js";
 import type { AuthenticationGuard } from "../middleware/authentication.middleware.js";
@@ -11,7 +11,7 @@ import { financialMutationRateLimit, financialReadRateLimit } from "../middlewar
 import { receiveProposalAttachment } from "../middleware/proposal-upload.middleware.js";
 
 export default function clientRoutes(
-    controller: ClientController,
+    briefing: ClientBriefingController,
     requireAuthentication: AuthenticationGuard,
     payments: ClientPaymentsController,
     approvals: ClientApprovalsController,
@@ -28,7 +28,8 @@ export default function clientRoutes(
     router.post("/api/client/payments/:paymentId/pix", requireAuthentication("client"), financialMutationRateLimit, asyncRoute(payments.generatePaymentPix, { unexpectedMessage: "Não foi possível gerar o código Pix." }));
     router.post("/api/client/proposals/:proposalId/approve", requireAuthentication("client"), receiveProposalAttachment, asyncRoute(approvals.approveProposal, decisionErrorPolicy));
     router.post("/api/client/proposals/:proposalId/beat", requireAuthentication("client"), receiveProposalAttachment, asyncRoute(approvals.beatProposal, decisionErrorPolicy));
-    router.post("/api/client/briefing", requireAuthentication("client"), receiveBriefingFiles, controller.submit);
+    router.post("/api/client/briefing", requireAuthentication("client"), receiveBriefingFiles,
+        asyncRoute(briefing.submit, { unexpectedMessage: "Erro interno ao salvar briefing" }));
 
     return router;
 }

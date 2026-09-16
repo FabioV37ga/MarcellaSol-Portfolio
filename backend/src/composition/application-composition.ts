@@ -18,12 +18,13 @@ import { AdminSessionsController } from "../controllers/admin-sessions.controlle
 import { AdminClientsController } from "../controllers/admin-clients.controller.js";
 import { AdminPaymentsController } from "../controllers/admin-payments.controller.js";
 import { ClientPaymentsController } from "../controllers/client-payments.controller.js";
-import { ClientController } from "../controllers/client.controller.js";
+import { ClientBriefingController } from "../controllers/client-briefing.controller.js";
 import { ClientSessionsController } from "../controllers/client-sessions.controller.js";
 import { AdminProposalsController } from "../controllers/admin-proposals.controller.js";
 import { AdminReportsController } from "../controllers/admin-reports.controller.js";
 import { ClientApprovalsController } from "../controllers/client-approvals.controller.js";
-import { ViewController } from "../controllers/view.controller.js";
+import { AdminViewsController } from "../controllers/admin-views.controller.js";
+import { ClientViewsController } from "../controllers/client-views.controller.js";
 import { createAuthenticationGuard, type AuthenticationGuard } from "../middleware/authentication.middleware.js";
 import { AdminRepository } from "../repositories/admin.repository.js";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
@@ -41,14 +42,15 @@ import { SessionTokenService } from "../services/session-token.service.js";
 export interface ApplicationComposition {
     adminSessions: AdminSessionsController;
     adminClients: AdminClientsController;
-    client: ClientController;
+    clientBriefing: ClientBriefingController;
     clientSessions: ClientSessionsController;
     adminPayments: AdminPaymentsController;
     clientPayments: ClientPaymentsController;
     adminProposals: AdminProposalsController;
     adminReports: AdminReportsController;
     clientApprovals: ClientApprovalsController;
-    views: ViewController;
+    adminViews: AdminViewsController;
+    clientViews: ClientViewsController;
     requireAuthentication: AuthenticationGuard;
 }
 
@@ -86,9 +88,10 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             new UpdateClientProjectStageService(clients),
             new DeleteClientService(clients, new ClientDeletionRepository(), drive)
         ),
-        client: new ClientController(submitBriefing),
+        clientBriefing: new ClientBriefingController(submitBriefing),
         clientSessions: new ClientSessionsController(clients, authenticate, sessions),
-        views: new ViewController(views, clients),
+        adminViews: new AdminViewsController(views),
+        clientViews: new ClientViewsController(views, clients),
         adminPayments: new AdminPaymentsController(paymentService),
         clientPayments: new ClientPaymentsController(paymentService),
         adminProposals: new AdminProposalsController(proposalService),

@@ -7,14 +7,17 @@ import { AdminPaymentsController } from "../dist/src/controllers/admin-payments.
 import { AdminProposalsController } from "../dist/src/controllers/admin-proposals.controller.js";
 import { AdminReportsController } from "../dist/src/controllers/admin-reports.controller.js";
 import { AdminSessionsController } from "../dist/src/controllers/admin-sessions.controller.js";
+import { AdminViewsController } from "../dist/src/controllers/admin-views.controller.js";
 import { ClientApprovalsController } from "../dist/src/controllers/client-approvals.controller.js";
-import { ClientController } from "../dist/src/controllers/client.controller.js";
+import { ClientBriefingController } from "../dist/src/controllers/client-briefing.controller.js";
 import { ClientPaymentsController } from "../dist/src/controllers/client-payments.controller.js";
 import { ClientSessionsController } from "../dist/src/controllers/client-sessions.controller.js";
+import { ClientViewsController } from "../dist/src/controllers/client-views.controller.js";
 import { createAuthenticationGuard } from "../dist/src/middleware/authentication.middleware.js";
 import { errorHandler } from "../dist/src/middleware/error-handler.middleware.js";
 import adminRoutes from "../dist/src/routes/adminRoutes.js";
 import clientRoutes from "../dist/src/routes/clientRoutes.js";
+import viewRoutes from "../dist/src/routes/viewRoutes.js";
 
 function testApp() {
     const calls = [];
@@ -34,6 +37,11 @@ function testApp() {
     };
     const sessions = { async revoke(principal) { calls.push(["logout", principal.role]); } };
     const repository = { async findById(id) { calls.push(["session", id]); return { name: "Cliente", hasFilledBriefing: true }; } };
+    const briefing = { async execute(command) { calls.push(["briefing", command]); return { hasFilledBriefing: true }; } };
+    const views = {
+        async findByPermission(permission) { calls.push(["view", permission]); return { permission }; },
+        async findAdminBriefingViews() { calls.push(["briefing-views"]); return [{ key: "intro" }]; }
+    };
     const guard = createAuthenticationGuard({
         async authenticate(token) {
             if (token !== "admin" && token !== "client") return undefined;
@@ -48,9 +56,10 @@ function testApp() {
         new AdminClientsController({ execute: async () => ({}) }, clients, projectStages, { execute: async () => undefined })
     ));
     app.use(clientRoutes(
-        new ClientController(undefined), guard, new ClientPaymentsController({}), new ClientApprovalsController({}, {}),
+        new ClientBriefingController(briefing), guard, new ClientPaymentsController({}), new ClientApprovalsController({}, {}),
         new ClientSessionsController(repository, authenticate, sessions)
     ));
+    app.use(viewRoutes(new AdminViewsController(views), new ClientViewsController(views, repository), guard));
     app.use(errorHandler);
     return { app, calls };
 }
@@ -96,5 +105,26 @@ test("rotas de sessão preservam login, consulta autenticada e logout", async ()
         const logout = await fetch(`${base}/api/client/logout`, authorized("client", "POST"));
         assert.equal(logout.status, 204);
         assert.deepEqual(calls.at(-1), ["logout", "client"]);
+    });
+});
+
+test("briefing e views usam controllers específicos e preservam os contratos", async () => {
+    const { app, calls } = testApp();
+    await withServer(app, async base => {
+        const briefing = await fetch(`${base}/api/client/briefing`,
+            authorized("client", "POST", { briefing: { objective: "Site" }, fileManifest: [] }));
+        assert.equal(briefing.status, 200);
+        assert.equal((await briefing.json()).hasFilledBriefing, true);
+        assert.equal(calls.at(-1)[1].clientId, "client-1");
+
+        const adminView = await fetch(`${base}/api/view/admin/briefing`, authorized("admin", "POST"));
+        assert.equal(adminView.status, 200);
+        assert.deepEqual((await adminView.json()).views, [{ key: "intro" }]);
+
+        const clientView = await fetch(`${base}/api/view/client`, authorized("client", "POST"));
+        assert.equal(clientView.status, 200);
+        const payload = await clientView.json();
+        assert.equal(payload.view.permission, "client");
+        assert.equal(payload.clientObject.name, "Cliente");
     });
 });

@@ -464,9 +464,9 @@ Quando o usuário pedir apenas status ou resumo, não repetir todos os detalhes:
 
 ## 15. Próximas etapas, em ordem
 
-As três primeiras prioridades estão concluídas. A fila restante priorizada por legibilidade e componentização é:
+As quatro primeiras prioridades estão concluídas. A fila restante priorizada por legibilidade e componentização é:
 
-### Etapa priorizada 4 — controllers HTTP do backend: em andamento
+### Etapa priorizada 4 — controllers HTTP do backend: concluída
 
 Objetivo:
 
@@ -482,6 +482,8 @@ Primeiro recorte concluído em 15/09/2026: endpoints financeiros extraídos para
 Segundo recorte concluído em 15/09/2026: propostas administrativas, relatórios e aprovações do cliente extraídos para `AdminProposalsController`, `AdminReportsController` e `ClientApprovalsController`. `ListClientApprovalsService` concentra consulta e normalização das etapas; `presentClientProposal` centraliza a saída pública com leitura de anexos legados. As políticas de erro distinguem `ValidationError` e `CastError` para manter os status anteriores de cada recurso. Uploads, histórico e compensações permanecem nos componentes existentes. Próximo recorte: clientes e sessões; depois, briefing e views.
 
 Terceiro recorte concluído em 16/09/2026: operações administrativas de clientes e etapas foram extraídas para `AdminClientsController`; autenticação, consulta e encerramento de sessão foram separadas em `AdminSessionsController` e `ClientSessionsController`. `AdminController` foi removido e `ClientController` ficou restrito ao envio do briefing. Rotas usam `asyncRoute` e políticas de erro específicas, mantendo autenticação, rate limits e contratos HTTP. Próximo recorte: briefing e views do backend.
+
+Quarto recorte concluído em 16/09/2026: envio do briefing extraído para `ClientBriefingController`; views separadas em `AdminViewsController` e `ClientViewsController`. Os agregadores `ClientController` e `ViewController` foram removidos. Upload multipart, identificação do cliente, payloads das views e mensagens HTTP foram preservados por meio de `asyncRoute`. A Etapa 4 está concluída. Próxima etapa: briefing administrativo e criação de cliente.
 
 ### Etapa priorizada 5 — briefing administrativo e criação de cliente
 

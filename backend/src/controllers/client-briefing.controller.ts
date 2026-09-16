@@ -1,27 +1,18 @@
 import type { Request, Response } from "express";
 import { ApplicationError } from "../application/errors/application-error.js";
-import {
+import type {
     SubmitBriefingService,
-    type FileManifestEntry,
-    type SubmitBriefingCommand
+    FileManifestEntry,
+    SubmitBriefingCommand
 } from "../application/submit-briefing.service.js";
 import { authenticatedPrincipal } from "../middleware/authentication.middleware.js";
 
-export class ClientController {
-    constructor(
-        private readonly submitBriefing: SubmitBriefingService
-    ) { }
+export class ClientBriefingController {
+    constructor(private readonly submitBriefing: Pick<SubmitBriefingService, "execute">) { }
 
     submit = async (request: Request, response: Response): Promise<Response> => {
-        try {
-            const command = this.parseSubmitCommand(request, response);
-            const result = await this.submitBriefing.execute(command);
-            return response.status(200).json({ message: "Briefing enviado com sucesso", ...result });
-        } catch (error: unknown) {
-            if (error instanceof ApplicationError) return response.status(error.status).json({ message: error.message });
-            console.error("Erro ao salvar briefing do cliente:", error);
-            return response.status(500).json({ message: "Erro interno ao salvar briefing" });
-        }
+        const result = await this.submitBriefing.execute(this.parseSubmitCommand(request, response));
+        return response.status(200).json({ message: "Briefing enviado com sucesso", ...result });
     };
 
     private parseSubmitCommand(request: Request, response: Response): SubmitBriefingCommand {
