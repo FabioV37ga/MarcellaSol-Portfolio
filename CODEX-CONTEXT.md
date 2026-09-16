@@ -220,7 +220,7 @@ Preservar valores persistidos e contratos definidos em `projectStage` e nos cont
 - Administrador pode editar título, descrição, anexar novos arquivos e remover anexos; não há mais reenvio.
 - A aprovação inicial do cliente permanece. Depois de uma solicitação de alteração (`beated`), o administrador usa `Confirmar alterações`.
 - O diálogo pergunta: `Deseja alterar o status da proposta para 'Alterações concluídas'?` e oferece cancelamento ou confirmação.
-- Confirmar muda a proposta para `changes-completed` (`Alterações concluídas`), conclui a etapa vinculada e encerra a proposta sem nova aprovação do cliente. Histórico e anexos são preservados.
+- Confirmar muda a proposta para `changes-completed` (`Alterações concluídas`), coloca a etapa vinculada em `awaiting-client` (`Aguardando cliente`) e encerra a proposta sem nova aprovação do cliente. Histórico e anexos são preservados.
 - O status legado `resent` permanece legível; novos reenvios não são permitidos. O endpoint vigente é `POST /api/admin/clients/:id/proposals/:proposalId/complete-changes`.
 - Cliente pode anexar um ou mais arquivos tanto ao aprovar quanto ao solicitar alteração.
 - Respostas e anexos formam histórico e não devem ser sobrescritos.

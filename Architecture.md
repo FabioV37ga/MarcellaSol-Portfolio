@@ -261,7 +261,7 @@ clientes/<cliente>/propostas/<titulo-id>/
 
 Os anexos das respostas são históricos e não devem ser sobrescritos por um reenvio posterior.
 
-Fluxo de propostas atualizado em 15/09/2026: a aprovação inicial do cliente permanece; após solicitar alterações, o administrador confirma sua conclusão em diálogo explícito. A proposta passa de `beated` para `changes-completed`, a etapa vinculada é concluída e não há nova aprovação do cliente. O reenvio administrativo foi removido; `resent` permanece legível para compatibilidade. A transição deve verificar atomicamente o status anterior, preservar histórico/anexos e compensar falha ao atualizar a etapa.
+Fluxo de propostas atualizado em 15/09/2026: a aprovação inicial do cliente permanece; após solicitar alterações, o administrador confirma sua conclusão em diálogo explícito. A proposta passa de `beated` para `changes-completed`, a etapa vinculada passa para `awaiting-client` (Aguardando cliente) e não há nova aprovação do cliente. O reenvio administrativo foi removido; `resent` permanece legível para compatibilidade. A transição deve verificar atomicamente o status anterior, preservar histórico/anexos e compensar falha ao atualizar a etapa.
 
 ## 10. Migrações e compatibilidade
 

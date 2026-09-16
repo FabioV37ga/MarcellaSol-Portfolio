@@ -723,6 +723,8 @@ Não há migração nem sincronização de view. Próximo recorte: separar clien
 
 ## 26. Mudança funcional — confirmação das alterações de proposta
 
+Correção posterior solicitada em 15/09/2026: ao confirmar alterações, a proposta permanece com destino `changes-completed`, mas a etapa vinculada deve ficar `awaiting-client` (Aguardando cliente), substituindo a regra de conclusão da etapa descrita no histórico abaixo. Serviço, teste de aplicação, E2E, contexto e contrato arquitetural atualizados. Não exige migração nem nova sincronização de view. Teste manual: confirmar uma proposta com alterações solicitadas e conferir `Alterações concluídas` na proposta e `Aguardando cliente` na etapa.
+
 Ajuste de organização: propostas com alterações solicitadas (`beated`) ficam em `Propostas abertas`; após confirmar alterações, passam para `Histórico de propostas`. E2E ampliado para verificar os dois containers. Build, 56 testes frontend, 102 backend e 16 E2E aprovados; uma integração MongoDB ignorada. A classificação não exige mudança na view; a renomeação anterior do título continua dependendo da sincronização de `client-proposals-view.json`.
 
 Pedido de 15/09/2026: substituir reenvio por `Confirmar alterações`, mantendo aprovação inicial do cliente. Após confirmação no diálogo `Deseja alterar o status da proposta para 'Alterações concluídas'?`, a proposta muda de `beated` para `changes-completed` e a etapa vinculada fica `completed`. Não há nova aprovação do cliente.

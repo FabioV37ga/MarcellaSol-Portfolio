@@ -103,7 +103,7 @@ export class ClientProposalService {
 
         try {
             const projectState = proposal.stageKey
-                ? await this.synchronizeProjectStage(userId, client, proposal.stageKey, "completed")
+                ? await this.synchronizeProjectStage(userId, client, proposal.stageKey, "awaiting-client")
                 : this.currentProjectState(client);
             return { proposal: updated, ...projectState };
         } catch (error) {

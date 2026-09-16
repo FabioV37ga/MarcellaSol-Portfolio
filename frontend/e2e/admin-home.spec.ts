@@ -22,7 +22,7 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
     await page.route("**/api/admin/clients", route => route.fulfill({ json: { clients } }));
 }
 
-test("confirma alterações com cancelamento, falha, nova tentativa e conclusão da etapa", async ({ page }) => {
+test("confirma alterações com cancelamento, falha, nova tentativa e etapa aguardando cliente", async ({ page }) => {
     const client = { id: "changes-client", name: "Cliente Alterações", hasFilledBriefing: true,
         currentStageKey: "layout", currentStageStatus: "changes-requested", type: "residencial",
         projectStages: ["contract", "briefing", "layout", "project-development", "survey", "budgets-definitions", "executive-project", "final-delivery"]
@@ -43,7 +43,7 @@ test("confirma alterações com cancelamento, falha, nova tentativa e conclusão
         expect(route.request().headers().authorization).toBe("Bearer e2e-admin-token");
         if (requests === 1) return route.fulfill({ status: 500, json: { message: "Não foi possível confirmar as alterações." } });
         proposal = { ...proposal, status: "changes-completed" };
-        client.projectStages[2].status = "completed";
+        client.projectStages[2].status = "awaiting-client";
         return route.fulfill({ json: { proposal, currentStageKey: "layout", projectStages: client.projectStages } });
     });
     await page.goto("/admin.html");
@@ -72,7 +72,7 @@ test("confirma alterações com cancelamento, falha, nova tentativa e conclusão
     await expect(page.locator("#closed-proposals-list [data-proposal-id='changes-proposal']")).toBeVisible();
     await expect(page.locator(".proposal-confirm-changes")).toHaveCount(0);
     await expect(page.locator(".proposal-client-response-history")).toContainText("Mover mesa");
-    await expect(page.locator(".project-step[data-stage-key='layout']")).toHaveAttribute("data-status", "completed");
+    await expect(page.locator(".project-step[data-stage-key='layout']")).toHaveAttribute("data-status", "awaiting-client");
     expect(requests).toBe(2);
 });
 

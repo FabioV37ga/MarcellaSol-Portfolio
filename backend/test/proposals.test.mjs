@@ -228,7 +228,7 @@ test("cliente anexa arquivos à resposta e preserva o histórico da proposta", a
     assert.equal(result.proposal.clientResponses.length, 1);
 });
 
-test("confirmação de alterações encerra proposta e conclui etapa", async () => {
+test("confirmação de alterações encerra proposta e deixa etapa aguardando cliente", async () => {
     const userId = "507f1f77bcf86cd799439011";
     const proposalId = "507f1f77bcf86cd799439012";
     const clients = {
@@ -263,7 +263,7 @@ test("confirmação de alterações encerra proposta e conclui etapa", async () 
     const result = await service.confirmChanges(userId, proposalId);
 
     assert.equal(result.proposal.status, "changes-completed");
-    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "completed");
+    assert.equal(result.projectStages.find(stage => stage.key === "survey")?.status, "awaiting-client");
 });
 
 test("administrador remove um anexo da proposta e atualiza o banco", async () => {
