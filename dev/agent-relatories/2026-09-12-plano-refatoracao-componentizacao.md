@@ -772,3 +772,9 @@ Ajuste funcional solicitado em 16/09/2026: o botão secundário de `Dados do bri
 Complemento do ajuste: o fluxo mantém nome, login, senha e o briefing em memória ao retornar das páginas seguintes para `Dados do cliente`. Ao montar novamente a listagem de clientes, esse rascunho é removido; um acesso posterior a `Novo cliente` começa vazio. O E2E verifica restauração e descarte no mesmo fluxo.
 
 Correção adicional: o botão `Voltar` de `Revisar e finalizar` foi conectado ao `AdminBriefingNavigator` e retorna para `Cômodos do briefing`, com cobertura unitária e E2E.
+
+### Terceiro recorte — editor de dados do briefing
+
+Estado em 16/09/2026: **concluído; etapa em andamento**. Restauração dos campos, eventos de edição, normalização das quantidades e validação da primeira página foram extraídos para `AdminBriefingDetailsEditor`. O controller passou a apenas localizar os elementos e conectar o editor ao `AdminBriefingNavigator`.
+
+Testes isolados cobrem restauração do estado, atualização do objeto de briefing, remoção de espaços do nome, quantidades válidas e rejeição de nome vazio, zero adulto e quantidade fracionária. Views e payload não mudaram. Próximo recorte: editor de investimento.

@@ -1,4 +1,5 @@
-import { briefingHome, briefingInvestment, briefingRooms, getBriefingHome, getBriefingInvestment, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
+import { briefingInvestment, briefingRooms, getBriefingHome, getBriefingInvestment, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
+import { AdminBriefingDetailsEditor } from "@/admin/modules/admin-briefing-details.editor.js";
 import { getBriefingRoomOptions } from "@/admin/templates/briefing/briefing-room-options.template.js";
 import { roomItem } from "@/admin/templates/briefing/briefing.template.js";
 import getTemplates from "@/admin/templates/getter.js";
@@ -14,7 +15,6 @@ export type briefingObject = BriefingDefinition;
 export class Briefing {
     private lastRoomId = 0;
     private lastRoomIndex = 0;
-    private home!: briefingHome
     private investment!: briefingInvestment
     private rooms!: briefingRooms
     private addedRooms?: roomItem[] = []
@@ -32,6 +32,7 @@ export class Briefing {
         investmentFlexibility: false,
         rooms: []
     }
+    private readonly detailsEditor = new AdminBriefingDetailsEditor(this.briefingObject)
 
 
     constructor(
@@ -53,32 +54,8 @@ export class Briefing {
     addUserInteractions(page: string, onFinish?: () => void) {
         switch (page) {
             case "home":
-                this.home = getBriefingHome();
-                this.home.category.value = this.briefingObject.description?.category ?? ""
-                this.home.type.value = this.briefingObject.description?.type ?? ""
-                this.home.name.value = this.briefingObject.description?.name ?? ""
-                this.home.adultAmount.value = String(this.briefingObject.description?.adultAmount || "")
-                this.home.childrenAmount.value = String(this.briefingObject.description?.childrenAmount ?? "")
-
-                const homeFields = [
-                    this.home.category,
-                    this.home.type,
-                    this.home.name,
-                    this.home.adultAmount,
-                    this.home.childrenAmount
-                ]
-
-                homeFields.forEach(field => {
-                    u(field)
-                        .off("input")
-                        .on("input", () => this.syncHomeFields())
-                        .off("change")
-                        .on("change", () => this.syncHomeFields())
-                })
-
-                this.syncHomeFields()
-
-                this.navigator.bindHome(this.home, () => this.checkFields(page))
+                const home = getBriefingHome();
+                this.navigator.bindHome(home, this.detailsEditor.mount(home))
                 break
             case "investment":
                 this.investment = getBriefingInvestment()
@@ -103,37 +80,6 @@ export class Briefing {
                 if (onFinish) this.navigator.bindFinish(onFinish)
 
                 break;
-        }
-    }
-
-    protected checkFields(page: string): boolean {
-        switch (page) {
-            case "home":
-                if (
-                    this.home.category.value &&
-                    this.home.type.value &&
-                    this.home.name.value &&
-                Number.isInteger(Number(this.home.adultAmount.value)) &&
-                Number(this.home.adultAmount.value) >= 1 &&
-                Number.isInteger(Number(this.home.childrenAmount.value)) &&
-                Number(this.home.childrenAmount.value) >= 0
-                ) {
-                    return true
-                } else {
-                    return false
-                }
-
-        }
-        return false
-    }
-
-    private syncHomeFields() {
-        this.briefingObject.description = {
-            category: this.home.category.value,
-            type: this.home.type.value,
-            name: this.home.name.value.trim(),
-            adultAmount: Math.max(1, Math.floor(Number(this.home.adultAmount.value) || 1)),
-            childrenAmount: Math.max(0, Math.floor(Number(this.home.childrenAmount.value) || 0))
         }
     }
 

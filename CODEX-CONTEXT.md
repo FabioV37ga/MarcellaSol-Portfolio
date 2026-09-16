@@ -59,6 +59,7 @@ Stack atual:
   - fluxo de teste manual;
   - sincronização de view ou migração necessária;
   - sugestão de texto de commit.
+- Encerrar toda entrega de implementação com uma seção explícita `Fluxo de teste manual`, contendo os passos que o responsável deve executar, mesmo quando a alteração já possuir testes automatizados.
 - Toda implementação funcional deve criar ou ampliar um teste E2E.
 - Avisos e erros repetitivos nos logs devem ser corrigidos na origem; não esconder warnings globalmente quando houver correção suportada.
 - Evitar deixar o usuário sem atualização durante trabalhos demorados.
@@ -490,6 +491,8 @@ Quarto recorte concluído em 16/09/2026: envio do briefing extraído para `Clien
 Estado: em andamento. Primeiro recorte iniciado em 16/09/2026: o carregamento das views do briefing administrativo saiu do controller e passou para `AdminViewsApi`, usando `HttpClient` e sessão injetada. `ClientCreationFlow` continua como orquestrador e as views persistidas e o payload permanecem inalterados.
 
 Segundo recorte concluído em 16/09/2026: `AdminBriefingNavigator` passou a controlar breadcrumbs, avanços, retornos, adição de cômodos e confirmação final. O controller mantém por enquanto o estado e a edição dos campos, sem conhecer rotas administrativas. Próximo recorte: separar os editores de residência, investimento e cômodos.
+
+Terceiro recorte concluído em 16/09/2026: `AdminBriefingDetailsEditor` passou a restaurar, sincronizar, normalizar e validar os campos de `Dados do briefing`. O controller apenas obtém os elementos e conecta editor e navegador. Próximo recorte: editor de investimento.
 
 Ajuste funcional em 16/09/2026: nas páginas `Dados do briefing` e `Cômodos do briefing`, o botão secundário deve exibir `Voltar`. Em `Dados do briefing`, ele retorna ao formulário `Dados do cliente`; em `Cômodos do briefing`, retorna para investimento. Os textos pertencem às views persistidas correspondentes.
 
