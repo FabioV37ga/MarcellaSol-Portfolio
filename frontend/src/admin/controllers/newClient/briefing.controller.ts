@@ -1,5 +1,6 @@
-import { briefingInvestment, briefingRooms, getBriefingHome, getBriefingInvestment, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
+import { briefingRooms, getBriefingHome, getBriefingInvestment, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
 import { AdminBriefingDetailsEditor } from "@/admin/modules/admin-briefing-details.editor.js";
+import { AdminBriefingInvestmentEditor } from "@/admin/modules/admin-briefing-investment.editor.js";
 import { getBriefingRoomOptions } from "@/admin/templates/briefing/briefing-room-options.template.js";
 import { roomItem } from "@/admin/templates/briefing/briefing.template.js";
 import getTemplates from "@/admin/templates/getter.js";
@@ -15,7 +16,6 @@ export type briefingObject = BriefingDefinition;
 export class Briefing {
     private lastRoomId = 0;
     private lastRoomIndex = 0;
-    private investment!: briefingInvestment
     private rooms!: briefingRooms
     private addedRooms?: roomItem[] = []
     private models!: briefing
@@ -33,6 +33,7 @@ export class Briefing {
         rooms: []
     }
     private readonly detailsEditor = new AdminBriefingDetailsEditor(this.briefingObject)
+    private readonly investmentEditor = new AdminBriefingInvestmentEditor(this.briefingObject)
 
 
     constructor(
@@ -58,16 +59,9 @@ export class Briefing {
                 this.navigator.bindHome(home, this.detailsEditor.mount(home))
                 break
             case "investment":
-                this.investment = getBriefingInvestment()
-                this.investment.flexibility.checked = this.briefingObject.investmentFlexibility ?? false
-
-                u(this.investment.flexibility)
-                    .off("change")
-                    .on("change", () => this.syncInvestmentFields())
-
-                this.syncInvestmentFields()
-
-                this.navigator.bindInvestment(this.investment)
+                const investment = getBriefingInvestment()
+                this.investmentEditor.mount(investment)
+                this.navigator.bindInvestment(investment)
                 break;
             case "rooms":
                 this.rooms = getBriefingRooms();
@@ -81,10 +75,6 @@ export class Briefing {
 
                 break;
         }
-    }
-
-    private syncInvestmentFields() {
-        this.briefingObject.investmentFlexibility = this.investment.flexibility.checked
     }
 
     public getBriefingObject(): briefingObject {

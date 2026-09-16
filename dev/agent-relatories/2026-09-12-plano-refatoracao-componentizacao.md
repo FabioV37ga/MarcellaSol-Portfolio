@@ -778,3 +778,9 @@ Correção adicional: o botão `Voltar` de `Revisar e finalizar` foi conectado a
 Estado em 16/09/2026: **concluído; etapa em andamento**. Restauração dos campos, eventos de edição, normalização das quantidades e validação da primeira página foram extraídos para `AdminBriefingDetailsEditor`. O controller passou a apenas localizar os elementos e conectar o editor ao `AdminBriefingNavigator`.
 
 Testes isolados cobrem restauração do estado, atualização do objeto de briefing, remoção de espaços do nome, quantidades válidas e rejeição de nome vazio, zero adulto e quantidade fracionária. Views e payload não mudaram. Próximo recorte: editor de investimento.
+
+### Quarto recorte — editor de investimento
+
+Estado em 16/09/2026: **concluído; etapa em andamento**. Restauração e sincronização da opção de flexibilidade foram extraídas para `AdminBriefingInvestmentEditor`. O controller apenas obtém os elementos, monta o editor e conecta a navegação.
+
+Testes isolados cobrem restauração das opções marcada e desmarcada e atualização do rascunho pelo evento de mudança. Views e payload não mudaram. Próximo recorte: editor de cômodos.
