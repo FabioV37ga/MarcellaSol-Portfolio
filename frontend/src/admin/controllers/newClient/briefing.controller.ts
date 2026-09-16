@@ -3,8 +3,8 @@ import { getBriefingRoomOptions } from "@/admin/templates/briefing/briefing-room
 import { roomItem } from "@/admin/templates/briefing/briefing.template.js";
 import getTemplates from "@/admin/templates/getter.js";
 import { briefing } from "@/admin/templates/interface.js";
-import { DbView } from "@/client/templates/interface.js";
-import { config } from "@/utils/connection.js";
+import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";
+import type { AdminViewsGateway } from "@/admin/infrastructure/views.api.js";
 import type { BriefingDefinition } from "@/shared/briefing/briefing.types.js";
 import u from "umbrellajs";
 
@@ -33,25 +33,17 @@ export class Briefing {
     }
 
 
-    constructor() {
-        // this.getModels("","")
-    }
+    constructor(
+        private readonly views: Pick<AdminViewsGateway, "loadBriefingViews">,
+        private readonly session: AdminSession
+    ) { }
 
-    async getModels(name: string, sessionToken: string) {
-        const response = await fetch(`${config.apiBaseUrl}/view/admin/briefing`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${sessionToken}`
-            },
-            body: JSON.stringify({})
-        })
-
-        var data = await response.json()
+    async getModels(name: string) {
+        const views = await this.views.loadBriefingViews(this.session)
 
         this.briefingObject.user = { name }
 
-        const templates = getTemplates("briefing", data.views, name)
+        const templates = getTemplates("briefing", views, name)
         this.models = templates as briefing
         return templates
     }

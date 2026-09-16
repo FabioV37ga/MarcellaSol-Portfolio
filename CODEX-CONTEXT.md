@@ -487,6 +487,8 @@ Quarto recorte concluído em 16/09/2026: envio do briefing extraído para `Clien
 
 ### Etapa priorizada 5 — briefing administrativo e criação de cliente
 
+Estado: em andamento. Primeiro recorte iniciado em 16/09/2026: o carregamento das views do briefing administrativo saiu do controller e passou para `AdminViewsApi`, usando `HttpClient` e sessão injetada. `ClientCreationFlow` continua como orquestrador e as views persistidas e o payload permanecem inalterados.
+
 - dividir o fluxo por passo;
 - separar estado, validação e transformação;
 - reduzir `ClientCreationFlow` e controllers relacionados;

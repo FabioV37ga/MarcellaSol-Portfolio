@@ -2,6 +2,7 @@ import u from "umbrellajs";
 import { newClient } from "../controllers/newClient/newClient.controller.js";
 import type { AdminSession } from "../infrastructure/admin-system.api.js";
 import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
+import type { AdminViewsGateway } from "../infrastructure/views.api.js";
 import type { AdminRoute } from "../navigation/admin-system.router.js";
 import { finishBriefing } from "../templates/briefing/briefing.template.js";
 import type { briefing } from "../templates/interface.js";
@@ -15,7 +16,7 @@ export class ClientCreationFlow {
 
     constructor(
         private readonly view: AdminSystemView,
-        private readonly api: Pick<AdminClientsGateway, "createClient">,
+        private readonly api: Pick<AdminClientsGateway, "createClient"> & Pick<AdminViewsGateway, "loadBriefingViews">,
         private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute) => void
     ) { }
@@ -27,7 +28,8 @@ export class ClientCreationFlow {
             name,
             login,
             password,
-            this.session.token
+            this.api,
+            this.session
         );
         this.models = await this.client.getModels() as briefing;
         this.navigate("briefing-home");

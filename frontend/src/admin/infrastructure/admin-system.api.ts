@@ -41,4 +41,5 @@ export class AdminSystemApi implements AdminClientsGateway, AdminPaymentsGateway
     loadBriefingReportStatus(s: AdminSession, id: string): Promise<BriefingReportStatus> { return this.clients.loadBriefingReportStatus(s, id); }
     generateBriefingReport(s: AdminSession, id: string): Promise<BriefingReportStatus> { return this.clients.generateBriefingReport(s, id); }
     loadViews(s: AdminSession): Promise<dbView[] | undefined> { return this.views.loadViews(s); }
+    loadBriefingViews(s: AdminSession): Promise<dbView[]> { return this.views.loadBriefingViews(s); }
 }

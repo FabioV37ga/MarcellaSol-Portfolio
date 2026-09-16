@@ -752,3 +752,11 @@ Cobertura HTTP adicionada para listagem de clientes, mudança de etapa, login ad
 Estado em 16/09/2026: **concluído; Etapa 4 concluída**. O envio do briefing foi movido para `ClientBriefingController`, mantendo parsing multipart, validação do manifesto, identidade autenticada e delegação ao serviço de aplicação. As respostas de views foram separadas em `AdminViewsController` e `ClientViewsController`; os antigos agregadores `ClientController` e `ViewController` foram removidos. Rotas e composição passaram a depender diretamente dos controllers específicos e encaminham falhas pelo middleware central.
 
 Cobertura HTTP ampliada para submissão de briefing sem anexos, view do briefing administrativo e view autenticada do cliente. Não há migração nem sincronização de view, pois os contratos persistidos não mudaram. Teste manual: enviar um briefing como cliente, recarregar a área do cliente e abrir o fluxo administrativo de briefing. Próxima etapa priorizada: briefing administrativo e criação de cliente.
+
+## 27. Execução da Etapa priorizada 5 — briefing administrativo e criação de cliente
+
+### Primeiro recorte — infraestrutura das views do briefing
+
+Estado em 16/09/2026: **concluído; etapa em andamento**. O `fetch` direto foi removido do controller administrativo de briefing. `AdminViewsApi` agora carrega `/view/admin/briefing` pelo `HttpClient`, e a sessão e o gateway são injetados desde `ClientCreationFlow`. O formato das views, os templates persistidos e o payload de criação do cliente não mudaram.
+
+Teste automatizado cobre URL, método, token e retorno das views. Teste manual: iniciar a criação de um cliente e confirmar que a primeira página do briefing carrega. Não há migração nem sincronização de view. Próximo recorte: separar navegação e estado dos editores de cada passo.

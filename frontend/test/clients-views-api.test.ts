@@ -30,4 +30,16 @@ describe("APIs de clientes e views", () => {
         await expect(new AdminViewsApi({ request: adminRequest } as unknown as HttpClient).loadViews({ token: "admin" })).resolves.toEqual([{ viewName: "home" }]);
         await expect(new ClientViewsApi({ request: clientRequest } as unknown as HttpClient).load("client")).resolves.toBe(clientResponse);
     });
+
+    it("carrega as views do briefing administrativo pelo transporte compartilhado", async () => {
+        const request = vi.fn().mockResolvedValue({ views: [{ viewName: "briefing-home" }] });
+        const api = new AdminViewsApi({ request } as unknown as HttpClient);
+
+        await expect(api.loadBriefingViews({ token: "admin-token" })).resolves.toEqual([
+            { viewName: "briefing-home" }
+        ]);
+        expect(request).toHaveBeenCalledWith("/view/admin/briefing", {
+            method: "POST", token: "admin-token", json: {}
+        });
+    });
 });
