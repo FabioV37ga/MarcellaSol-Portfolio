@@ -118,10 +118,16 @@ test("usa Voltar, preserva o rascunho e inicia novo cliente com campos vazios", 
     await page.locator("#briefing-rooms-confirm").click();
     const roomsBack = page.locator("#briefing-rooms-cancel");
     await expect(roomsBack).toHaveText("Voltar");
+    await page.locator(".briefing-room-add").click();
+    const roomCard = page.locator(".briefing-room-card").first();
+    await roomCard.locator("[contenteditable]").fill("Suíte E2E");
+    await roomCard.locator(":scope > .briefing-room-select").selectOption("quarto");
     await roomsBack.click();
     await expect(page.locator("#briefing-investment-flexibility")).toBeVisible();
     await page.locator("#briefing-rooms-confirm").click();
+    await expect(page.locator(".briefing-room-card [contenteditable]")).toHaveText("Suíte E2E");
     await page.locator("#briefing-rooms-confirm").click();
+    await expect(page.locator(".briefing-finish-room-card")).toContainText("Suíte E2E");
     await expect(page.locator("#briefing-finish-back")).toHaveText("Voltar");
     await page.locator("#briefing-finish-back").click();
     await expect(page.locator("#briefing-rooms-cancel")).toBeVisible();

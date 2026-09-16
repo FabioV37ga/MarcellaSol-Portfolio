@@ -11,7 +11,6 @@ export function roomItem(view: HTMLElement, id: number, index: number) {
         .split("%id%").join(id.toString())
         .split("%index%").join(index.toString())
 
-    console.log(viewString)
     return u(viewString).first() as HTMLElement
 }
 

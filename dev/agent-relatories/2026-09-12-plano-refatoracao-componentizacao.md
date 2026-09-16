@@ -784,3 +784,9 @@ Testes isolados cobrem restauração do estado, atualização do objeto de brief
 Estado em 16/09/2026: **concluído; etapa em andamento**. Restauração e sincronização da opção de flexibilidade foram extraídas para `AdminBriefingInvestmentEditor`. O controller apenas obtém os elementos, monta o editor e conecta a navegação.
 
 Testes isolados cobrem restauração das opções marcada e desmarcada e atualização do rascunho pelo evento de mudança. Views e payload não mudaram. Próximo recorte: editor de cômodos.
+
+### Quinto recorte — editor de cômodos
+
+Estado em 16/09/2026: **concluído; etapa em andamento**. Criação, restauração, personalização por tipo, exclusão, arraste, reordenação e sincronização do payload foram movidos para `AdminBriefingRoomsEditor`. O controller deixou de manter IDs, índices e estado visual dos cômodos. Um log temporário da montagem do template também foi removido.
+
+Testes isolados cobrem adição, edição de nome e tipo, opções personalizadas, restauração ao voltar, exclusão e sincronização da ordem visual. Views e payload não mudaram. Próximo recorte: submissão da criação do cliente.

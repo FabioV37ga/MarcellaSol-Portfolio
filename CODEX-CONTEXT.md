@@ -496,6 +496,8 @@ Terceiro recorte concluído em 16/09/2026: `AdminBriefingDetailsEditor` passou a
 
 Quarto recorte concluído em 16/09/2026: `AdminBriefingInvestmentEditor` passou a restaurar e sincronizar a opção de flexibilidade do investimento. Próximo recorte: editor de cômodos.
 
+Quinto recorte concluído em 16/09/2026: `AdminBriefingRoomsEditor` passou a controlar criação, restauração, personalização, exclusão, reordenação e sincronização dos cômodos. O controller administrativo do briefing ficou restrito à composição dos editores e do navegador. Próximo recorte: submissão da criação do cliente.
+
 Ajuste funcional em 16/09/2026: nas páginas `Dados do briefing` e `Cômodos do briefing`, o botão secundário deve exibir `Voltar`. Em `Dados do briefing`, ele retorna ao formulário `Dados do cliente`; em `Cômodos do briefing`, retorna para investimento. Os textos pertencem às views persistidas correspondentes.
 
 Ao voltar do briefing para `Dados do cliente`, nome, login e senha são preservados em memória, junto do briefing já editado. O rascunho é descartado ao retornar à listagem de clientes; portanto, acessar `Novo cliente` pela listagem sempre abre campos vazios.
