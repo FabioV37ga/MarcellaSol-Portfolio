@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AdminSystemModules } from "../src/admin/modules/admin-system.modules.js";
+import { AdminSystemModules } from "../src/admin/modules/system/admin-system.modules.js";
 import { AdminSystemView } from "../src/admin/views/adminSystem.view.js";
 import type { AdminSystemApi, AdminSession } from "../src/admin/infrastructure/admin-system.api.js";
-import type { ClientCreationFlow } from "../src/admin/modules/client-creation.flow.js";
+import type { ClientCreationFlow } from "../src/admin/modules/client-creation/client-creation.flow.js";
 import type { system } from "../src/admin/templates/interface.js";
 
 function baseTemplate(): HTMLElement {

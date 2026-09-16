@@ -502,6 +502,8 @@ Sexto recorte concluído em 16/09/2026: `ClientCreationSubmission` passou a cont
 
 Sétimo recorte concluído em 16/09/2026: o wrapper legado `newClient` foi removido. `ClientCreationDraft` concentra credenciais e montagem do payload; `ClientCreationFlow` coordena diretamente rascunho, `AdminBriefingController`, navegação, confirmação e submissão. A Etapa 5 está concluída. Próxima etapa: integrações Google Drive.
 
+Organização estrutural concluída em 16/09/2026: os arquivos de `frontend/src/admin/modules` foram agrupados por escopo. `system/` contém shell, home e composição; `clients/` contém listagem, gestão, propostas e financeiro; `client-creation/` contém fluxo, rascunho e submissão; `client-creation/briefing/` contém os editores do briefing. A mudança não altera comportamento, contratos, views ou dados persistidos.
+
 Ajuste funcional em 16/09/2026: nas páginas `Dados do briefing` e `Cômodos do briefing`, o botão secundário deve exibir `Voltar`. Em `Dados do briefing`, ele retorna ao formulário `Dados do cliente`; em `Cômodos do briefing`, retorna para investimento. Os textos pertencem às views persistidas correspondentes.
 
 Ao voltar do briefing para `Dados do cliente`, nome, login e senha são preservados em memória, junto do briefing já editado. O rascunho é descartado ao retornar à listagem de clientes; portanto, acessar `Novo cliente` pela listagem sempre abre campos vazios.

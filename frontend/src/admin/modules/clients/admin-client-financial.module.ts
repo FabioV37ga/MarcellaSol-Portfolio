@@ -1,10 +1,10 @@
 import u from "umbrellajs";
-import type { AdminSession } from "../infrastructure/admin-system.api.js";
-import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
-import type { AdminPaymentsGateway } from "../infrastructure/payments.api.js";
-import { getClientFinancialElements } from "../selectors/client-financial.selector.js";
-import { ClientFinancialManager } from "../ui/client-financial-manager.js";
-import type { AdminSystemView } from "../views/adminSystem.view.js";
+import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "@/admin/infrastructure/clients.api.js";
+import type { AdminPaymentsGateway } from "@/admin/infrastructure/payments.api.js";
+import { getClientFinancialElements } from "@/admin/selectors/client-financial.selector.js";
+import { ClientFinancialManager } from "@/admin/ui/client-financial-manager.js";
+import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
 
 export class AdminClientFinancialModule {
     private requestId = 0;

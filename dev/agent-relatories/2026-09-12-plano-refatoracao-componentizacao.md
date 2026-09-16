@@ -802,3 +802,7 @@ Testes isolados cobrem concorrência, chamada única, sessão, payload, sucesso 
 Estado em 16/09/2026: **concluído; Etapa 5 concluída**. O wrapper `newClient`, que misturava credenciais e delegação ao controller, foi removido. O novo `ClientCreationDraft` mantém as credenciais e monta o payload sem depender do DOM. `ClientCreationFlow` passou a coordenar diretamente o rascunho, `AdminBriefingController`, navegador, resumo e submissão.
 
 Teste isolado cobre atualização das credenciais e montagem do payload sem perda do briefing. A suíte E2E preserva o fluxo completo, retorno entre páginas, restauração do rascunho, cômodos e falha/nova tentativa na criação. Não há migração nem nova sincronização de view. Próxima etapa priorizada: integrações Google Drive.
+
+### Organização dos módulos administrativos por escopo
+
+Estado em 16/09/2026: **concluído**. A pasta `frontend/src/admin/modules` foi organizada em quatro escopos: `system/` para shell, home e composição; `clients/` para listagem, gestão, propostas e financeiro; `client-creation/` para fluxo, rascunho e submissão; e `client-creation/briefing/` para os editores de dados, investimento e cômodos. Imports de produção e testes foram atualizados sem mudança de comportamento. Não há migração nem sincronização de view.

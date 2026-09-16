@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdminSystemApi } from "../src/admin/infrastructure/admin-system.api.js";
-import { AdminClientFinancialModule } from "../src/admin/modules/admin-client-financial.module.js";
+import { AdminClientFinancialModule } from "../src/admin/modules/clients/admin-client-financial.module.js";
 import { AdminSystemView } from "../src/admin/views/adminSystem.view.js";
 
 async function financialTemplate(): Promise<HTMLElement> {

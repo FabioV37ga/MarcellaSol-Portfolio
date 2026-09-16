@@ -1,6 +1,6 @@
 import { AdminSystemApi, type AdminSession } from "../infrastructure/admin-system.api.js";
-import { AdminSystemModules } from "../modules/admin-system.modules.js";
-import { ClientCreationFlow } from "../modules/client-creation.flow.js";
+import { AdminSystemModules } from "../modules/system/admin-system.modules.js";
+import { ClientCreationFlow } from "../modules/client-creation/client-creation.flow.js";
 import { AdminSystemRouter, type AdminRoute } from "../navigation/admin-system.router.js";
 import getTemplates from "../templates/getter.js";
 import { AdminSystemView } from "../views/adminSystem.view.js";

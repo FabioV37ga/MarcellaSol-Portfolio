@@ -1,6 +1,6 @@
 import type { NewClientPayload } from "@/shared/briefing/briefing.types.js";
-import type { AdminSession } from "../infrastructure/admin-system.api.js";
-import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
+import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "@/admin/infrastructure/clients.api.js";
 
 export class ClientCreationSubmission {
     private submitting = false;

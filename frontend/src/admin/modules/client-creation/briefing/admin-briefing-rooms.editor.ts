@@ -1,6 +1,6 @@
-import type { briefingRooms } from "../selectors/newClient/briefing.selector.js";
-import { getBriefingRoomOptions } from "../templates/briefing/briefing-room-options.template.js";
-import { roomItem } from "../templates/briefing/briefing.template.js";
+import type { briefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
+import { getBriefingRoomOptions } from "@/admin/templates/briefing/briefing-room-options.template.js";
+import { roomItem } from "@/admin/templates/briefing/briefing.template.js";
 import type { BriefingDefinition } from "@/shared/briefing/briefing.types.js";
 import u from "umbrellajs";
 

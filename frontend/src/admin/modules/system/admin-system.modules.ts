@@ -1,15 +1,15 @@
 import u from "umbrellajs";
-import { getNewClientElements, type newClientElements } from "../selectors/new-client.selector.js";
-import type { system } from "../templates/interface.js";
-import type { AdminRoute } from "../navigation/admin-system.router.js";
-import type { AdminSystemView } from "../views/adminSystem.view.js";
-import type { ClientCreationFlow } from "./client-creation.flow.js";
-import type { AdminSession, AdminSystemApi } from "../infrastructure/admin-system.api.js";
-import { AdminClientProposalsModule } from "./admin-client-proposals.module.js";
+import { getNewClientElements, type newClientElements } from "@/admin/selectors/new-client.selector.js";
+import type { system } from "@/admin/templates/interface.js";
+import type { AdminRoute } from "@/admin/navigation/admin-system.router.js";
+import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
+import type { ClientCreationFlow } from "../client-creation/client-creation.flow.js";
+import type { AdminSession, AdminSystemApi } from "@/admin/infrastructure/admin-system.api.js";
+import { AdminClientProposalsModule } from "../clients/admin-client-proposals.module.js";
 import { AdminHomeModule } from "./admin-home.module.js";
-import { AdminClientsModule } from "./admin-clients.module.js";
-import { AdminClientManagementModule } from "./admin-client-management.module.js";
-import { AdminClientFinancialModule } from "./admin-client-financial.module.js";
+import { AdminClientsModule } from "../clients/admin-clients.module.js";
+import { AdminClientManagementModule } from "../clients/admin-client-management.module.js";
+import { AdminClientFinancialModule } from "../clients/admin-client-financial.module.js";
 import { AdminShellModule } from "./admin-shell.module.js";
 
 export class AdminSystemModules {

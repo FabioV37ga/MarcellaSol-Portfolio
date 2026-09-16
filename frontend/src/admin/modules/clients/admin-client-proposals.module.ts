@@ -1,15 +1,15 @@
 import u from "umbrellajs";
-import type { AdminRoute } from "../navigation/admin-system.router.js";
-import type { AdminSession } from "../infrastructure/admin-system.api.js";
-import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
-import type { AdminViewsGateway } from "../infrastructure/views.api.js";
-import type { AdminProposalsGateway, ClientProposal } from "../infrastructure/proposals.api.js";
-import type { system } from "../templates/interface.js";
-import { clientProposalItem } from "../templates/client-proposal-item.template.js";
-import type { AdminSystemView } from "../views/adminSystem.view.js";
+import type { AdminRoute } from "@/admin/navigation/admin-system.router.js";
+import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "@/admin/infrastructure/clients.api.js";
+import type { AdminViewsGateway } from "@/admin/infrastructure/views.api.js";
+import type { AdminProposalsGateway, ClientProposal } from "@/admin/infrastructure/proposals.api.js";
+import type { system } from "@/admin/templates/interface.js";
+import { clientProposalItem } from "@/admin/templates/client-proposal-item.template.js";
+import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
 import { projectStageLabels, type ProjectStage, type ProjectStageKey } from "@/shared/project-stages.js";
-import { ProjectStageEditor } from "../ui/project-stage-editor.js";
-import { ProposalChangesConfirmation } from "../ui/proposal-changes-confirmation.js";
+import { ProjectStageEditor } from "@/admin/ui/project-stage-editor.js";
+import { ProposalChangesConfirmation } from "@/admin/ui/proposal-changes-confirmation.js";
 
 export class AdminClientProposalsModule {
     private requestId = 0;

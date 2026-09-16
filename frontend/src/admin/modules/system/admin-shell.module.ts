@@ -1,8 +1,8 @@
 import u from "umbrellajs";
 import { logoutSession } from "@/shared/session/logout.js";
-import type { AdminSession } from "../infrastructure/admin-system.api.js";
-import { getBaseElements, type baseElements } from "../selectors/base.selector.js";
-import type { AdminSystemView } from "../views/adminSystem.view.js";
+import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";
+import { getBaseElements, type baseElements } from "@/admin/selectors/base.selector.js";
+import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
 
 export class AdminShellModule {
     private elements?: baseElements;

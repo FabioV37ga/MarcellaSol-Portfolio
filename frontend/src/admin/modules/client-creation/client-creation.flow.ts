@@ -1,12 +1,12 @@
-import { AdminBriefingController } from "../controllers/newClient/briefing.controller.js";
-import type { AdminSession } from "../infrastructure/admin-system.api.js";
-import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
-import type { AdminViewsGateway } from "../infrastructure/views.api.js";
-import type { AdminRoute } from "../navigation/admin-system.router.js";
-import { AdminBriefingNavigator } from "../navigation/admin-briefing.navigator.js";
-import { finishBriefing } from "../templates/briefing/briefing.template.js";
-import type { briefing } from "../templates/interface.js";
-import type { AdminSystemView } from "../views/adminSystem.view.js";
+import { AdminBriefingController } from "@/admin/controllers/newClient/briefing.controller.js";
+import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "@/admin/infrastructure/clients.api.js";
+import type { AdminViewsGateway } from "@/admin/infrastructure/views.api.js";
+import type { AdminRoute } from "@/admin/navigation/admin-system.router.js";
+import { AdminBriefingNavigator } from "@/admin/navigation/admin-briefing.navigator.js";
+import { finishBriefing } from "@/admin/templates/briefing/briefing.template.js";
+import type { briefing } from "@/admin/templates/interface.js";
+import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
 import { ClientCreationSubmission } from "./client-creation-submission.js";
 import { ClientCreationDraft, type NewClientCredentials } from "./client-creation-draft.js";
 

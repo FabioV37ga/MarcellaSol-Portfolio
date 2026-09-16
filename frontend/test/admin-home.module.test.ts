@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AdminHomeModule } from "../src/admin/modules/admin-home.module.js";
+import { AdminHomeModule } from "../src/admin/modules/system/admin-home.module.js";
 import { AdminSystemView } from "../src/admin/views/adminSystem.view.js";
 
 describe("AdminHomeModule", () => {

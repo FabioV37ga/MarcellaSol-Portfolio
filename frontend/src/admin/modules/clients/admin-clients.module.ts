@@ -2,11 +2,11 @@ import u from "umbrellajs";
 import type {
     AdminClientListItem,
     AdminSession
-} from "../infrastructure/admin-system.api.js";
-import type { AdminClientsGateway } from "../infrastructure/clients.api.js";
-import { getClientsElements, type clientsElements } from "../selectors/clients.selector.js";
-import { clientListItem } from "../templates/client-list-item.template.js";
-import type { AdminSystemView } from "../views/adminSystem.view.js";
+} from "@/admin/infrastructure/admin-system.api.js";
+import type { AdminClientsGateway } from "@/admin/infrastructure/clients.api.js";
+import { getClientsElements, type clientsElements } from "@/admin/selectors/clients.selector.js";
+import { clientListItem } from "@/admin/templates/client-list-item.template.js";
+import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
 
 type ClientsApi = Pick<AdminClientsGateway, "loadClients" | "deleteClient">;
 

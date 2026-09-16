@@ -1,6 +1,6 @@
 import u from "umbrellajs";
-import type { AdminSystemView } from "../views/adminSystem.view.js";
-import { getHomeElements } from "../selectors/home.selector.js";
+import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
+import { getHomeElements } from "@/admin/selectors/home.selector.js";
 
 export class AdminHomeModule {
     constructor(

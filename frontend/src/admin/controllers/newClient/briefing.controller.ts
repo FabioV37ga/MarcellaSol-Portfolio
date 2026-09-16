@@ -1,7 +1,7 @@
 import { briefingRooms, getBriefingHome, getBriefingInvestment, getBriefingRooms } from "@/admin/selectors/newClient/briefing.selector.js";
-import { AdminBriefingDetailsEditor } from "@/admin/modules/admin-briefing-details.editor.js";
-import { AdminBriefingInvestmentEditor } from "@/admin/modules/admin-briefing-investment.editor.js";
-import { AdminBriefingRoomsEditor } from "@/admin/modules/admin-briefing-rooms.editor.js";
+import { AdminBriefingDetailsEditor } from "@/admin/modules/client-creation/briefing/admin-briefing-details.editor.js";
+import { AdminBriefingInvestmentEditor } from "@/admin/modules/client-creation/briefing/admin-briefing-investment.editor.js";
+import { AdminBriefingRoomsEditor } from "@/admin/modules/client-creation/briefing/admin-briefing-rooms.editor.js";
 import getTemplates from "@/admin/templates/getter.js";
 import { briefing } from "@/admin/templates/interface.js";
 import type { AdminSession } from "@/admin/infrastructure/admin-system.api.js";

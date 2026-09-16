@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ClientCreationDraft } from "../src/admin/modules/client-creation-draft.js";
+import { ClientCreationDraft } from "../src/admin/modules/client-creation/client-creation-draft.js";
 
 describe("ClientCreationDraft", () => {
     it("atualiza credenciais sem perder o briefing e monta o payload esperado", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AdminBriefingRoomsEditor } from "../src/admin/modules/admin-briefing-rooms.editor.js";
+import { AdminBriefingRoomsEditor } from "../src/admin/modules/client-creation/briefing/admin-briefing-rooms.editor.js";
 import type { briefingRooms } from "../src/admin/selectors/newClient/briefing.selector.js";
 import type { BriefingDefinition } from "../src/shared/briefing/briefing.types.js";
 

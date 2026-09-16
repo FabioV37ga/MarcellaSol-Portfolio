@@ -56,7 +56,7 @@ const selectorSources = new Map<string, SelectorSource[]>([
     ["admin:client", [{ file: "src/admin/selectors/clients.selector.ts" }]],
     ["admin:new-client", [{ file: "src/admin/selectors/new-client.selector.ts" }]],
     ["admin:client-management", [{ file: "src/admin/selectors/client-management.selector.ts" }]],
-    ["admin:client-proposals", [{ file: "src/admin/modules/admin-client-proposals.module.ts", idsOnly: true }]],
+    ["admin:client-proposals", [{ file: "src/admin/modules/clients/admin-client-proposals.module.ts", idsOnly: true }]],
     ["admin:client-financial", [
         { file: "src/admin/selectors/client-financial.selector.ts" },
         { file: "src/admin/ui/client-financial-manager.ts", idsOnly: true }

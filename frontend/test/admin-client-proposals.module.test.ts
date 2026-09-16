@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AdminClientProposalsModule } from "../src/admin/modules/admin-client-proposals.module.js";
+import { AdminClientProposalsModule } from "../src/admin/modules/clients/admin-client-proposals.module.js";
 import type { AdminSystemApi } from "../src/admin/infrastructure/admin-system.api.js";
 import type { system } from "../src/admin/templates/interface.js";
 import { AdminSystemView } from "../src/admin/views/adminSystem.view.js";

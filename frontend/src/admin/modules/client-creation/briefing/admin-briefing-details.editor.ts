@@ -1,4 +1,4 @@
-import type { briefingHome } from "../selectors/newClient/briefing.selector.js";
+import type { briefingHome } from "@/admin/selectors/newClient/briefing.selector.js";
 import type { BriefingDefinition } from "@/shared/briefing/briefing.types.js";
 import u from "umbrellajs";
 

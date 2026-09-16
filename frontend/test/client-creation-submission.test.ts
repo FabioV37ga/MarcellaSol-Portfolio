@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ClientCreationSubmission } from "../src/admin/modules/client-creation-submission.js";
+import { ClientCreationSubmission } from "../src/admin/modules/client-creation/client-creation-submission.js";
 import type { NewClientPayload } from "../src/shared/briefing/briefing.types.js";
 
 const client: NewClientPayload = {
