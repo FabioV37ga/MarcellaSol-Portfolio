@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parse } from "parse5";
-import { buildBriefingReportHtml } from "../dist/src/services/briefing-report.js";
+import { buildBriefingReportHtml } from "../dist/src/services/briefing-report.template.js";
 
 function elements(node, predicate, found = []) {
     if (node?.tagName && predicate(node)) found.push(node);

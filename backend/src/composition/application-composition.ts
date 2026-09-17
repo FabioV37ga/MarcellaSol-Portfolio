@@ -38,6 +38,7 @@ import { GoogleDriveClientFolderStorage } from "../services/client-folder.storag
 import { GoogleDriveBriefingStorage } from "../services/briefing-drive.storage.js";
 import { GoogleDriveBriefingReportStorage } from "../services/briefing-report-drive.storage.js";
 import { BriefingReportImageResolver } from "../services/briefing-report-image-resolver.js";
+import { PuppeteerPdfRenderer } from "../services/briefing-report-pdf.renderer.js";
 import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 import { PasswordService } from "../services/password.service.js";
 import { GoogleDriveProposalStorage } from "../services/proposal-drive.storage.js";
@@ -108,7 +109,8 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             clients,
             briefings,
             briefingReports,
-            new BriefingReportImageResolver(briefingReports)
+            new BriefingReportImageResolver(briefingReports),
+            new PuppeteerPdfRenderer()
         )),
         clientApprovals: new ClientApprovalsController(new ListClientApprovalsService(clients, proposalService), proposalResponses),
         requireAuthentication: createAuthenticationGuard(sessions)

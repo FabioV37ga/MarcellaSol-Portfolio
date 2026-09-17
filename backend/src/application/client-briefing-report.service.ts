@@ -5,11 +5,10 @@ import type {
     BriefingReportDriveStatus,
     BriefingReportStorage
 } from "../services/briefing-report-drive.storage.js";
-import {
-    generateBriefingReportPdf,
-    type BriefingReportDocument
-} from "../services/briefing-report.js";
+import type { BriefingReportDocument } from "../services/briefing-report.mapper.js";
 import type { ReportImageResolver } from "../services/briefing-report-image-resolver.js";
+import type { PdfRenderer } from "../services/briefing-report-pdf.renderer.js";
+import { buildBriefingReportHtml } from "../services/briefing-report.template.js";
 import { ApplicationError } from "./errors/application-error.js";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -23,7 +22,8 @@ export class ClientBriefingReportService {
         private readonly clients: ClientRepository,
         private readonly briefings: ClientBriefingRepository,
         private readonly storage: BriefingReportStorage,
-        private readonly images: ReportImageResolver
+        private readonly images: ReportImageResolver,
+        private readonly renderer: PdfRenderer
     ) { }
 
     async status(clientId: string): Promise<BriefingReportDriveStatus> {
@@ -54,7 +54,8 @@ export class ClientBriefingReportService {
         const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "briefing-report-"));
         try {
             await this.images.prepare(reportDocument as unknown as Record<string, unknown>, temporaryDirectory);
-            const pdf = await generateBriefingReportPdf(reportDocument, { temporaryDirectory });
+            const html = buildBriefingReportHtml(reportDocument, { temporaryDirectory });
+            const pdf = await this.renderer.render(html, { temporaryDirectory });
             return this.storage.uploadBriefingReport(client.driveFolderId, client.name, pdf);
         } finally {
             await fs.rm(temporaryDirectory, { recursive: true, force: true });

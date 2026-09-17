@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildBriefingReportHtml } from "../dist/src/services/briefing-report.js";
+import { buildBriefingReportHtml } from "../dist/src/services/briefing-report.template.js";
 import { briefingReportStyles } from "../dist/src/services/briefing-report.styles.js";
 
 test("template incorpora integralmente os estilos isolados do relatório", () => {
