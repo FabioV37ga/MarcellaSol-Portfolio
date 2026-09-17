@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { ApplicationError } from "./errors/application-error.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientProposalRepository } from "../repositories/client-proposal.repository.js";
-import type { ProposalStorage } from "../services/attachment-storage.js";
+import type { ProposalStorage } from "../services/proposal-drive.storage.js";
 import {
     normalizedProjectStages,
     projectStageKeys,

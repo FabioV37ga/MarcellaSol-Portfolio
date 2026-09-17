@@ -1,10 +1,22 @@
 import { Readable } from "node:stream";
-import { createDriveClient, findOrCreateFolder, setDriveFolderTrashed } from "./googleDrive.js";
+import type { drive_v3 } from "@googleapis/drive";
+import { findOrCreateFolder } from "./googleDrive.js";
+import { getGoogleDriveClient } from "./google-drive-client.js";
 
 export interface ProposalDriveUpload {
     folderId: string;
     attachmentUrls: string[];
 }
+
+export interface ProposalStorage {
+    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[], author?: "administrator" | "client", responseIndex?: number): Promise<ProposalDriveUpload>;
+    moveProposalAttachmentsToAdministratorFolder(folderId: string, attachmentUrls: string[]): Promise<number>;
+    renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void>;
+    setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void>;
+    setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void>;
+}
+
+type DriveClientFactory = () => drive_v3.Drive;
 
 function safeFolderName(value: string): string {
     return value.normalize("NFKC").trim()
@@ -16,89 +28,100 @@ function proposalFolderName(title: string, proposalId: string): string {
     return `${safeFolderName(title)}-${proposalId}`;
 }
 
-export async function uploadProposalAttachment(
-    clientFolderId: string,
-    proposalId: string,
-    title: string,
-    files: Express.Multer.File[],
-    author: "administrator" | "client" = "administrator",
-    responseIndex?: number
-): Promise<ProposalDriveUpload> {
-    const drive = createDriveClient();
-    const proposalsFolderId = await findOrCreateFolder(drive, clientFolderId, "propostas");
-    const folderId = await findOrCreateFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
-    const authorFolderId = await findOrCreateFolder(
-        drive,
-        folderId,
-        author === "administrator" ? "administrador" : "cliente"
-    );
-    const uploadFolderId = author === "client" && responseIndex
-        ? await findOrCreateFolder(drive, authorFolderId, `resposta-${responseIndex}`)
-        : authorFolderId;
-    const attachmentUrls: string[] = [];
-    for (const file of files) {
-        const uploaded = await drive.files.create({
-            requestBody: { name: file.originalname, parents: [uploadFolderId] },
-            media: {
-                mimeType: file.mimetype || "application/octet-stream",
-                body: Readable.from(file.buffer)
-            },
-            fields: "id,webViewLink",
+export class GoogleDriveProposalStorage implements ProposalStorage {
+    constructor(private readonly createClient: DriveClientFactory = getGoogleDriveClient) { }
+
+    async uploadProposal(
+        clientFolderId: string,
+        proposalId: string,
+        title: string,
+        files: Express.Multer.File[],
+        author: "administrator" | "client" = "administrator",
+        responseIndex?: number
+    ): Promise<ProposalDriveUpload> {
+        const drive = this.createClient();
+        const proposalsFolderId = await findOrCreateFolder(drive, clientFolderId, "propostas");
+        const folderId = await findOrCreateFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
+        const authorFolderId = await findOrCreateFolder(
+            drive,
+            folderId,
+            author === "administrator" ? "administrador" : "cliente"
+        );
+        const uploadFolderId = author === "client" && responseIndex
+            ? await findOrCreateFolder(drive, authorFolderId, `resposta-${responseIndex}`)
+            : authorFolderId;
+        const attachmentUrls: string[] = [];
+        for (const file of files) {
+            const uploaded = await drive.files.create({
+                requestBody: { name: file.originalname, parents: [uploadFolderId] },
+                media: {
+                    mimeType: file.mimetype || "application/octet-stream",
+                    body: Readable.from(file.buffer)
+                },
+                fields: "id,webViewLink",
+                supportsAllDrives: true
+            });
+            if (!uploaded.data.id) throw new Error(`O Google Drive não retornou o ID de ${file.originalname}`);
+            attachmentUrls.push(uploaded.data.webViewLink
+                || `https://drive.google.com/file/d/${encodeURIComponent(uploaded.data.id)}/view`);
+        }
+        return { folderId, attachmentUrls };
+    }
+
+    async moveProposalAttachmentsToAdministratorFolder(
+        proposalFolderId: string,
+        attachmentUrls: string[]
+    ): Promise<number> {
+        const fileIds = attachmentUrls.map(proposalAttachmentFileId);
+        const drive = this.createClient();
+        const administratorFolderId = await findOrCreateFolder(drive, proposalFolderId, "administrador");
+        let moved = 0;
+        for (const fileId of fileIds) {
+            const metadata = await drive.files.get({ fileId, fields: "id,parents", supportsAllDrives: true });
+            const parents = metadata.data.parents ?? [];
+            if (!parents.includes(proposalFolderId)) continue;
+            await drive.files.update({
+                fileId,
+                addParents: administratorFolderId,
+                removeParents: proposalFolderId,
+                fields: "id,parents",
+                supportsAllDrives: true
+            });
+            moved += 1;
+        }
+        return moved;
+    }
+
+    async renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {
+        const drive = this.createClient();
+        await drive.files.update({
+            fileId: folderId,
+            requestBody: { name: proposalFolderName(title, proposalId) },
+            fields: "id",
             supportsAllDrives: true
         });
-        if (!uploaded.data.id) throw new Error(`O Google Drive não retornou o ID de ${file.originalname}`);
-        attachmentUrls.push(uploaded.data.webViewLink
-            || `https://drive.google.com/file/d/${encodeURIComponent(uploaded.data.id)}/view`);
     }
-    return { folderId, attachmentUrls };
-}
 
-export async function moveProposalAttachmentsToAdministratorFolder(
-    proposalFolderId: string,
-    attachmentUrls: string[]
-): Promise<number> {
-    const drive = createDriveClient();
-    const administratorFolderId = await findOrCreateFolder(drive, proposalFolderId, "administrador");
-    let moved = 0;
-    for (const attachmentUrl of attachmentUrls) {
+    async setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
+        const drive = this.createClient();
+        await drive.files.update({
+            fileId: folderId,
+            requestBody: { trashed },
+            fields: "id,trashed",
+            supportsAllDrives: true
+        });
+    }
+
+    async setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void> {
         const fileId = proposalAttachmentFileId(attachmentUrl);
-        const metadata = await drive.files.get({ fileId, fields: "id,parents", supportsAllDrives: true });
-        const parents = metadata.data.parents ?? [];
-        if (!parents.includes(proposalFolderId)) continue;
+        const drive = this.createClient();
         await drive.files.update({
             fileId,
-            addParents: administratorFolderId,
-            removeParents: proposalFolderId,
-            fields: "id,parents",
+            requestBody: { trashed },
+            fields: "id,trashed",
             supportsAllDrives: true
         });
-        moved += 1;
     }
-    return moved;
-}
-
-export async function renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void> {
-    const drive = createDriveClient();
-    await drive.files.update({
-        fileId: folderId,
-        requestBody: { name: proposalFolderName(title, proposalId) },
-        fields: "id",
-        supportsAllDrives: true
-    });
-}
-
-export function setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
-    return setDriveFolderTrashed(folderId, trashed);
-}
-
-export async function setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void> {
-    const drive = createDriveClient();
-    await drive.files.update({
-        fileId: proposalAttachmentFileId(attachmentUrl),
-        requestBody: { trashed },
-        fields: "id,trashed",
-        supportsAllDrives: true
-    });
 }
 
 function proposalAttachmentFileId(attachmentUrl: string): string {

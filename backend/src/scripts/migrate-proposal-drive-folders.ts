@@ -3,7 +3,7 @@ import path from "node:path";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import proposals from "../models/clientProposal.js";
-import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
+import { GoogleDriveProposalStorage } from "../services/proposal-drive.storage.js";
 
 const applyChanges = process.argv.slice(2).includes("--apply");
 const unknownArguments = process.argv.slice(2).filter(argument => argument !== "--apply");
@@ -29,7 +29,7 @@ async function run(): Promise<void> {
         { attachmentFolderId: { $exists: true, $ne: "" } },
         { title: 1, attachments: 1, attachment: 1, attachmentFolderId: 1 }
     ).lean();
-    const storage = new GoogleDriveAttachmentStorage();
+    const storage = new GoogleDriveProposalStorage();
     let filesFound = 0;
     let filesMoved = 0;
     let failures = 0;

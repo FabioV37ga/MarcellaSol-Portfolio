@@ -37,6 +37,7 @@ import { ViewRepository } from "../repositories/view.repository.js";
 import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
 import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 import { PasswordService } from "../services/password.service.js";
+import { GoogleDriveProposalStorage } from "../services/proposal-drive.storage.js";
 import { SessionService } from "../services/session.service.js";
 import { SessionTokenService } from "../services/session-token.service.js";
 
@@ -63,6 +64,7 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
     const views = new ViewRepository();
     const drive = new GoogleDriveAttachmentStorage();
     const folderPermissions = new GoogleDriveFolderPermissionStorage();
+    const proposalStorage = new GoogleDriveProposalStorage();
     const passwords = new PasswordService();
     const clock = new SystemClock();
     const ids = new RandomUuidGenerator();
@@ -79,8 +81,8 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
         clock,
         ids
     );
-    const proposalResponses = new ClientProposalResponseService(clients, proposals, drive);
-    const proposalService = new ClientProposalService(clients, proposals, drive, proposalResponses);
+    const proposalResponses = new ClientProposalResponseService(clients, proposals, proposalStorage);
+    const proposalService = new ClientProposalService(clients, proposals, proposalStorage, proposalResponses);
 
     return {
         adminSessions: new AdminSessionsController(authenticate, sessions),

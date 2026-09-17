@@ -320,10 +320,11 @@ Comandos mínimos antes de concluir:
 ```bash
 npm run build
 npm test
-npm run test:e2e
 git diff --check
 git status --short
 ```
+
+Regra permanente: criar ou ampliar o E2E aplicável, mas nunca executar `npm run test:e2e` por iniciativa própria. A execução só ocorre quando o usuário pedir explicitamente; caso contrário, informar na entrega que ela ficou pendente.
 
 Se testes HTTP falharem com `listen EPERM` dentro do sandbox, repetir com a permissão apropriada para abrir portas locais. Não interpretar isso como regressão do produto.
 
@@ -364,7 +365,7 @@ Durante:
 
 Depois:
 
-1. executar build, testes e E2E;
+1. executar build e testes comuns; executar E2E somente mediante pedido explícito;
 2. executar `git diff --check`;
 3. inspecionar arquivos inesperados;
 4. entregar resultado, teste manual e commit sugerido.
@@ -629,8 +630,9 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 
 ## 20. Estado atual da refatoração do Google Drive
 
-- A etapa priorizada 6 está em andamento, com 2 de 5 recortes concluídos.
+- A etapa priorizada 6 está em andamento, com 3 de 5 recortes concluídos.
 - `GoogleDriveClientProvider` centraliza e reutiliza o cliente OAuth do processo.
 - `GoogleDriveFolderPermissionStorage` é o adaptador exclusivo para consultar e criar permissões de leitura em pastas.
+- `GoogleDriveProposalStorage` concentra uploads, hierarquia por autor/resposta, renomeação e descarte de anexos de propostas.
 - A obtenção do cliente continua preguiçosa para não tornar o Google uma dependência do bootstrap do backend.
-- `GoogleDriveAttachmentStorage` permanece temporariamente amplo para pastas de cliente, briefing, relatório e propostas; o próximo recorte separa os anexos de propostas.
+- `GoogleDriveAttachmentStorage` permanece temporariamente responsável por pastas de cliente, briefing e relatório; o próximo recorte separa briefing e relatórios.

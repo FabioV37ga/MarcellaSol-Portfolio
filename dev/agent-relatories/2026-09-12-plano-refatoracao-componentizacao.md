@@ -820,3 +820,9 @@ Testes isolados comprovam criação única, reutilização da instância, refres
 Estado em 17/09/2026: **concluído; etapa em andamento**. Consulta paginada e criação de permissões de leitura foram extraídas para `GoogleDriveFolderPermissionStorage`. O serviço de aplicação depende agora da porta mínima `FolderReadAccessStorage`, e a composição e o script de compartilhamento retroativo usam o adaptador específico. A fachada ampla de anexos deixou de conhecer permissões.
 
 O cliente Google permanece preguiçoso: as credenciais e a conexão só são requisitadas quando uma operação de permissão é executada. Testes isolados cobrem permissão existente em uma página posterior, normalização de e-mail, registros excluídos e criação de acesso `reader` com notificação. O fluxo E2E existente de envio do briefing continua cobrindo a jornada externa; esta refatoração não altera interface ou contrato HTTP. Não há migração, sincronização de view ou alteração na estrutura do Drive. Próximo recorte: separar o storage de anexos de propostas.
+
+### Terceiro recorte — anexos de propostas
+
+Estado em 17/09/2026: **concluído; etapa em andamento**. Upload, organização das pastas por autor e resposta, renomeação, migração e envio de anexos à lixeira foram consolidados em `GoogleDriveProposalStorage`. Os serviços de propostas dependem agora da porta mínima `ProposalStorage`, e a fachada ampla de anexos deixou de conhecer o domínio de propostas.
+
+A fábrica do cliente Drive é injetável e continua preguiçosa. Testes do adaptador cobrem a hierarquia `propostas/proposta/cliente/resposta-N`, saneamento do título, URL alternativa e rejeição de URLs externas antes de acessar o Google. O E2E foi ampliado para solicitação de alteração com comentário, confirmação da rodada e anexo do cliente. Não há migração, sincronização de view ou mudança da estrutura já adotada no Drive. Próximo recorte: separar briefing e relatórios.

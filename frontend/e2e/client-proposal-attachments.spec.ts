@@ -123,3 +123,57 @@ test("cliente preserva comentário e anexo após falha e aprova na nova tentativ
     expect(authorization).toBe("Bearer client-token");
     expect(attempts).toBe(2);
 });
+
+test("cliente envia anexo ao solicitar alteração da proposta", async ({ page }) => {
+    let multipartBody = "";
+    await mockClient(page);
+    await page.route("**/api/client/proposals/proposal-id/beat", async route => {
+        multipartBody = route.request().postDataBuffer()?.toString("utf8") ?? "";
+        await route.fulfill({
+            json: {
+                currentStageKey: "briefing",
+                projectStages: [{ key: "contract", status: "completed" }, { key: "briefing", status: "changes-requested" }],
+                proposal: {
+                    _id: "proposal-id",
+                    title: "Proposta com anexo",
+                    description: "Descrição",
+                    attachments: ["https://drive.google.com/file/d/admin/view"],
+                    userComment: "Revisar conforme marcação",
+                    clientResponses: [{
+                        decision: "beated",
+                        comment: "Revisar conforme marcação",
+                        attachments: ["https://drive.google.com/file/d/client-change/view"],
+                        createdAt: "2026-09-14T11:00:00.000Z"
+                    }],
+                    stageKey: "briefing",
+                    status: "beated",
+                    createdAt: "2026-09-14T10:00:00.000Z",
+                    updatedAt: "2026-09-14T11:00:00.000Z"
+                }
+            }
+        });
+    });
+
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-stages-processes").click();
+    await page.locator(".client-approval-reject").click();
+    await page.locator("#client-approval-reject-comment").fill("Revisar conforme marcação");
+    await page.locator("#client-approval-reject-attachments").setInputFiles({
+        name: "marcacao-cliente.png",
+        mimeType: "image/png",
+        buffer: Buffer.from("imagem da alteração")
+    });
+    await page.locator("#client-approval-revision-confirmation").check();
+    await page.locator("#client-approval-reject-confirm").click();
+
+    await expect(page.locator(".client-approval-response-history")).toContainText("Revisar conforme marcação");
+    await expect(page.locator(".client-approval-response-history a")).toHaveAttribute(
+        "href", "https://drive.google.com/file/d/client-change/view"
+    );
+    expect(multipartBody).toContain("marcacao-cliente.png");
+    expect(multipartBody).toContain("Revisar conforme marcação");
+    expect(multipartBody).toContain("confirmRevisionRound");
+});

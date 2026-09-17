@@ -8,7 +8,7 @@ import {
 } from "../models/projectStage.js";
 import { ClientProposalRepository } from "../repositories/client-proposal.repository.js";
 import { ClientRepository } from "../repositories/client.repository.js";
-import type { ProposalStorage } from "../services/attachment-storage.js";
+import type { ProposalStorage } from "../services/proposal-drive.storage.js";
 import { ApplicationError } from "./errors/application-error.js";
 
 const MAX_CLIENT_COMMENT_LENGTH = 2000;

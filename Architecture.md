@@ -298,9 +298,10 @@ Comandos mínimos antes da entrega:
 ```bash
 npm run build
 npm test
-npm run test:e2e
 git diff --check
 ```
+
+Os testes E2E devem ser criados ou ampliados no mesmo recorte, mas o Codex não deve executar `npm run test:e2e` sem solicitação explícita do usuário. Quando não houver essa solicitação, a entrega deve indicar que o E2E foi adicionado, porém ficou pendente de execução pelo usuário.
 
 Se algum teste não puder ser executado, a entrega deve informar exatamente qual teste faltou e por quê.
 
@@ -375,7 +376,7 @@ Uma implementação só está pronta quando:
 - falhas parciais possuem comportamento seguro;
 - testes unitários ou de aplicação cobrem as regras relevantes;
 - existe E2E para o comportamento de interface afetado;
-- build e testes passam;
+- build e testes executados passam; E2E só é executado mediante solicitação explícita;
 - foi fornecido teste manual;
 - foi sugerida mensagem de commit;
 - documentação arquitetural foi atualizada quando surgiu uma decisão permanente.
