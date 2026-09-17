@@ -1,9 +1,6 @@
 import { Readable } from "node:stream";
-import { drive, type drive_v3 } from "@googleapis/drive";
-import { OAuth2Client } from "google-auth-library";
-import { configureOutboundNetwork, ipv4HttpsAgent } from "../config/outbound-network.js";
-
-configureOutboundNetwork();
+import type { drive_v3 } from "@googleapis/drive";
+import { getGoogleDriveClient } from "./google-drive-client.js";
 
 const FOLDER_MIME_TYPE = "application/vnd.google-apps.folder";
 
@@ -44,18 +41,7 @@ function requiredEnvironment(name: string): string {
 }
 
 export function createDriveClient(): drive_v3.Drive {
-    const auth = new OAuth2Client({
-        clientId: requiredEnvironment("GOOGLE_OAUTH_CLIENT_ID"),
-        clientSecret: requiredEnvironment("GOOGLE_OAUTH_CLIENT_SECRET"),
-        redirectUri: process.env.GOOGLE_OAUTH_REDIRECT_URI?.trim(),
-        transporterOptions: { agent: ipv4HttpsAgent }
-    });
-
-    auth.setCredentials({
-        refresh_token: requiredEnvironment("GOOGLE_OAUTH_REFRESH_TOKEN")
-    });
-
-    return drive({ version: "v3", auth });
+    return getGoogleDriveClient();
 }
 
 function escapeDriveQuery(value: string): string {

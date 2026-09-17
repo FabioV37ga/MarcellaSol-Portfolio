@@ -806,3 +806,11 @@ Teste isolado cobre atualização das credenciais e montagem do payload sem perd
 ### Organização dos módulos administrativos por escopo
 
 Estado em 16/09/2026: **concluído**. A pasta `frontend/src/admin/modules` foi organizada em quatro escopos: `system/` para shell, home e composição; `clients/` para listagem, gestão, propostas e financeiro; `client-creation/` para fluxo, rascunho e submissão; e `client-creation/briefing/` para os editores de dados, investimento e cômodos. Imports de produção e testes foram atualizados sem mudança de comportamento. Não há migração nem sincronização de view.
+
+## 28. Execução da Etapa priorizada 6 — integrações Google Drive
+
+### Primeiro recorte — cliente Google compartilhado
+
+Estado em 17/09/2026: **concluído; etapa em andamento**. Autenticação OAuth, validação das credenciais, agente HTTPS com IPv4 e criação do cliente oficial foram movidos para `GoogleDriveClientProvider`. Uma única instância do cliente é reutilizada durante o processo, evitando recriar autenticação em cada operação. `createDriveClient` permanece como fachada temporária para preservar os consumidores atuais enquanto os storages especializados são extraídos.
+
+Testes isolados comprovam criação única, reutilização da instância, refresh token normalizado e falha antes da fábrica quando faltam credenciais. A política de rede existente permanece coberta. Não há alteração de dados, views, estrutura do Drive ou configuração da VPS. Próximo recorte: extrair permissões de pasta para um storage próprio.

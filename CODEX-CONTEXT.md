@@ -517,6 +517,8 @@ Na página `Revisar e finalizar`, o botão `Voltar` retorna para `Cômodos do br
 
 ### Etapa priorizada 6 — integrações Google Drive
 
+Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveClientProvider` centraliza credenciais OAuth, agente HTTPS IPv4 e criação do cliente oficial. O provider compartilha uma única instância durante o processo; `createDriveClient` permanece temporariamente como fachada compatível para os storages ainda não migrados. Próximo recorte: extrair permissões de pasta.
+
 - cliente Google de baixo nível;
 - storage de pastas;
 - anexos de briefing;
