@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildBriefingReportHtml } from "../dist/src/services/briefing-report.js";
+import { briefingReportStyles } from "../dist/src/services/briefing-report.styles.js";
+
+test("template incorpora integralmente os estilos isolados do relatório", () => {
+    const html = buildBriefingReportHtml({});
+
+    assert.ok(briefingReportStyles.length > 1000);
+    assert.ok(html.includes(`<style>${briefingReportStyles}</style>`));
+});
 
 test("relatório apresenta quantidades e dados dos adultos e crianças", () => {
     const html = buildBriefingReportHtml({

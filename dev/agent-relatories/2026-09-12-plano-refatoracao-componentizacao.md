@@ -852,3 +852,9 @@ Não houve mudança de produção, interface, dados ou aparência. O E2E não fo
 Estado em 17/09/2026: **concluído; etapa em andamento**. A transformação do documento persistido em um view model estável foi extraída para `briefing-report.mapper.ts`. O mapper define o contrato de respostas, seções, cômodos, projeto e data, fornece valores seguros para documentos incompletos e converte `residentAmount` legado em adultos com zero crianças quando os novos campos ainda não existem. Dados atuais e a data de envio das respostas continuam tendo precedência.
 
 O gerador HTML consome o view model sem alterar sua estrutura; o snapshot semântico permaneceu aprovado. Testes isolados cobrem documento vazio, formato legado, formato atual, precedência e data Mongoose representada como `Date` ou `$date`. Não houve mudança de interface, portanto nenhum E2E foi criado ou executado. Não há migração nem sincronização de view. Próximo recorte: extrair template e estilos do relatório.
+
+### Terceiro recorte — template e estilos
+
+Estado em 17/09/2026: **concluído; etapa em andamento**. A montagem do documento foi movida para `briefing-report.template.ts` e o CSS integral para `briefing-report.styles.ts`. O módulo `briefing-report.ts` preserva temporariamente o contrato público e concentra apenas a renderização Puppeteer, que será substituída pelo adaptador final. O template recebe o view model pelo mapper e não conhece Chromium.
+
+O snapshot semântico e os testes de conteúdo permaneceram aprovados; um teste adicional confirma que o template incorpora integralmente o módulo de estilos. Não houve mudança visual ou de interface, portanto nenhum E2E foi criado ou executado. Não há migração nem sincronização de view. Próximo recorte: extrair a resolução e preparação de imagens privadas.

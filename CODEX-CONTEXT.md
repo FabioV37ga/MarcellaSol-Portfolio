@@ -644,8 +644,10 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 
 ## 21. Estado atual da refatoração dos relatórios
 
-- A etapa priorizada 7 está em andamento, com 2 de 5 recortes concluídos.
+- A etapa priorizada 7 está em andamento, com 3 de 5 recortes concluídos.
 - Um snapshot semântico protege capa, capítulos, seções, pessoas, acabamentos e cômodos do HTML atual.
 - O snapshot fica em `backend/test/fixtures/briefing-report-structure.snapshot.json` e deve ser alterado somente quando a mudança visual/estrutural for intencional.
 - `briefing-report.mapper.ts` transforma documentos atuais, incompletos e com `residentAmount` legado em um view model estável.
-- Próximo recorte: extrair template e estilos do relatório.
+- `briefing-report.template.ts` monta somente o HTML e `briefing-report.styles.ts` concentra o CSS do PDF.
+- `briefing-report.ts` é uma fachada temporária para o renderer Puppeteer até o último recorte.
+- Próximo recorte: extrair a resolução e preparação das imagens privadas.
