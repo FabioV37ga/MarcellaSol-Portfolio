@@ -846,3 +846,9 @@ Testes isolados cobrem a hierarquia `raiz/clientes/cliente`, saneamento do login
 Estado em 17/09/2026: **concluído; etapa em andamento**. Foi criado um snapshot semântico do relatório representativo, cobrindo idioma, título, capa e metadados, ordem dos capítulos e seções, blocos de adultos e crianças, tabela de acabamentos, índice e conteúdo de cômodos. O teste analisa o HTML como árvore, evitando um snapshot textual opaco e protegendo a estrutura enquanto mapper, template, estilos e renderer forem extraídos.
 
 Não houve mudança de produção, interface, dados ou aparência. O E2E não foi ampliado nem executado porque este recorte apenas caracteriza o contrato interno já coberto pelos fluxos existentes. Não há migração nem sincronização de view. Próximo recorte: extrair o mapper do relatório e cobrir entradas incompletas e legadas.
+
+### Segundo recorte — mapper do relatório
+
+Estado em 17/09/2026: **concluído; etapa em andamento**. A transformação do documento persistido em um view model estável foi extraída para `briefing-report.mapper.ts`. O mapper define o contrato de respostas, seções, cômodos, projeto e data, fornece valores seguros para documentos incompletos e converte `residentAmount` legado em adultos com zero crianças quando os novos campos ainda não existem. Dados atuais e a data de envio das respostas continuam tendo precedência.
+
+O gerador HTML consome o view model sem alterar sua estrutura; o snapshot semântico permaneceu aprovado. Testes isolados cobrem documento vazio, formato legado, formato atual, precedência e data Mongoose representada como `Date` ou `$date`. Não houve mudança de interface, portanto nenhum E2E foi criado ou executado. Não há migração nem sincronização de view. Próximo recorte: extrair template e estilos do relatório.

@@ -2,51 +2,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import puppeteer from "puppeteer";
+import {
+    mapBriefingReport,
+    type BriefingAnswer,
+    type BriefingReportDocument,
+    type BriefingReportViewModel,
+    type BriefingRoom,
+    type BriefingSection
+} from "./briefing-report.mapper.js";
 
-interface BriefingAnswer {
-    key?: string;
-    question?: string;
-    value?: unknown;
-}
-
-interface BriefingSection {
-    key?: string;
-    title?: string;
-    answers?: BriefingAnswer[];
-}
-
-interface BriefingRoom {
-    type?: string;
-    subtype?: string;
-    name?: string;
-    sections?: BriefingSection[];
-}
-
-export interface BriefingReportDocument {
-    briefingDefinition?: {
-        user?: { name?: string };
-        description?: {
-            category?: string;
-            type?: string;
-            name?: string;
-            adultAmount?: number;
-            childrenAmount?: number;
-        };
-    };
-    responses?: {
-        project?: {
-            category?: string;
-            type?: string;
-            name?: string;
-            adultAmount?: number;
-            childrenAmount?: number;
-        };
-        sections?: BriefingSection[];
-        rooms?: BriefingRoom[];
-        submittedAt?: string;
-    };
-    submittedAt?: string | { $date?: string };
-}
+export type { BriefingReportDocument } from "./briefing-report.mapper.js";
 
 export interface BriefingReportOptions {
     assetBaseUrl?: string;
@@ -344,9 +309,7 @@ function resolveImageSource(assetBaseUrl: string, relativePath: string): string 
     }
 }
 
-function reportDate(document: BriefingReportDocument): string {
-    const raw = document.responses?.submittedAt
-        ?? (typeof document.submittedAt === "string" ? document.submittedAt : document.submittedAt?.$date);
+function reportDate(raw: string | undefined): string {
     if (!raw) return "Data não informada";
     const date = new Date(raw);
     return Number.isNaN(date.getTime()) ? "Data não informada" : new Intl.DateTimeFormat("pt-BR", {
@@ -431,12 +394,13 @@ export function buildBriefingReportHtml(
     document: BriefingReportDocument,
     options: BriefingReportOptions = {}
 ): string {
-    const project = document.responses?.project ?? document.briefingDefinition?.description ?? {};
-    const clientName = document.briefingDefinition?.user?.name ?? "Cliente";
+    const report: BriefingReportViewModel = mapBriefingReport(document);
+    const project = report.project;
+    const clientName = report.clientName;
     const assetBaseUrl = resolveAssetBaseUrl(options.assetBaseUrl);
     const generatedAt = options.generatedAt ?? new Date();
-    const sourceSections = document.responses?.sections ?? [];
-    const sourceRooms = document.responses?.rooms ?? [];
+    const sourceSections = report.sections;
+    const sourceRooms = report.rooms;
     const projectSummary = renderProjectSummary(sourceSections, sourceRooms);
     const generalSections = renderGeneralSections(sourceSections, assetBaseUrl, generatedAt);
     const rooms = renderRooms(sourceRooms, assetBaseUrl, generatedAt);
@@ -454,7 +418,7 @@ export function buildBriefingReportHtml(
             <div><span>Imóvel</span><strong>${escapeHtml(humanize(project.type ?? "Não informado"))}</strong></div>
             <div><span>Adultos</span><strong>${escapeHtml(project.adultAmount ?? "Não informado")}</strong></div>
             <div><span>Crianças</span><strong>${escapeHtml(project.childrenAmount ?? "Não informado")}</strong></div>
-            <div><span>Enviado em</span><strong>${escapeHtml(reportDate(document))}</strong></div>
+            <div><span>Enviado em</span><strong>${escapeHtml(reportDate(report.submittedAt))}</strong></div>
         </div></header>
         ${projectSummary}
         ${generalSections}
