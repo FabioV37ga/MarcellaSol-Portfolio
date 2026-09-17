@@ -9,7 +9,6 @@ import {
     type DriveUploadResult,
     type DriveImageDownload
 } from "./googleDrive.js";
-import { grantFolderReadAccess, type FolderReadAccessResult } from "./googleDrive.js";
 import {
     renameProposalFolder,
     setProposalAttachmentTrashed,
@@ -45,11 +44,7 @@ export interface ProposalStorage {
     setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void>;
 }
 
-export interface FolderReadAccessStorage {
-    grantFolderReadAccess(folderId: string, email: string): Promise<FolderReadAccessResult>;
-}
-
-export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFolderStorage, ClientRemovalStorage, BriefingReportStorage, ProposalStorage, FolderReadAccessStorage {
+export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFolderStorage, ClientRemovalStorage, BriefingReportStorage, ProposalStorage {
     createClientFolder(clientLogin: string): Promise<string> {
         return createClientDriveFolder(clientLogin);
     }
@@ -92,9 +87,5 @@ export class GoogleDriveAttachmentStorage implements AttachmentStorage, ClientFo
 
     setProposalFolderTrashed(folderId: string, trashed: boolean): Promise<void> {
         return setProposalFolderTrashed(folderId, trashed);
-    }
-
-    grantFolderReadAccess(folderId: string, email: string): Promise<FolderReadAccessResult> {
-        return grantFolderReadAccess(folderId, email);
     }
 }

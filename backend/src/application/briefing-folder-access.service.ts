@@ -1,5 +1,5 @@
 import { extractResidentEmails } from "../services/briefing-emails.js";
-import type { FolderReadAccessStorage } from "../services/attachment-storage.js";
+import type { FolderReadAccessStorage } from "../services/folder-permission.storage.js";
 
 export interface BriefingFolderAccessFailure {
     email: string;

@@ -626,3 +626,11 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - No relatório, as escolhas `surface-finish-*` devem ser removidas da grade genérica e apresentadas em uma tabela própria de superfície e acabamento.
 - A quantidade mínima é 1 adulto e 0 crianças.
 - Dados legados devem ser migrados com `npm run briefing:migrate-resident-counts -- --apply`; execute antes sem `--apply` para visualizar o alcance.
+
+## 20. Estado atual da refatoração do Google Drive
+
+- A etapa priorizada 6 está em andamento, com 2 de 5 recortes concluídos.
+- `GoogleDriveClientProvider` centraliza e reutiliza o cliente OAuth do processo.
+- `GoogleDriveFolderPermissionStorage` é o adaptador exclusivo para consultar e criar permissões de leitura em pastas.
+- A obtenção do cliente continua preguiçosa para não tornar o Google uma dependência do bootstrap do backend.
+- `GoogleDriveAttachmentStorage` permanece temporariamente amplo para pastas de cliente, briefing, relatório e propostas; o próximo recorte separa os anexos de propostas.

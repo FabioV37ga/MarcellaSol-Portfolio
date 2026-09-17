@@ -35,6 +35,7 @@ import { ClientRepository } from "../repositories/client.repository.js";
 import { SessionRepository } from "../repositories/session.repository.js";
 import { ViewRepository } from "../repositories/view.repository.js";
 import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
+import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 import { PasswordService } from "../services/password.service.js";
 import { SessionService } from "../services/session.service.js";
 import { SessionTokenService } from "../services/session-token.service.js";
@@ -61,13 +62,14 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
     const payments = new ClientPaymentRepository();
     const views = new ViewRepository();
     const drive = new GoogleDriveAttachmentStorage();
+    const folderPermissions = new GoogleDriveFolderPermissionStorage();
     const passwords = new PasswordService();
     const clock = new SystemClock();
     const ids = new RandomUuidGenerator();
     const sessions = new SessionService(new SessionTokenService(), new SessionRepository());
 
     const authenticate = new AuthenticateService(new AdminRepository(), clients, passwords, sessions);
-    const folderAccess = new BriefingFolderAccessService(drive);
+    const folderAccess = new BriefingFolderAccessService(folderPermissions);
     const submitBriefing = new SubmitBriefingService(clients, briefings, drive, folderAccess, clock);
     const paymentService = new ClientPaymentService(
         config.pixReceiver,

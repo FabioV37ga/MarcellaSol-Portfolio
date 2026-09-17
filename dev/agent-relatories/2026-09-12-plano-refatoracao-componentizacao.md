@@ -814,3 +814,9 @@ Estado em 16/09/2026: **concluído**. A pasta `frontend/src/admin/modules` foi o
 Estado em 17/09/2026: **concluído; etapa em andamento**. Autenticação OAuth, validação das credenciais, agente HTTPS com IPv4 e criação do cliente oficial foram movidos para `GoogleDriveClientProvider`. Uma única instância do cliente é reutilizada durante o processo, evitando recriar autenticação em cada operação. `createDriveClient` permanece como fachada temporária para preservar os consumidores atuais enquanto os storages especializados são extraídos.
 
 Testes isolados comprovam criação única, reutilização da instância, refresh token normalizado e falha antes da fábrica quando faltam credenciais. A política de rede existente permanece coberta. Não há alteração de dados, views, estrutura do Drive ou configuração da VPS. Próximo recorte: extrair permissões de pasta para um storage próprio.
+
+### Segundo recorte — permissões de pastas
+
+Estado em 17/09/2026: **concluído; etapa em andamento**. Consulta paginada e criação de permissões de leitura foram extraídas para `GoogleDriveFolderPermissionStorage`. O serviço de aplicação depende agora da porta mínima `FolderReadAccessStorage`, e a composição e o script de compartilhamento retroativo usam o adaptador específico. A fachada ampla de anexos deixou de conhecer permissões.
+
+O cliente Google permanece preguiçoso: as credenciais e a conexão só são requisitadas quando uma operação de permissão é executada. Testes isolados cobrem permissão existente em uma página posterior, normalização de e-mail, registros excluídos e criação de acesso `reader` com notificação. O fluxo E2E existente de envio do briefing continua cobrindo a jornada externa; esta refatoração não altera interface ou contrato HTTP. Não há migração, sincronização de view ou alteração na estrutura do Drive. Próximo recorte: separar o storage de anexos de propostas.

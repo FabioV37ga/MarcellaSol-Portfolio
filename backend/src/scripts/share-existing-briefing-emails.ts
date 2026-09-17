@@ -7,6 +7,7 @@ import clientBriefings from "../models/clientBriefing.js";
 import clients from "../models/client.js";
 import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
 import { extractResidentEmails, maskedEmail } from "../services/briefing-emails.js";
+import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 
 const applyChanges = process.argv.slice(2).includes("--apply");
 const unknownArguments = process.argv.slice(2).filter(argument => argument !== "--apply");
@@ -56,7 +57,7 @@ async function run(): Promise<void> {
         .lean();
     const clientsById = new Map(clientRecords.map(client => [String(client._id), client]));
     const driveStorage = new GoogleDriveAttachmentStorage();
-    const access = new BriefingFolderAccessService(driveStorage);
+    const access = new BriefingFolderAccessService(new GoogleDriveFolderPermissionStorage());
     const summary: MigrationSummary = {
         briefingsFound: briefings.length,
         clientsNotFound: 0,
