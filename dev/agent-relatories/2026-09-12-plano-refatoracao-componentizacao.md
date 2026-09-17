@@ -858,3 +858,9 @@ O gerador HTML consome o view model sem alterar sua estrutura; o snapshot semân
 Estado em 17/09/2026: **concluído; etapa em andamento**. A montagem do documento foi movida para `briefing-report.template.ts` e o CSS integral para `briefing-report.styles.ts`. O módulo `briefing-report.ts` preserva temporariamente o contrato público e concentra apenas a renderização Puppeteer, que será substituída pelo adaptador final. O template recebe o view model pelo mapper e não conhece Chromium.
 
 O snapshot semântico e os testes de conteúdo permaneceram aprovados; um teste adicional confirma que o template incorpora integralmente o módulo de estilos. Não houve mudança visual ou de interface, portanto nenhum E2E foi criado ou executado. Não há migração nem sincronização de view. Próximo recorte: extrair a resolução e preparação de imagens privadas.
+
+### Quarto recorte — resolução de imagens privadas
+
+Estado em 17/09/2026: **concluído; etapa em andamento**. Busca recursiva, filtro, deduplicação, limite de vinte imagens, download, conversão para JPEG e associação da URL local foram extraídos para `BriefingReportImageResolver`. O serviço de aplicação passou a receber a porta `ReportImageResolver` pela composição e não conhece mais Sharp, dimensões, qualidade ou detalhes de arquivos de imagem.
+
+Testes isolados cobrem deduplicação, exclusão de anexos não visuais, limite máximo, nomes dos arquivos temporários e continuidade após falha individual. O snapshot estrutural permaneceu aprovado. Não houve mudança de interface, portanto nenhum E2E foi criado ou executado. Não há migração nem sincronização de view. Próximo recorte: encapsular Puppeteer em um renderer e finalizar a simplificação do serviço.

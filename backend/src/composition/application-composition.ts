@@ -37,6 +37,7 @@ import { ViewRepository } from "../repositories/view.repository.js";
 import { GoogleDriveClientFolderStorage } from "../services/client-folder.storage.js";
 import { GoogleDriveBriefingStorage } from "../services/briefing-drive.storage.js";
 import { GoogleDriveBriefingReportStorage } from "../services/briefing-report-drive.storage.js";
+import { BriefingReportImageResolver } from "../services/briefing-report-image-resolver.js";
 import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 import { PasswordService } from "../services/password.service.js";
 import { GoogleDriveProposalStorage } from "../services/proposal-drive.storage.js";
@@ -103,7 +104,12 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
         adminPayments: new AdminPaymentsController(paymentService),
         clientPayments: new ClientPaymentsController(paymentService),
         adminProposals: new AdminProposalsController(proposalService),
-        adminReports: new AdminReportsController(new ClientBriefingReportService(clients, briefings, briefingReports)),
+        adminReports: new AdminReportsController(new ClientBriefingReportService(
+            clients,
+            briefings,
+            briefingReports,
+            new BriefingReportImageResolver(briefingReports)
+        )),
         clientApprovals: new ClientApprovalsController(new ListClientApprovalsService(clients, proposalService), proposalResponses),
         requireAuthentication: createAuthenticationGuard(sessions)
     };
