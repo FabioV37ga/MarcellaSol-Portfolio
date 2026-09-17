@@ -641,3 +641,10 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - A obtenção do cliente continua preguiçosa para não tornar o Google uma dependência do bootstrap do backend.
 - As fachadas genéricas `GoogleDriveAttachmentStorage` e `googleDrive.ts` foram removidas; os serviços de aplicação dependem exclusivamente das portas específicas.
 - A próxima etapa priorizada é a Etapa 7, geração de relatórios.
+
+## 21. Estado atual da refatoração dos relatórios
+
+- A etapa priorizada 7 está em andamento, com 1 de 5 recortes concluído.
+- Um snapshot semântico protege capa, capítulos, seções, pessoas, acabamentos e cômodos do HTML atual.
+- O snapshot fica em `backend/test/fixtures/briefing-report-structure.snapshot.json` e deve ser alterado somente quando a mudança visual/estrutural for intencional.
+- Próximo recorte: extrair `briefing-report.mapper.ts` e testar dados incompletos e legados.

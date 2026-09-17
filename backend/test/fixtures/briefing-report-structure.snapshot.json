@@ -1,0 +1,52 @@
+{
+  "language": "pt-BR",
+  "title": "Relatório de briefing — Família Snapshot",
+  "cover": {
+    "project": "Projeto Snapshot",
+    "client": "Família Snapshot",
+    "metadata": [
+      "CategoriaResidencial",
+      "ImóvelApartamento",
+      "Adultos1",
+      "Crianças1",
+      "Enviado em17 de setembro de 2026"
+    ]
+  },
+  "chapters": [
+    "Informações gerais",
+    "Diretrizes do projeto",
+    "Briefing por cômodo"
+  ],
+  "sections": [
+    "Sobre vocês e o imóvel — parte 1",
+    "Rotina",
+    "Preferências — texturas, materiais e referências",
+    "Cozinha"
+  ],
+  "people": [
+    {
+      "role": "Responsável 1",
+      "name": "Pessoa Adulta"
+    },
+    {
+      "role": "Criança 1",
+      "name": "Pessoa Criança"
+    }
+  ],
+  "surfaceFinishes": [
+    [
+      "Marcenaria",
+      "Fosco"
+    ],
+    [
+      "Pisos e revestimentos",
+      "Acetinado"
+    ]
+  ],
+  "roomIndex": [
+    "Cozinha"
+  ],
+  "rooms": [
+    "Cozinha"
+  ]
+}

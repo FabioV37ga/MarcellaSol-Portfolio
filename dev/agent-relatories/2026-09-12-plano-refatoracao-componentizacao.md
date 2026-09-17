@@ -838,3 +838,11 @@ Ambos os adaptadores recebem uma fábrica preguiçosa do cliente Google. Testes 
 Estado em 17/09/2026: **concluído; Etapa 6 concluída**. Criação, saneamento e envio/restauração da pasta raiz do cliente na lixeira foram extraídos para `GoogleDriveClientFolderStorage`. A busca ou criação idempotente de diretórios ficou no helper técnico `drive-folder`, reutilizado por cliente, briefing, propostas e relatórios. `GoogleDriveAttachmentStorage` e `googleDrive.ts` foram removidos, assim como seus imports e nomes genéricos.
 
 Testes isolados cobrem a hierarquia `raiz/clientes/cliente`, saneamento do login e os dois sentidos da operação de lixeira. Os E2E existentes cobrem criação e exclusão administrativa de clientes; como não houve mudança na interface ou contrato, nenhum cenário foi duplicado e a suíte não foi executada. Não há migração, sincronização de view ou alteração na estrutura persistida do Drive. Próxima etapa priorizada: geração de relatórios.
+
+## 29. Execução da Etapa priorizada 7 — geração de relatórios
+
+### Primeiro recorte — snapshot estrutural do HTML
+
+Estado em 17/09/2026: **concluído; etapa em andamento**. Foi criado um snapshot semântico do relatório representativo, cobrindo idioma, título, capa e metadados, ordem dos capítulos e seções, blocos de adultos e crianças, tabela de acabamentos, índice e conteúdo de cômodos. O teste analisa o HTML como árvore, evitando um snapshot textual opaco e protegendo a estrutura enquanto mapper, template, estilos e renderer forem extraídos.
+
+Não houve mudança de produção, interface, dados ou aparência. O E2E não foi ampliado nem executado porque este recorte apenas caracteriza o contrato interno já coberto pelos fluxos existentes. Não há migração nem sincronização de view. Próximo recorte: extrair o mapper do relatório e cobrir entradas incompletas e legadas.
