@@ -34,7 +34,7 @@ import { ClientProposalRepository } from "../repositories/client-proposal.reposi
 import { ClientRepository } from "../repositories/client.repository.js";
 import { SessionRepository } from "../repositories/session.repository.js";
 import { ViewRepository } from "../repositories/view.repository.js";
-import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
+import { GoogleDriveClientFolderStorage } from "../services/client-folder.storage.js";
 import { GoogleDriveBriefingStorage } from "../services/briefing-drive.storage.js";
 import { GoogleDriveBriefingReportStorage } from "../services/briefing-report-drive.storage.js";
 import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
@@ -64,7 +64,7 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
     const proposals = new ClientProposalRepository();
     const payments = new ClientPaymentRepository();
     const views = new ViewRepository();
-    const drive = new GoogleDriveAttachmentStorage();
+    const clientFolders = new GoogleDriveClientFolderStorage();
     const briefingStorage = new GoogleDriveBriefingStorage();
     const briefingReports = new GoogleDriveBriefingReportStorage();
     const folderPermissions = new GoogleDriveFolderPermissionStorage();
@@ -91,10 +91,10 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
     return {
         adminSessions: new AdminSessionsController(authenticate, sessions),
         adminClients: new AdminClientsController(
-            new CreateClientService(clients, passwords, drive),
+            new CreateClientService(clients, passwords, clientFolders),
             new ListClientsService(clients, briefings),
             new UpdateClientProjectStageService(clients),
-            new DeleteClientService(clients, new ClientDeletionRepository(), drive)
+            new DeleteClientService(clients, new ClientDeletionRepository(), clientFolders)
         ),
         clientBriefing: new ClientBriefingController(submitBriefing),
         clientSessions: new ClientSessionsController(clients, authenticate, sessions),

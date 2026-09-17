@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { BriefingFolderAccessService } from "../application/briefing-folder-access.service.js";
 import clientBriefings from "../models/clientBriefing.js";
 import clients from "../models/client.js";
-import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
+import { GoogleDriveClientFolderStorage } from "../services/client-folder.storage.js";
 import { extractResidentEmails, maskedEmail } from "../services/briefing-emails.js";
 import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 
@@ -56,7 +56,7 @@ async function run(): Promise<void> {
         .find({ _id: { $in: clientIds } }, { _id: 1, login: 1, driveFolderId: 1 })
         .lean();
     const clientsById = new Map(clientRecords.map(client => [String(client._id), client]));
-    const driveStorage = new GoogleDriveAttachmentStorage();
+    const driveStorage = new GoogleDriveClientFolderStorage();
     const access = new BriefingFolderAccessService(new GoogleDriveFolderPermissionStorage());
     const summary: MigrationSummary = {
         briefingsFound: briefings.length,

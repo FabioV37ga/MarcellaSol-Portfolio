@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
 import type { drive_v3 } from "@googleapis/drive";
+import { findOrCreateDriveFolder } from "./drive-folder.js";
 import { getGoogleDriveClient } from "./google-drive-client.js";
-import { findOrCreateFolder } from "./googleDrive.js";
 
 export interface BriefingReportDriveStatus {
     exists: boolean;
@@ -87,7 +87,7 @@ export class GoogleDriveBriefingReportStorage implements BriefingReportStorage {
         pdf: Buffer
     ): Promise<BriefingReportDriveStatus> {
         const drive = this.createClient();
-        const reportsFolderId = await findOrCreateFolder(drive, clientFolderId, "relatorios");
+        const reportsFolderId = await findOrCreateDriveFolder(drive, clientFolderId, "relatorios");
         const existing = await findBriefingReport(drive, reportsFolderId);
         const name = reportFileName(clientName);
         const media = { mimeType: "application/pdf", body: Readable.from(pdf) };

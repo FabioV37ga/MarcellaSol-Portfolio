@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
 import type { drive_v3 } from "@googleapis/drive";
+import { findOrCreateDriveFolder, safeDriveFolderName } from "./drive-folder.js";
 import { getGoogleDriveClient } from "./google-drive-client.js";
-import { findOrCreateFolder } from "./googleDrive.js";
 
 export interface DriveUpload {
     id: string;
@@ -16,7 +16,7 @@ export interface DriveUploadResult {
     files: DriveUpload[];
 }
 
-export interface AttachmentStorage {
+export interface BriefingAttachmentStorage {
     uploadBriefing(clientLogin: string, files: Express.Multer.File[]): Promise<DriveUploadResult>;
 }
 
@@ -30,15 +30,7 @@ function requiredRootFolderId(): string {
     return value;
 }
 
-function safeClientFolderName(value: string): string {
-    return value
-        .normalize("NFKC")
-        .trim()
-        .replace(/[\\/?%*:|"<>]/g, "-")
-        .replace(/\s+/g, " ") || "cliente-sem-login";
-}
-
-export class GoogleDriveBriefingStorage implements AttachmentStorage {
+export class GoogleDriveBriefingStorage implements BriefingAttachmentStorage {
     constructor(private readonly createClient: DriveClientFactory = getGoogleDriveClient) { }
 
     async uploadBriefing(
@@ -48,9 +40,13 @@ export class GoogleDriveBriefingStorage implements AttachmentStorage {
         if (files.length === 0) return { folderId: "", files: [] };
 
         const drive = this.createClient();
-        const clientsFolderId = await findOrCreateFolder(drive, requiredRootFolderId(), "clientes");
-        const clientFolderId = await findOrCreateFolder(drive, clientsFolderId, safeClientFolderName(clientLogin));
-        const briefingFolderId = await findOrCreateFolder(drive, clientFolderId, "documentos_briefing");
+        const clientsFolderId = await findOrCreateDriveFolder(drive, requiredRootFolderId(), "clientes");
+        const clientFolderId = await findOrCreateDriveFolder(
+            drive,
+            clientsFolderId,
+            safeDriveFolderName(clientLogin, "cliente-sem-login")
+        );
+        const briefingFolderId = await findOrCreateDriveFolder(drive, clientFolderId, "documentos_briefing");
         const uploadedFiles: DriveUpload[] = [];
 
         for (const file of files) {

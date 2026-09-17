@@ -829,6 +829,12 @@ A fábrica do cliente Drive é injetável e continua preguiçosa. Testes do adap
 
 ### Quarto recorte — briefing e relatórios
 
-Estado em 17/09/2026: **concluído; etapa em andamento**. Uploads do briefing foram extraídos para `GoogleDriveBriefingStorage`; consulta, criação e substituição do PDF e download seguro de imagens ficaram em `GoogleDriveBriefingReportStorage`. Os respectivos serviços de aplicação dependem agora das portas mínimas `AttachmentStorage` e `BriefingReportStorage`. A fachada legada permaneceu somente com criação e descarte da pasta raiz do cliente.
+Estado em 17/09/2026: **concluído; etapa em andamento**. Uploads do briefing foram extraídos para `GoogleDriveBriefingStorage`; consulta, criação e substituição do PDF e download seguro de imagens ficaram em `GoogleDriveBriefingReportStorage`. Os respectivos serviços de aplicação dependem agora das portas mínimas `BriefingAttachmentStorage` e `BriefingReportStorage`. A fachada legada permaneceu somente com criação e descarte da pasta raiz do cliente.
 
 Ambos os adaptadores recebem uma fábrica preguiçosa do cliente Google. Testes isolados cobrem ausência de inicialização sem arquivos, hierarquia e metadados do briefing, localização do PDF e recusa de conteúdo que não seja imagem. Os E2E existentes já cobrem envio de briefing e geração/nova tentativa do relatório; como este recorte não muda comportamento de interface, nenhum cenário foi duplicado e a suíte E2E não foi executada, conforme a regra vigente. Não há migração, sincronização de view ou mudança na estrutura do Drive. Próximo recorte: extrair o ciclo de vida da pasta do cliente e remover as fachadas legadas.
+
+### Quinto recorte — pasta do cliente e remoção das fachadas
+
+Estado em 17/09/2026: **concluído; Etapa 6 concluída**. Criação, saneamento e envio/restauração da pasta raiz do cliente na lixeira foram extraídos para `GoogleDriveClientFolderStorage`. A busca ou criação idempotente de diretórios ficou no helper técnico `drive-folder`, reutilizado por cliente, briefing, propostas e relatórios. `GoogleDriveAttachmentStorage` e `googleDrive.ts` foram removidos, assim como seus imports e nomes genéricos.
+
+Testes isolados cobrem a hierarquia `raiz/clientes/cliente`, saneamento do login e os dois sentidos da operação de lixeira. Os E2E existentes cobrem criação e exclusão administrativa de clientes; como não houve mudança na interface ou contrato, nenhum cenário foi duplicado e a suíte não foi executada. Não há migração, sincronização de view ou alteração na estrutura persistida do Drive. Próxima etapa priorizada: geração de relatórios.

@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import type { drive_v3 } from "@googleapis/drive";
-import { findOrCreateFolder } from "./googleDrive.js";
+import { findOrCreateDriveFolder } from "./drive-folder.js";
 import { getGoogleDriveClient } from "./google-drive-client.js";
 
 export interface ProposalDriveUpload {
@@ -40,15 +40,15 @@ export class GoogleDriveProposalStorage implements ProposalStorage {
         responseIndex?: number
     ): Promise<ProposalDriveUpload> {
         const drive = this.createClient();
-        const proposalsFolderId = await findOrCreateFolder(drive, clientFolderId, "propostas");
-        const folderId = await findOrCreateFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
-        const authorFolderId = await findOrCreateFolder(
+        const proposalsFolderId = await findOrCreateDriveFolder(drive, clientFolderId, "propostas");
+        const folderId = await findOrCreateDriveFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
+        const authorFolderId = await findOrCreateDriveFolder(
             drive,
             folderId,
             author === "administrator" ? "administrador" : "cliente"
         );
         const uploadFolderId = author === "client" && responseIndex
-            ? await findOrCreateFolder(drive, authorFolderId, `resposta-${responseIndex}`)
+            ? await findOrCreateDriveFolder(drive, authorFolderId, `resposta-${responseIndex}`)
             : authorFolderId;
         const attachmentUrls: string[] = [];
         for (const file of files) {
@@ -74,7 +74,7 @@ export class GoogleDriveProposalStorage implements ProposalStorage {
     ): Promise<number> {
         const fileIds = attachmentUrls.map(proposalAttachmentFileId);
         const drive = this.createClient();
-        const administratorFolderId = await findOrCreateFolder(drive, proposalFolderId, "administrador");
+        const administratorFolderId = await findOrCreateDriveFolder(drive, proposalFolderId, "administrador");
         let moved = 0;
         for (const fileId of fileIds) {
             const metadata = await drive.files.get({ fileId, fields: "id,parents", supportsAllDrives: true });

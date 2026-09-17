@@ -1,4 +1,7 @@
-import type { AttachmentStorage, DriveUpload } from "../services/briefing-drive.storage.js";
+import type {
+    BriefingAttachmentStorage,
+    DriveUpload
+} from "../services/briefing-drive.storage.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ApplicationError } from "./errors/application-error.js";
@@ -30,7 +33,7 @@ export class SubmitBriefingService {
     constructor(
         private readonly clients: ClientRepository,
         private readonly briefings: ClientBriefingRepository,
-        private readonly attachments: AttachmentStorage,
+        private readonly attachments: BriefingAttachmentStorage,
         private readonly folderAccess: BriefingFolderAccessService,
         private readonly clock: Clock
     ) { }

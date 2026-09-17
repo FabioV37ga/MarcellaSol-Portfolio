@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientDeletionRepository } from "../repositories/client-deletion.repository.js";
-import type { ClientRemovalStorage } from "../services/attachment-storage.js";
+import type { ClientRemovalStorage } from "../services/client-folder.storage.js";
 import { ApplicationError } from "./errors/application-error.js";
 
 export class DeleteClientService {

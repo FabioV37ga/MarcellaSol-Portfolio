@@ -2,7 +2,7 @@ import type { BriefingObject } from "../models/briefing.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { PasswordService } from "../services/password.service.js";
 import { ApplicationError } from "./errors/application-error.js";
-import type { ClientFolderStorage } from "../services/attachment-storage.js";
+import type { ClientFolderStorage } from "../services/client-folder.storage.js";
 import { initialProjectStages } from "../models/projectStage.js";
 
 export interface CreateClientCommand {
