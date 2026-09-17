@@ -1,5 +1,4 @@
-import type { DriveUpload } from "../services/googleDrive.js";
-import type { AttachmentStorage } from "../services/attachment-storage.js";
+import type { AttachmentStorage, DriveUpload } from "../services/briefing-drive.storage.js";
 import { ClientRepository } from "../repositories/client.repository.js";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ApplicationError } from "./errors/application-error.js";

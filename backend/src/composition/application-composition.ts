@@ -35,6 +35,8 @@ import { ClientRepository } from "../repositories/client.repository.js";
 import { SessionRepository } from "../repositories/session.repository.js";
 import { ViewRepository } from "../repositories/view.repository.js";
 import { GoogleDriveAttachmentStorage } from "../services/attachment-storage.js";
+import { GoogleDriveBriefingStorage } from "../services/briefing-drive.storage.js";
+import { GoogleDriveBriefingReportStorage } from "../services/briefing-report-drive.storage.js";
 import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 import { PasswordService } from "../services/password.service.js";
 import { GoogleDriveProposalStorage } from "../services/proposal-drive.storage.js";
@@ -63,6 +65,8 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
     const payments = new ClientPaymentRepository();
     const views = new ViewRepository();
     const drive = new GoogleDriveAttachmentStorage();
+    const briefingStorage = new GoogleDriveBriefingStorage();
+    const briefingReports = new GoogleDriveBriefingReportStorage();
     const folderPermissions = new GoogleDriveFolderPermissionStorage();
     const proposalStorage = new GoogleDriveProposalStorage();
     const passwords = new PasswordService();
@@ -72,7 +76,7 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
 
     const authenticate = new AuthenticateService(new AdminRepository(), clients, passwords, sessions);
     const folderAccess = new BriefingFolderAccessService(folderPermissions);
-    const submitBriefing = new SubmitBriefingService(clients, briefings, drive, folderAccess, clock);
+    const submitBriefing = new SubmitBriefingService(clients, briefings, briefingStorage, folderAccess, clock);
     const paymentService = new ClientPaymentService(
         config.pixReceiver,
         clients,
@@ -99,7 +103,7 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
         adminPayments: new AdminPaymentsController(paymentService),
         clientPayments: new ClientPaymentsController(paymentService),
         adminProposals: new AdminProposalsController(proposalService),
-        adminReports: new AdminReportsController(new ClientBriefingReportService(clients, briefings, drive)),
+        adminReports: new AdminReportsController(new ClientBriefingReportService(clients, briefings, briefingReports)),
         clientApprovals: new ClientApprovalsController(new ListClientApprovalsService(clients, proposalService), proposalResponses),
         requireAuthentication: createAuthenticationGuard(sessions)
     };

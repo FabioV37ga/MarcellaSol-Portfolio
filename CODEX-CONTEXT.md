@@ -630,9 +630,11 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 
 ## 20. Estado atual da refatoração do Google Drive
 
-- A etapa priorizada 6 está em andamento, com 3 de 5 recortes concluídos.
+- A etapa priorizada 6 está em andamento, com 4 de 5 recortes concluídos.
 - `GoogleDriveClientProvider` centraliza e reutiliza o cliente OAuth do processo.
 - `GoogleDriveFolderPermissionStorage` é o adaptador exclusivo para consultar e criar permissões de leitura em pastas.
 - `GoogleDriveProposalStorage` concentra uploads, hierarquia por autor/resposta, renomeação e descarte de anexos de propostas.
+- `GoogleDriveBriefingStorage` concentra a hierarquia e os uploads dos anexos do briefing.
+- `GoogleDriveBriefingReportStorage` concentra status, criação/substituição do PDF e download seguro de imagens para o relatório.
 - A obtenção do cliente continua preguiçosa para não tornar o Google uma dependência do bootstrap do backend.
-- `GoogleDriveAttachmentStorage` permanece temporariamente responsável por pastas de cliente, briefing e relatório; o próximo recorte separa briefing e relatórios.
+- `GoogleDriveAttachmentStorage` permanece temporariamente apenas para criar e descartar a pasta raiz do cliente; o próximo recorte remove essa fachada e os helpers legados.

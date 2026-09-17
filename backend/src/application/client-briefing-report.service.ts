@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
 import { ClientRepository } from "../repositories/client.repository.js";
-import type { BriefingReportStorage } from "../services/attachment-storage.js";
+import type {
+    BriefingReportDriveStatus,
+    BriefingReportStorage
+} from "../services/briefing-report-drive.storage.js";
 import {
     generateBriefingReportPdf,
     type BriefingReportDocument
 } from "../services/briefing-report.js";
-import type { BriefingReportDriveStatus } from "../services/googleDrive.js";
 import { ApplicationError } from "./errors/application-error.js";
 import fs from "node:fs/promises";
 import os from "node:os";
