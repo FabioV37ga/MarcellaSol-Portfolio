@@ -1,0 +1,435 @@
+.briefing-select-box,
+.briefing-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.button-option,
+.briefing-options>label {
+    position: relative;
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 12px;
+    border: 1px solid var(--briefing-border);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--briefing-ink);
+    font-size: 11px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.button-option:hover,
+.briefing-options>label:hover {
+    border-color: var(--briefing-accent);
+    transform: translateY(-1px);
+}
+
+.button-option:has(input:checked),
+.briefing-options>label:has(input:checked) {
+    border-color: var(--briefing-accent);
+    background: var(--briefing-accent-soft);
+    box-shadow: inset 0 0 0 1px var(--briefing-accent);
+}
+
+.briefing-options>label:has(.image-placeholder),
+.briefing-options>label:has(.briefing-option-image) {
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 7px;
+}
+
+.briefing-options>label>input,
+.button-option>input {
+    accent-color: var(--briefing-accent);
+}
+
+.briefing-select-box>input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-select-box>input:checked+.button-option {
+    border-color: var(--briefing-accent);
+    background: var(--briefing-accent-soft);
+    box-shadow: inset 0 0 0 1px var(--briefing-accent);
+}
+
+.form-page-01 .button-option>input,
+.form-page-02 .button-option>input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-future-changes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.briefing-future-other {
+    margin-top: 10px;
+}
+
+.briefing-select-box input[type="radio"] {
+    width: 18px;
+    height: 18px;
+}
+
+.briefing-surface-finishes>span {
+    margin-bottom: 12px;
+}
+
+.briefing-surface-finishes-scroll {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--briefing-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.briefing-surface-finishes table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.briefing-surface-finishes th,
+.briefing-surface-finishes td {
+    padding: 10px 3px;
+    border-bottom: 1px solid var(--briefing-border);
+    text-align: center;
+    vertical-align: middle;
+}
+
+.briefing-surface-finishes th:first-child {
+    width: 28%;
+    padding-left: 10px;
+    text-align: left;
+}
+
+.briefing-surface-finishes thead th {
+    color: var(--briefing-accent-dark);
+    font-size: clamp(8px, 1.15vw, 10px);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.briefing-surface-finishes tbody th {
+    color: var(--briefing-ink);
+    font-size: clamp(8px, 1.2vw, 10px);
+    line-height: 1.25;
+}
+
+.briefing-surface-finishes tbody tr:last-child th,
+.briefing-surface-finishes tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.briefing-surface-finishes td label {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.briefing-surface-finishes td label:hover {
+    background: var(--briefing-accent-soft);
+}
+
+.briefing-surface-finishes input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--briefing-accent);
+}
+
+.briefing-investment-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-page-06 .briefing-options>label>input,
+.briefing-maintenance-options>label>input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-maintenance-options>label {
+    flex-direction: column;
+}
+
+.briefing-maintenance-options strong {
+    width: 100%;
+    font-size: 11px;
+    text-align: center;
+}
+
+.briefing-maintenance-options span {
+    color: var(--briefing-muted);
+    font-size: 10px;
+}
+
+.briefing-options>label:has(.image-placeholder)>input,
+.briefing-options>label:has(.briefing-option-image)>input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-style-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.briefing-style-options>label {
+    overflow: hidden;
+    gap: 3px;
+    padding: 0 0 14px;
+    border-radius: 11px;
+    background: var(--briefing-surface);
+}
+
+.briefing-style-options>label:has(input:checked)::after {
+    content: "✓";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--briefing-accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 2px 7px rgb(41 35 31 / 22%);
+}
+
+.briefing-option-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 10px 10px 0 0;
+    object-fit: cover;
+}
+
+.briefing-material-options .briefing-option-image {
+    aspect-ratio: 4 / 5;
+}
+
+.briefing-wood-options {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 6px;
+    padding-bottom: 13px;
+}
+
+.briefing-style-options.briefing-wood-options>label,
+.briefing-style-options.briefing-wood-options>label:has(input:checked) {
+    min-height: 0;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    box-shadow: none;
+}
+
+.briefing-wood-options .briefing-option-image {
+    aspect-ratio: 1;
+    border-radius: 7px;
+    object-fit: cover;
+}
+
+.briefing-wood-options>label:has(input:checked) .briefing-option-image {
+    border-color: var(--briefing-accent);
+    box-shadow: 0 0 0 2px var(--briefing-accent-soft);
+}
+
+.briefing-style-options.briefing-wood-options>label:has(input:checked)::after {
+    top: auto;
+    right: 50%;
+    bottom: -12px;
+    width: 24px;
+    height: 24px;
+    transform: translateX(50%);
+    font-size: 13px;
+}
+
+.briefing-wood-scale-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    color: var(--briefing-ink);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.briefing-shape-options {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.briefing-shape-options .briefing-option-image {
+    aspect-ratio: 1;
+    padding: 14px;
+    background: transparent;
+    object-fit: contain;
+}
+
+.briefing-shape-options>label>span {
+    max-width: 14ch;
+    margin-top: 8px;
+    color: var(--briefing-ink);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.briefing-style-options span {
+    margin-top: 8px;
+    color: var(--briefing-muted);
+    font-size: 10px;
+}
+
+.briefing-options.briefing-style-options strong {
+    max-width: 15ch;
+    padding: 1px 8px 0;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.briefing-options strong {
+    font-size: 10px;
+}
+
+.image-placeholder {
+    display: flex;
+    width: 100%;
+    min-height: 74px;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 5px;
+    background:
+        linear-gradient(135deg, rgb(167 84 37 / 12%), rgb(117 108 101 / 10%)),
+        var(--briefing-surface-soft);
+    color: var(--briefing-muted);
+    font-size: 9px;
+}
+
+.briefing-file-upload {
+    position: relative;
+    display: flex;
+    min-height: 150px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 22px;
+    border: 1px dashed var(--briefing-accent);
+    border-radius: var(--briefing-radius);
+    background: var(--briefing-surface-soft);
+    text-align: center;
+}
+
+.briefing-file-upload p,
+.briefing-file-upload small {
+    margin: 0;
+}
+
+.briefing-file-upload small {
+    color: var(--briefing-muted);
+    font-size: 10px;
+}
+
+.briefing-file-upload input[type="file"] {
+    max-width: 100%;
+}
+
+.briefing-info-box,
+.briefing-00-type,
+.briefing-00-time,
+.briefing-project-summary,
+.briefing-success-message {
+    margin: 0 0 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--briefing-border);
+    border-radius: var(--briefing-radius);
+    background: var(--briefing-surface-soft);
+}
+
+.briefing-cost-observation {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    padding: 16px 18px;
+    border: 1px solid var(--briefing-border);
+    border-radius: 9px;
+    background: var(--briefing-surface-soft);
+    color: var(--briefing-ink);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.briefing-info-icon {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+    place-items: center;
+    border: 2px solid var(--briefing-accent);
+    border-radius: 50%;
+    color: var(--briefing-accent);
+    font-family: Georgia, serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.briefing-elements-options {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.briefing-elements-options>label {
+    min-height: 126px;
+    flex-direction: column;
+    gap: 9px;
+    padding: 16px 10px 14px;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.briefing-elements-options>label>input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-element-icon {
+    display: block;
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+}
+

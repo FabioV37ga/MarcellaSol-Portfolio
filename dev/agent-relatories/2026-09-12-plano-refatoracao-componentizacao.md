@@ -880,3 +880,9 @@ A etapa será executada em cinco recortes: propostas administrativas; briefing d
 Estado em 18/09/2026: **concluído; etapa 1/5**. O arquivo `client-proposals.css`, que reunia estrutura da página, editor de etapas, cartões, diálogos e responsividade, tornou-se um ponto de entrada estável. As regras foram separadas em `page.css`, `project-stages.css`, `proposal-list.css`, `proposal-dialogs.css` e `responsive.css`, preservando a ordem integral da cascata e as classes usadas pela view persistida.
 
 Um teste estrutural protege a ordem dos imports e a responsabilidade dos arquivos. A cobertura E2E administrativa passou a verificar estilos representativos da página, progresso, cartão e diálogo; conforme o padrão vigente, o E2E foi adicionado, mas não executado. O build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: organizar o CSS do briefing do cliente.
+
+### Segundo recorte — briefing do cliente
+
+Estado em 18/09/2026: **concluído; etapa 2/5**. O antigo arquivo monolítico `briefing.css`, com mais de 1.700 linhas, tornou-se um ponto de entrada que preserva o link existente em `cliente.html`. As regras foram separadas, na ordem original, entre `base.css`, `controls.css`, `pages.css`, `environments.css`, `review.css` e `responsive.css`. A separação acompanha responsabilidades visuais concretas sem alterar templates, classes, especificidade ou aparência.
+
+Teste estrutural protege os imports e seletores representativos de cada componente. Foi acrescentado um cenário E2E para conferir shell, contêiner, campos e navegação com os estilos carregados, mas ele não foi executado. A equivalência integral do conteúdo anterior foi verificada e o build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: organizar os estilos financeiros do administrador e do cliente.

@@ -1,0 +1,469 @@
+.form-page-16>.briefing-input-box,
+.form-page-16>fieldset.briefing-input-box,
+.form-page-17>.briefing-input-box {
+    margin-bottom: 16px;
+    padding: 18px;
+    border: 1px solid var(--briefing-border);
+    border-radius: 9px;
+    background: #fff;
+}
+
+.form-page-16 .briefing-bathroom-users,
+.form-page-17 .briefing-bathroom-users {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 12px;
+}
+
+.form-page-16 .briefing-bathroom-storage,
+.form-page-17 .briefing-bathroom-storage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--briefing-border);
+}
+
+.form-page-16 .briefing-bathroom-users>label,
+.form-page-16 .briefing-bathroom-storage>label,
+.form-page-17 .briefing-bathroom-users>label,
+.form-page-17 .briefing-bathroom-storage>label {
+    min-height: 42px;
+    justify-content: flex-start;
+    padding: 9px 12px;
+    text-align: left;
+}
+
+.form-page-16 .briefing-bathroom-users input,
+.form-page-16 .briefing-bathroom-storage input,
+.form-page-17 .briefing-bathroom-users input,
+.form-page-17 .briefing-bathroom-storage input {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.form-page-16 .briefing-bathroom-storage-other,
+.form-page-17 .briefing-bathroom-storage-other {
+    width: calc(50% - 6px);
+    margin: 9px 0 0 calc(50% + 6px);
+}
+
+.form-page-16>.briefing-input-box:has(textarea),
+.form-page-17>.briefing-input-box:has(textarea) {
+    margin-top: 8px;
+    padding: 18px;
+}
+
+.form-page-16 .briefing-input-big,
+.form-page-17 .briefing-input-big {
+    min-height: 145px;
+    margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+
+    .form-page-16 .briefing-bathroom-users,
+    .form-page-16 .briefing-bathroom-storage,
+    .form-page-17 .briefing-bathroom-users,
+    .form-page-17 .briefing-bathroom-storage {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.form-page-15 .briefing-bedroom-essentials {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 12px;
+}
+
+.form-page-15 .briefing-bedroom-essentials>label,
+.form-page-15 .briefing-bedroom-essentials>label:has(.image-placeholder) {
+    min-height: 76px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 12px;
+    text-align: left;
+}
+
+.form-page-15 .briefing-bedroom-essentials>label>input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.form-page-15 .briefing-bedroom-essentials .image-placeholder {
+    flex: 0 0 30px;
+    width: 30px;
+    min-height: 30px;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    font-size: 0;
+}
+
+.briefing-bedroom-icon {
+    display: block;
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.form-page-15 .briefing-bed-size {
+    width: min(100%, 320px);
+    margin-top: 0;
+}
+
+.form-page-15 .briefing-bedroom-other-item {
+    margin-top: 14px;
+}
+
+.form-page-15 .briefing-bedroom-storage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 22px;
+    margin-top: 14px;
+}
+
+.form-page-15 .briefing-bedroom-storage>label {
+    min-height: 32px;
+    justify-content: flex-start;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+.form-page-15 .briefing-bedroom-storage>label:hover {
+    border-color: transparent;
+    transform: none;
+}
+
+.form-page-15 .briefing-bedroom-storage input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 19px;
+    height: 19px;
+    margin: 0 5px 0 0;
+}
+
+.form-page-15 .briefing-bedroom-storage-other {
+    width: calc(50% - 11px);
+    margin: 5px 0 0 calc(50% + 11px);
+}
+
+@media (max-width: 600px) {
+    .form-page-15 .briefing-bedroom-essentials {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .form-page-15 .briefing-bedroom-essentials>label,
+    .form-page-15 .briefing-bedroom-essentials>label:has(.image-placeholder) {
+        padding: 9px;
+    }
+
+    .form-page-15 .briefing-bed-size {
+        width: min(100%, 320px);
+    }
+
+    .form-page-15 .briefing-bedroom-storage {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .form-page-15 .briefing-bedroom-storage-other {
+        width: calc(50% - 6px);
+        margin-left: calc(50% + 6px);
+    }
+}
+
+.form-page-12 .briefing-input-row {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 24px;
+}
+
+.form-page-12 .briefing-input-row .briefing-input-box:first-child {
+    flex: 2 1 0;
+}
+
+.form-page-12 .briefing-input-row .briefing-input-box:last-child {
+    flex: 1 1 0;
+}
+
+.form-page-12 .briefing-input-box {
+    margin-bottom: 24px;
+}
+
+.form-page-12 .briefing-kitchen-binary {
+    display: flex;
+    gap: 28px;
+}
+
+.form-page-12 .briefing-kitchen-binary>label {
+    min-height: auto;
+    justify-content: flex-start;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+.form-page-12 .briefing-kitchen-binary>label:hover {
+    border-color: transparent;
+    transform: none;
+}
+
+.form-page-12 .briefing-kitchen-binary input[type="radio"] {
+    width: 22px;
+    height: 22px;
+    margin: 0 3px 0 0;
+}
+
+.form-page-12 .briefing-kitchen-appliances {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px 12px;
+}
+
+.form-page-12 .briefing-kitchen-accessories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 12px;
+}
+
+.form-page-12 .briefing-kitchen-appliances>label,
+.form-page-12 .briefing-kitchen-accessories>label {
+    min-height: 44px;
+    justify-content: flex-start;
+    padding: 9px 12px;
+    text-align: left;
+}
+
+.form-page-12 .briefing-kitchen-appliances input[type="checkbox"],
+.form-page-12 .briefing-kitchen-accessories input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.form-page-12 .briefing-input-big {
+    min-height: 130px;
+}
+
+@media (max-width: 600px) {
+    .form-page-12 .briefing-input-row {
+        align-items: stretch;
+    }
+
+    .form-page-12 .briefing-kitchen-appliances {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .form-page-12 .briefing-kitchen-accessories {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.form-page-13 .briefing-input-box {
+    margin-bottom: 30px;
+}
+
+.form-page-13 .briefing-balcony-uses {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 14px;
+}
+
+.form-page-13 .briefing-balcony-uses>label {
+    min-height: 58px;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.form-page-13 .briefing-balcony-uses>label>input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-balcony-icon {
+    display: block;
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.form-page-13 .briefing-balcony-other {
+    flex-wrap: wrap;
+}
+
+.form-page-13 .briefing-balcony-other .briefing-input {
+    flex-basis: 100%;
+    min-height: 40px;
+    margin-top: 5px;
+}
+
+.form-page-13 .briefing-balcony-glazing {
+    display: flex;
+    gap: 28px;
+}
+
+.form-page-13 .briefing-balcony-glazing>label {
+    min-height: 38px;
+    justify-content: flex-start;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+.form-page-13 .briefing-balcony-glazing>label:hover {
+    border-color: transparent;
+    transform: none;
+}
+
+.form-page-13 .briefing-balcony-glazing input[type="radio"] {
+    width: 24px;
+    height: 24px;
+    margin: 0 7px 0 0;
+}
+
+.form-page-13 .briefing-balcony-integration {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.form-page-13 .briefing-balcony-integration>label {
+    min-height: 38px;
+    justify-content: flex-start;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+.form-page-13 .briefing-balcony-integration>label:hover {
+    border-color: transparent;
+    transform: none;
+}
+
+.form-page-13 .briefing-balcony-integration input[type="radio"] {
+    width: 24px;
+    height: 24px;
+    margin: 0 7px 0 0;
+}
+
+.form-page-13 .briefing-input-big {
+    min-height: 150px;
+}
+
+@media (max-width: 480px) {
+    .form-page-13 .briefing-balcony-uses {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.form-page-14 .briefing-input-box {
+    margin-bottom: 34px;
+}
+
+.form-page-14 .briefing-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 22px;
+    margin-top: 16px;
+}
+
+.form-page-14 .briefing-options>label {
+    min-height: 32px;
+    justify-content: flex-start;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+.form-page-14 .briefing-options>label:hover {
+    border-color: transparent;
+    transform: none;
+}
+
+.form-page-14 .briefing-options input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 19px;
+    height: 19px;
+    margin: 0 5px 0 0;
+}
+
+.form-page-14 .briefing-input-box>.briefing-input {
+    width: calc(50% - 11px);
+    margin: 5px 0 0 calc(50% + 11px);
+}
+
+.form-page-14 .briefing-input-big {
+    min-height: 155px;
+    padding: 16px;
+}
+
+@media (max-width: 480px) {
+    .form-page-14 .briefing-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .form-page-14 .briefing-input-box>.briefing-input {
+        width: calc(50% - 6px);
+        margin-left: calc(50% + 6px);
+    }
+}
+
+.form-page-11 .briefing-input-box {
+    margin-bottom: 25px;
+}
+
+.form-page-11 .briefing-dining-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+}
+
+.form-page-11 .briefing-dining-options>label {
+    min-height: 42px;
+    justify-content: flex-start;
+    padding: 9px 12px;
+    text-align: left;
+}
+
+.form-page-11 .briefing-dining-options input[type="checkbox"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.briefing-dining-icon {
+    display: block;
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.form-page-11 .briefing-input-big {
+    min-height: 145px;
+}
+
+@media (max-width: 480px) {
+    .form-page-11 .briefing-dining-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .form-page-11 .briefing-dining-options>label {
+        padding-inline: 9px;
+    }
+}
+

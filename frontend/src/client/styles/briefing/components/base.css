@@ -1,0 +1,404 @@
+@font-face {
+    font-family: "Against";
+    src: url("/fonts/against-Regular.woff2") format("woff2");
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Comfortaa";
+    src: url("/fonts/Comfortaa-Regular.ttf") format("truetype");
+    font-display: swap;
+}
+
+:root {
+    --briefing-bg: #f7f3ed;
+    --briefing-surface: #fffdf9;
+    --briefing-surface-soft: #fbf7f1;
+    --briefing-ink: #29231f;
+    --briefing-muted: #756c65;
+    --briefing-accent: #a75425;
+    --briefing-accent-dark: #86401d;
+    --briefing-accent-soft: #f5e9df;
+    --briefing-border: #ded6cd;
+    --briefing-radius: 10px;
+    --briefing-shadow: 0 12px 34px rgb(67 44 28 / 8%);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.briefing-app {
+    width: 100%;
+
+}
+
+html {
+    min-width: 320px;
+    background: var(--briefing-bg);
+}
+
+body.client-briefing-active {
+    height: fit-content !important;
+    min-height: 100vh !important;
+    margin: 0;
+    background:
+        radial-gradient(circle at 90% 0%, rgb(255 255 255 / 72%), transparent 32rem),
+        var(--briefing-bg);
+    color: var(--briefing-ink);
+    font-family: "Comfortaa", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+button,
+input,
+select,
+textarea {
+    color: inherit;
+    font: inherit;
+}
+
+button,
+a,
+label {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.briefing-app header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    height: 76px;
+    padding: 0 clamp(22px, 5vw, 72px);
+    border-bottom: 1px solid var(--briefing-border);
+    background: rgb(255 253 249 / 92%);
+    font-family: "Against", Georgia, serif;
+    font-size: clamp(22px, 2vw, 30px);
+    box-shadow: 0 2px 16px rgb(67 44 28 / 4%);
+}
+
+.briefing-app header::after {
+    content: "DESIGN DE INTERIORES   |   Projetos que acolhem histórias.";
+    margin-left: auto;
+    color: var(--briefing-accent-dark);
+    font-family: "Comfortaa", Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    white-space: pre;
+}
+
+.briefing-app main {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 760px);
+    grid-template-rows: auto 1fr;
+    justify-content: center;
+    width: min(100%, 1100px);
+    min-height: calc(100vh - 76px);
+    margin: 0 auto;
+    border-inline: 1px solid rgb(222 214 205 / 72%);
+    background: rgb(255 253 249 / 44%);
+}
+
+.briefing-index {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-height: 100%;
+    margin: 0;
+    padding: 47px 28px;
+    border-right: 1px solid var(--briefing-border);
+}
+
+.briefing-index ol {
+    margin: 0;
+    padding-left: 22px;
+    color: var(--briefing-ink);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.45;
+    text-transform: none;
+}
+
+.briefing-index li {
+    padding: 7px 0 7px 4px;
+    transition: color .2s ease, font-weight .2s ease;
+}
+
+.briefing-index li.is-active {
+    color: var(--briefing-accent);
+    font-weight: 800;
+}
+
+.progress {
+    position: relative;
+    grid-column: 2;
+    width: calc(100% - 64px);
+    height: 4px;
+    margin: 48px 32px 20px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #e8e0d8;
+}
+
+.progress::before {
+    content: "";
+    display: block;
+    width: var(--briefing-progress, 0%);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--briefing-accent), #bf7448);
+}
+
+.form-page-container {
+    grid-column: 2;
+    width: calc(100% - 64px);
+    margin: 0 32px 44px;
+    padding: clamp(24px, 4vw, 42px);
+    border: 1px solid var(--briefing-border);
+    border-radius: 12px;
+    background: var(--briefing-surface);
+    box-shadow: var(--briefing-shadow);
+}
+
+.form-page-container>div {
+    display: flex;
+    flex-direction: column;
+    min-height: 560px;
+}
+
+.form-page-container>div[hidden] {
+    display: none;
+}
+
+.briefing-title {
+    position: relative;
+    margin: 0;
+    font-family: "Against", Georgia, serif;
+    font-size: clamp(27px, 3vw, 38px);
+    font-weight: 400;
+    line-height: 1.18;
+}
+
+.briefing-title::after {
+    content: "";
+    display: block;
+    width: 34px;
+    height: 2px;
+    margin-top: 15px;
+    background: var(--briefing-accent);
+}
+
+.briefing-subtitle,
+.briefing-description {
+    max-width: 650px;
+    margin: 10px 0 28px;
+    color: var(--briefing-muted);
+    font-size: 13px;
+}
+
+.briefing-section {
+    margin: 4px 0 12px;
+    padding: clamp(18px, 3vw, 28px);
+    border: 1px solid var(--briefing-border);
+    border-radius: var(--briefing-radius);
+    background: var(--briefing-surface-soft);
+}
+
+.briefing-section-title {
+    margin: 0 0 20px;
+    color: var(--briefing-accent-dark);
+    font-family: "Against", Georgia, serif;
+    font-size: 22px;
+    font-weight: 400;
+}
+
+.briefing-input-box {
+    min-width: 0;
+    margin: 0 0 20px;
+    padding: 0;
+    border: 0;
+}
+
+.briefing-input-box>label,
+.briefing-input-box>legend,
+.briefing-input-box>p {
+    display: block;
+    margin: 0 0 7px;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.briefing-input-box>small,
+.briefing-input-box>span {
+    display: block;
+    margin: -3px 0 8px;
+    color: var(--briefing-muted);
+    font-size: 10px;
+}
+
+.briefing-input-box>textarea+small {
+    margin: -23px 10px 0 0;
+    text-align: right;
+}
+
+.briefing-input,
+.briefing-input-half,
+.briefing-input-medium,
+.briefing-input-big,
+.briefing-input-box>div:not([class]),
+.briefing-select-box select {
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 14px;
+    border: 1px solid var(--briefing-border);
+    border-radius: 7px;
+    outline: 0;
+    background: #fff;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+textarea.briefing-input-medium {
+    min-height: 105px;
+    resize: vertical;
+}
+
+textarea.briefing-input-big {
+    min-height: 145px;
+    padding-bottom: 28px;
+    resize: vertical;
+}
+
+.briefing-input:focus,
+.briefing-input-half:focus,
+.briefing-input-medium:focus,
+.briefing-input-big:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--briefing-accent);
+    box-shadow: 0 0 0 3px rgb(167 84 37 / 12%);
+}
+
+select.briefing-input[multiple] {
+    min-height: 150px;
+}
+
+select.briefing-input[multiple] option {
+    padding: 8px;
+    border-radius: 4px;
+}
+
+input[type="file"].briefing-input {
+    padding: 9px;
+    color: var(--briefing-muted);
+}
+
+input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--briefing-accent);
+    border-radius: 5px;
+    background: var(--briefing-accent-soft);
+    color: var(--briefing-accent-dark);
+    cursor: pointer;
+}
+
+.briefing-input-flex-box,
+.briefing-input-row,
+.row-content {
+    display: flex;
+    gap: 14px;
+}
+
+.briefing-ignore-option {
+    display: inline-flex !important;
+    width: fit-content;
+    align-items: center;
+    gap: 7px;
+    margin: -2px 0 8px;
+    color: var(--briefing-muted);
+    font-size: 10px;
+    font-weight: 500 !important;
+    cursor: pointer;
+}
+
+.briefing-ignore-option input {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--briefing-accent);
+}
+
+.briefing-input-box.is-not-considered> :not(.briefing-ignore-option):not(label:first-child) {
+    opacity: .45;
+}
+
+.form-page-02 .row-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+}
+
+.form-page-02 .briefing-input-checkbox {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-page-02 .briefing-input-checkbox .briefing-input {
+    grid-column: 1 / -1;
+}
+
+.form-page-03 fieldset:first-of-type>.briefing-input-row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    align-items: center;
+}
+
+.form-page-03 fieldset:first-of-type>.briefing-input-row>label {
+    text-align: center;
+}
+
+.briefing-input-flex-box>*,
+.briefing-input-row>*,
+.row-content>* {
+    flex: 1 1 0;
+}
+
+.briefing-area-input {
+    position: relative;
+}
+
+.briefing-area-input .briefing-input {
+    padding-right: 48px;
+}
+
+.briefing-area-input>span {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    color: var(--briefing-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.briefing-property-status {
+    flex: 1.15 1 0;
+    min-width: 0;
+}
+
+.briefing-property-details>.briefing-input-box {
+    min-width: 0;
+}
+
+.briefing-property-status .briefing-input {
+    padding-inline: 10px 30px;
+    font-size: 12px;
+}
+

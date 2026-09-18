@@ -76,6 +76,20 @@ async function moveStoredDraftToPage(page: Page, currentPage: number): Promise<v
     }, currentPage);
 }
 
+test("carrega os estilos componentizados do briefing", async ({ page }) => {
+    await mockClientApi(page);
+    await page.goto("/cliente.html");
+    await loginWithRememberedSession(page);
+
+    await expect(page.locator(".briefing-app header")).toHaveCSS("height", "76px");
+    await expect(page.locator(".form-page-container")).toHaveCSS("border-radius", "12px");
+    await page.getByText("Começar briefing").click();
+    await expect(page.locator("[data-briefing-page-key='about-property'] .briefing-input").first())
+        .toHaveCSS("min-height", "46px");
+    await expect(page.locator("[data-briefing-page-key='about-property'] .briefing-navigation"))
+        .toHaveCSS("display", "flex");
+});
+
 test("renderiza adultos e crianças com os campos de contato corretos", async ({ page }) => {
     await mockClientApi(page);
     await page.goto("/cliente.html");

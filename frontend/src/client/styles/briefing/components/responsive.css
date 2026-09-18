@@ -1,0 +1,118 @@
+@media (max-width: 760px) {
+    .briefing-app header {
+        height: 64px;
+        padding-inline: 20px;
+    }
+
+    .briefing-app header::after {
+        content: "ATELIÊ DE INTERIORES";
+        font-size: 7px;
+    }
+
+    .briefing-app main {
+        display: block;
+        min-height: calc(100vh - 64px);
+        border: 0;
+    }
+
+    .briefing-index {
+        min-height: auto;
+        padding: 22px 20px 8px;
+        border: 0;
+    }
+
+    .briefing-index ol {
+        display: none;
+    }
+
+    .progress {
+        width: calc(100% - 40px);
+        margin: 12px 20px 18px;
+    }
+
+    .form-page-container {
+        width: calc(100% - 24px);
+        margin: 0 12px 24px;
+        padding: 24px 18px;
+        border-radius: 9px;
+    }
+
+    .form-page-container>div {
+        min-height: calc(100vh - 190px);
+    }
+
+    .briefing-input-flex-box,
+    .briefing-input-row,
+    .row-content {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .briefing-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-style-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-wood-options {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .briefing-shape-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-elements-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-investment-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-future-changes {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .briefing-summary-item {
+        grid-template-columns: 34px 1fr;
+    }
+
+    .briefing-summary-item .briefing-edit-button {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .briefing-navigation a,
+    .briefing-navigation button {
+        min-width: 0;
+        padding-inline: 14px;
+    }
+}
+
+@media (max-width: 430px) {
+    header::after {
+        display: none;
+    }
+
+    .briefing-options,
+    .briefing-select-box {
+        grid-template-columns: 1fr;
+    }
+
+
+    .form-page-02 .row-content,
+    .form-page-03 fieldset:first-of-type>.briefing-input-row {
+        grid-template-columns: 1fr;
+    }
+
+    .briefing-wood-options {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .briefing-title {
+        font-size: 27px;
+    }
+}
