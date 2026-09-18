@@ -870,3 +870,13 @@ Testes isolados cobrem deduplicação, exclusão de anexos não visuais, limite 
 Estado em 17/09/2026: **concluído; etapa finalizada**. A inicialização e o encerramento do Chromium, o carregamento do HTML, a espera limitada pelas imagens e as opções de impressão A4 foram isolados em `PuppeteerPdfRenderer`, atrás da porta `PdfRenderer`. O renderer recebe HTML pronto e não conhece briefing, mapper, Drive ou regras do caso de uso. `ClientBriefingReportService` ficou responsável somente por coordenar cliente, briefing, diretório temporário, resolução de imagens, template, renderer e upload.
 
 A fila global em memória permanece no processo principal com concorrência 1, e solicitações simultâneas para o mesmo cliente compartilham a geração em andamento. Testes isolados cobrem arquivo HTML temporário, configuração do PDF, encerramento do navegador em falha, deduplicação por cliente e serialização entre clientes. O HTML e a aparência não foram alterados. Nenhum E2E foi criado ou executado; não há migração nem sincronização de view. Etapa priorizada 7: **5/5 concluída**. Próxima etapa priorizada: CSS das telas complexas.
+
+## 30. Execução da Etapa priorizada 8 — CSS das telas complexas
+
+A etapa será executada em cinco recortes: propostas administrativas; briefing do cliente; financeiros administrativo e do cliente; etapas/aprovações e navegação; revisão final dos estilos complexos e compartilhamentos comprovados.
+
+### Primeiro recorte — propostas administrativas
+
+Estado em 18/09/2026: **concluído; etapa 1/5**. O arquivo `client-proposals.css`, que reunia estrutura da página, editor de etapas, cartões, diálogos e responsividade, tornou-se um ponto de entrada estável. As regras foram separadas em `page.css`, `project-stages.css`, `proposal-list.css`, `proposal-dialogs.css` e `responsive.css`, preservando a ordem integral da cascata e as classes usadas pela view persistida.
+
+Um teste estrutural protege a ordem dos imports e a responsabilidade dos arquivos. A cobertura E2E administrativa passou a verificar estilos representativos da página, progresso, cartão e diálogo; conforme o padrão vigente, o E2E foi adicionado, mas não executado. O build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: organizar o CSS do briefing do cliente.

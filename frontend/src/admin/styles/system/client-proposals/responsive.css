@@ -1,0 +1,36 @@
+@media (min-width: 900px) {
+    .proposals-management-container {
+        width: calc(100% - 60px);
+    }
+
+    .proposals-columns {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .proposals-panel {
+        padding: 22px;
+    }
+
+    #proposals-back {
+        width: 170px;
+    }
+}
+
+@media (max-width: 560px) {
+    .admin-project-progress-heading {
+        padding-right: 0;
+    }
+
+    .admin-project-progress-heading .project-stage-order-edit {
+        position: static;
+        margin-top: 10px;
+    }
+
+    .admin-project-progress .project-stage-order-move span {
+        width: 100%;
+    }
+
+    .admin-project-progress .project-stage-order-move button {
+        flex: 1;
+    }
+}

@@ -1,0 +1,156 @@
+.proposal-dialog {
+    width: min(520px, calc(100% - 28px));
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px #0004;
+}
+
+.proposal-dialog::backdrop {
+    background: #0007;
+}
+
+.proposal-dialog-form {
+    display: grid;
+    gap: 15px;
+    padding: 22px;
+}
+
+.proposal-dialog-form h2 {
+    font-size: 20px;
+}
+
+.proposal-field {
+    display: grid;
+    gap: 7px;
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.proposal-field input,
+.proposal-field textarea,
+.proposal-field select {
+    padding: 11px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+    background: #fff;
+    font: inherit;
+    color: #1f1f1f;
+}
+
+.proposal-field textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+#proposal-current-attachment {
+    color: var(--gray);
+    font-size: 10px;
+}
+
+.proposal-existing-attachments {
+    display: grid;
+    gap: 8px;
+}
+
+.proposal-existing-attachments[hidden] {
+    display: none;
+}
+
+.proposal-existing-attachments h3 {
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.proposal-existing-attachments-list {
+    display: grid;
+    gap: 7px;
+}
+
+.proposal-existing-attachment {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 10px;
+    border: 1px solid var(--borderGray);
+    border-radius: 8px;
+    background: #fbfafa;
+}
+
+.proposal-existing-attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    color: var(--orange);
+    font-size: 12px;
+}
+
+.proposal-attachment-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 7px;
+    border: 0;
+    background: transparent;
+    color: #a12e2e;
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.proposal-attachment-remove:disabled {
+    color: var(--gray);
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.proposal-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.proposal-delete-warning {
+    color: var(--gray);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+#proposal-delete-confirm {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #a12e2e;
+    color: #fff;
+    font-family: "confort";
+    cursor: pointer;
+}
+
+.proposals-actions {
+    margin-top: 16px;
+}
+
+.proposal-client-response-history,
+.proposal-client-response {
+    display: grid;
+    gap: 8px;
+}
+
+.proposal-client-response-history {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee7e3;
+}
+
+.proposal-client-response a {
+    color: var(--orange);
+    font-size: 11px;
+}
+
+#proposals-back {
+    width: 100%;
+}
+

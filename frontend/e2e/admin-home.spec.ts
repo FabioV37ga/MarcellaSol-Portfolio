@@ -77,6 +77,53 @@ test("confirma alterações com cancelamento, falha, nova tentativa e etapa agua
     expect(requests).toBe(2);
 });
 
+test("carrega os estilos componentizados da gestão de propostas", async ({ page }) => {
+    const client = {
+        id: "styled-client",
+        name: "Cliente Estilos",
+        hasFilledBriefing: true,
+        type: "residencial",
+        currentStageKey: "briefing",
+        currentStageStatus: "awaiting-approval",
+        projectStages: [
+            { key: "contract", index: 0, status: "completed" },
+            { key: "briefing", index: 1, status: "awaiting-approval" }
+        ],
+        hasProjectStageOrder: true
+    };
+    const proposal = {
+        _id: "styled-proposal",
+        userId: client.id,
+        title: "Proposta estilizada",
+        description: "Descrição da proposta",
+        stageKey: "briefing",
+        status: "sent",
+        attachments: ["https://example.com/proposta.pdf"],
+        clientResponses: [],
+        createdAt: "2026-09-18",
+        updatedAt: "2026-09-18"
+    };
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/styled-client", route => route.fulfill({ json: { client } }));
+    await page.route("**/api/admin/clients/styled-client/briefing-report", route => route.fulfill({ json: { exists: false } }));
+    await page.route("**/api/admin/clients/styled-client/proposals", route => route.fulfill({ json: { proposals: [proposal] } }));
+
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='styled-client']").click();
+    await page.locator("#client-management-proposals").click();
+
+    await expect(page.locator(".proposals-management-container")).toHaveCSS("font-family", /confort/);
+    await expect(page.locator(".admin-project-progress")).toHaveCSS("border-radius", "12px");
+    await expect(page.locator("[data-proposal-id='styled-proposal']")).toHaveCSS("border-radius", "10px");
+    await page.locator("#new-proposal").click();
+    await expect(page.locator("#proposal-dialog")).toBeVisible();
+    await expect(page.locator("#proposal-dialog .proposal-dialog-form")).toHaveCSS("border-radius", "12px");
+});
+
 test("usa Voltar, preserva o rascunho e inicia novo cliente com campos vazios", async ({ page }) => {
     await mockAdminApi(page);
     let creationRequests = 0;

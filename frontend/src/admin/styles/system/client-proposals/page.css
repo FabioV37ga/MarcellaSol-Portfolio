@@ -1,0 +1,40 @@
+.proposals-management-container {
+    width: calc(100% - 24px);
+    margin: 0 auto 32px;
+    color: #1f1f1f;
+    font-family: "confort";
+}
+
+.proposals-management-container .page-index {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 18px;
+    font-size: 12px;
+}
+
+.proposals-management-container .root-index {
+    color: var(--orange);
+    cursor: pointer;
+}
+
+.proposals-management-container .page-index p,
+.proposals-management-container .page-index span,
+.proposals-subtitle {
+    color: var(--gray);
+}
+
+.proposals-title {
+    margin-bottom: 20px;
+}
+
+.proposals-title h1 {
+    margin-bottom: 8px;
+    font-size: 24px;
+}
+
+.proposals-subtitle {
+    font-size: 12px;
+    line-height: 1.45;
+}
+

@@ -537,6 +537,7 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 8 — CSS das telas complexas
 
+- Estado: em andamento, 1/5.
 - reduzir CSS global;
 - organizar por tela/componente;
 - preservar aparência e responsividade;
@@ -655,3 +656,12 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - `PuppeteerPdfRenderer` recebe HTML pronto e concentra Chromium, carregamento local, espera de imagens e impressão A4 atrás da porta `PdfRenderer`.
 - `ClientBriefingReportService` mantém a fila global em memória com concorrência 1 e deduplica gerações simultâneas do mesmo cliente.
 - A próxima etapa priorizada é a Etapa 8, organização do CSS das telas complexas.
+
+## 22. Estado atual da organização do CSS
+
+- A etapa priorizada 8 está em andamento, com 1 de 5 recortes concluído.
+- `admin/styles/system/client-proposals.css` é o ponto de entrada estável da tela e importa, nessa ordem, estrutura da página, etapas do projeto, lista de propostas, diálogos e responsividade.
+- As classes e a cascata da view persistida foram preservadas; não foi necessário sincronizar o banco.
+- Testes estruturais devem proteger os pontos de entrada e a responsabilidade de cada arquivo.
+- Mudanças desta etapa recebem cobertura E2E visual/comportamental aplicável, mas a suíte E2E só é executada quando o usuário solicitar explicitamente.
+- Próximo recorte: separar o CSS do briefing do cliente por base, componentes, páginas/ambientes e responsividade.
