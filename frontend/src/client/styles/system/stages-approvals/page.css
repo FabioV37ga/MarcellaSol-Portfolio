@@ -1,0 +1,44 @@
+.stages-approvals-page {
+    width: calc(100% - 32px);
+    margin: 0 auto 36px;
+    color: #292929;
+    font-family: "confort";
+}
+
+.stages-approvals-heading {
+    margin-bottom: 22px;
+}
+
+.stages-approvals-index {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.stages-approvals-index a {
+    color: var(--orange);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.stages-approvals-index a:hover,
+.stages-approvals-index a:focus-visible {
+    text-decoration: underline;
+}
+
+.stages-approvals-heading h1 {
+    margin-bottom: 7px;
+    font-size: 22px;
+    line-height: 1.25;
+}
+
+.stages-approvals-heading p {
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.5;
+}
+

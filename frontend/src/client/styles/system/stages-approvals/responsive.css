@@ -1,0 +1,55 @@
+@media (min-width: 900px) {
+    .stages-approvals-page {
+        width: calc(100% - 60px);
+    }
+
+    .stages-approvals-heading h1 {
+        font-size: 26px;
+    }
+
+    .stages-approvals-index {
+        font-size: 12px;
+    }
+
+    .stages-approvals-heading p,
+    .section-heading p {
+        font-size: 12px;
+    }
+
+    .project-progress,
+    .client-approvals {
+        padding: 22px;
+    }
+
+    .project-progress-track {
+        min-width: 760px;
+    }
+
+    .project-step-label,
+    .project-step-status,
+    .client-approval-card-header time,
+    .client-approval-status {
+        font-size: 10px;
+    }
+
+    .client-approval-card {
+        padding: 18px;
+    }
+
+    .client-approval-card h3 {
+        font-size: 15px;
+    }
+
+    .client-approval-description,
+    .client-approval-attachment,
+    .client-approval-comment,
+    .client-approval-dialog header p,
+    .client-approval-dialog label,
+    #client-approval-reject-comment {
+        font-size: 12px;
+    }
+
+    #client-stages-back {
+        width: 150px;
+    }
+}

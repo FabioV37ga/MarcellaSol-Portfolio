@@ -537,7 +537,7 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 8 — CSS das telas complexas
 
-- Estado: em andamento, 3/5.
+- Estado: em andamento, 4/5.
 - reduzir CSS global;
 - organizar por tela/componente;
 - preservar aparência e responsividade;
@@ -659,11 +659,13 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 
 ## 22. Estado atual da organização do CSS
 
-- A etapa priorizada 8 está em andamento, com 3 de 5 recortes concluídos.
+- A etapa priorizada 8 está em andamento, com 4 de 5 recortes concluídos.
 - `admin/styles/system/client-proposals.css` é o ponto de entrada estável da tela e importa, nessa ordem, estrutura da página, etapas do projeto, lista de propostas, diálogos e responsividade.
 - `client/styles/briefing/briefing.css` é o ponto de entrada estável do briefing e importa base, controles, páginas gerais, ambientes, revisão/envio e responsividade na ordem original.
 - Os pontos de entrada financeiros permanecem separados: o administrador importa página, pagamentos, formulário, exclusão, ações e responsividade; o cliente importa página, destaque, painel, pagamentos, Pix, ações e responsividade.
+- `client/styles/system/stages-approvals.css` importa página, progresso, cartões, diálogos, respostas/ações e responsividade.
+- `shared/styles/authenticated-navigation.css` contém a navegação comum; os arquivos de administrador e cliente são pontos de entrada, e o cliente mantém somente seus overrides comprovadamente específicos.
 - As classes e a cascata da view persistida foram preservadas; não foi necessário sincronizar o banco.
 - Testes estruturais devem proteger os pontos de entrada e a responsabilidade de cada arquivo.
 - Mudanças desta etapa recebem cobertura E2E visual/comportamental aplicável, mas a suíte E2E só é executada quando o usuário solicitar explicitamente.
-- Próximo recorte: organizar etapas/aprovações do cliente e revisar os estilos de navegação das áreas autenticadas.
+- Próximo recorte: revisão final de estilos complexos, duplicações comprovadas e seletores globais residuais.

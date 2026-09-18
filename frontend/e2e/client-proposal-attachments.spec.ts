@@ -49,6 +49,9 @@ test("cliente vê alterações concluídas sem nova aprovação", async ({ page 
     await page.locator("#client-password").fill("senha");
     await page.locator("#client-login-button").click();
     await page.locator("#client-stages-processes").click();
+    await expect(page.locator(".navigation-container")).toHaveCSS("width", "260px");
+    await expect(page.locator(".project-progress")).toHaveCSS("border-radius", "12px");
+    await expect(page.locator("[data-proposal-id='proposal-id']")).toHaveCSS("border-radius", "10px");
     await expect(page.locator(".client-approval-status-changes-completed")).toHaveText("Alterações concluídas");
     await expect(page.locator(".client-approval-approve")).toHaveCount(0);
     await expect(page.locator(".client-approval-reject")).toHaveCount(0);

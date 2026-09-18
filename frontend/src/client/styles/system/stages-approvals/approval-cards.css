@@ -1,0 +1,105 @@
+.client-approvals-list {
+    display: grid;
+    gap: 12px;
+}
+
+.client-approval-card {
+    padding: 16px;
+    border: 1px solid #e4dedb;
+    border-radius: 10px;
+    background: #fbfafa;
+}
+
+.client-approval-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.client-approval-card-header time {
+    color: #888;
+    font-size: 9px;
+}
+
+.client-approval-status {
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-transform: uppercase;
+}
+
+.client-approval-status-beated,
+.client-approval-status-cancelled {
+    background: #eee;
+    color: #555;
+}
+
+.client-approval-status-approved,
+.client-approval-status-changes-completed {
+    background: #e4f3e8;
+    color: #28723b;
+}
+
+.client-approval-card h3 {
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.client-approval-stage {
+    margin: -3px 0 8px;
+    color: var(--orange);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.client-approval-description {
+    margin-bottom: 13px;
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.client-approval-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+}
+
+.client-approval-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--orange);
+    font-size: 10px;
+    text-decoration: none;
+}
+
+.client-approval-attachment:hover,
+.client-approval-attachment:focus-visible {
+    text-decoration: underline;
+}
+
+.client-approval-comment {
+    margin-top: 14px;
+    padding: 12px;
+    border-left: 3px solid var(--orange);
+    border-radius: 4px;
+    background: #fff;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.client-approval-comment p {
+    margin-top: 4px;
+    color: var(--gray);
+    white-space: pre-wrap;
+}
+

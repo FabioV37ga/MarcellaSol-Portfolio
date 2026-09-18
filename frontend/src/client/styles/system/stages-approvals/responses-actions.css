@@ -1,0 +1,71 @@
+.client-approvals-state {
+    padding: 26px 10px;
+    color: #777;
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.client-approvals-feedback {
+    display: block;
+    color: #a12e2e;
+}
+
+.stages-approvals-actions {
+    margin-top: 18px;
+}
+
+.client-approval-attachments-field {
+    display: grid;
+    gap: 8px;
+}
+
+.client-approval-attachments-field input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd6d2;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.client-approval-attachments-help {
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.client-approval-response-history,
+.client-approval-response {
+    display: grid;
+    gap: 8px;
+}
+
+.client-approval-response-history {
+    padding-top: 12px;
+    border-top: 1px solid #eee7e3;
+}
+
+.client-approval-response a {
+    color: var(--orange);
+    font-size: 12px;
+}
+
+#client-stages-back {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 2px solid var(--orange);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--orange);
+    font-family: "confort";
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+#client-stages-back:hover,
+#client-stages-back:focus-visible {
+    background: var(--orange);
+    color: #fff;
+    outline: none;
+}
+

@@ -1,0 +1,144 @@
+.client-approval-actions,
+.client-approval-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 16px;
+}
+
+.client-approval-actions button,
+.client-approval-dialog-actions button {
+    min-height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--orange);
+    border-radius: 7px;
+    font: inherit;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.client-approval-reject,
+#client-approval-approve-cancel,
+#client-approval-reject-cancel {
+    background: #fff;
+    color: var(--orange);
+}
+
+.client-approval-approve,
+#client-approval-approve-confirm,
+#client-approval-reject-confirm {
+    background: var(--orange);
+    color: #fff;
+}
+
+.client-approval-actions button:disabled,
+.client-approval-dialog-actions button:disabled {
+    cursor: wait;
+    opacity: .55;
+}
+
+.client-approval-dialog {
+    width: min(520px, calc(100% - 32px));
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    color: #292929;
+    font-family: "confort";
+    box-shadow: 0 18px 55px rgb(0 0 0 / 22%);
+}
+
+.client-approval-dialog::backdrop {
+    background: rgb(22 16 13 / 55%);
+}
+
+.client-approval-dialog-content {
+    padding: 22px;
+}
+
+.client-approval-dialog header {
+    margin-bottom: 18px;
+}
+
+.client-approval-dialog h2 {
+    margin-bottom: 6px;
+    font-size: 19px;
+}
+
+.client-approval-dialog header p,
+.client-approval-dialog label,
+.client-approval-dialog-feedback {
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.client-approval-dialog header p {
+    color: var(--gray);
+}
+
+.client-approval-dialog label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 700;
+}
+
+#client-approval-approve-comment,
+#client-approval-reject-comment {
+    width: 100%;
+    min-height: 120px;
+    padding: 11px;
+    resize: vertical;
+    border: 1px solid var(--borderGray);
+    border-radius: 7px;
+    box-sizing: border-box;
+    color: #292929;
+    font: inherit;
+    font-size: 11px;
+}
+
+#client-approval-approve-comment:focus,
+#client-approval-reject-comment:focus {
+    border-color: var(--orange);
+    outline: 2px solid var(--lightOrange);
+}
+
+.client-approval-revision-confirmation {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 13px 0 0 !important;
+    padding: 11px;
+    border: 1px solid var(--borderGray);
+    border-radius: 7px;
+    background: #fbfafa;
+    cursor: pointer;
+}
+
+.client-approval-revision-confirmation input {
+    width: 16px;
+    height: 16px;
+    margin: 1px 0 0;
+    flex: 0 0 16px;
+    accent-color: var(--orange);
+}
+
+.client-approval-revision-confirmation span {
+    display: grid;
+    gap: 3px;
+}
+
+.client-approval-revision-confirmation strong {
+    font-size: 11px;
+}
+
+.client-approval-revision-confirmation small {
+    color: var(--gray);
+    font-size: 10px;
+    font-weight: 400;
+}
+
+.client-approval-dialog-feedback {
+    min-height: 17px;
+    margin-top: 6px;
+    color: #a12e2e;
+}
+
