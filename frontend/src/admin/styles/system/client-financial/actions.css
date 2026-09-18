@@ -1,0 +1,30 @@
+.financial-empty {
+    padding: 32px 12px;
+    border: 1px dashed var(--borderGray);
+    border-radius: 9px;
+    text-align: center;
+}
+
+.financial-actions {
+    margin-top: 16px;
+}
+
+#financial-back {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 2px solid var(--orange);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--orange);
+    font-family: "confort";
+    cursor: pointer;
+}
+
+#financial-back:hover,
+#financial-back:focus-visible {
+    background: var(--orange);
+    color: #fff;
+    outline: none;
+}
+

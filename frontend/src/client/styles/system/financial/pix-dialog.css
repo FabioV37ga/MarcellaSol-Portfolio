@@ -1,0 +1,130 @@
+.client-pix-dialog {
+    width: min(92vw, 520px);
+    max-height: 90vh;
+    padding: 0;
+    overflow: auto;
+    border: 0;
+    border-radius: 14px;
+    background: #fff;
+    color: #1f1f1f;
+    font-family: "confort";
+}
+
+.client-pix-dialog::backdrop {
+    background: rgba(0, 0, 0, .52);
+}
+
+.client-pix-dialog-content {
+    position: relative;
+    padding: 22px;
+}
+
+.client-pix-dialog-content>header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 28px;
+}
+
+.client-pix-dialog-content h2 {
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
+.client-pix-dialog-content header p {
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.client-pix-icon {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 20px;
+}
+
+.client-pix-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    border: 0;
+    background: transparent;
+    color: #555;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.client-pix-loading,
+.client-pix-feedback {
+    margin-top: 20px;
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.client-pix-feedback {
+    color: #a93226;
+}
+
+.client-pix-result {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.client-pix-result[hidden] {
+    display: none;
+}
+
+.client-pix-result img {
+    width: min(100%, 320px);
+    height: auto;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.client-pix-result label {
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.client-pix-result textarea {
+    width: 100%;
+    resize: none;
+    padding: 10px;
+    border: 1px solid var(--borderGray);
+    border-radius: 7px;
+    font: 10px/1.45 monospace;
+}
+
+#client-pix-copy {
+    min-height: 40px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--orange);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.client-pix-analysis-window {
+    color: #75530a;
+    font-size: 10px;
+    text-align: center;
+}
+
+.client-pix-notice {
+    padding: 11px;
+    border-radius: 8px;
+    background: #fff6dc;
+    color: #75530a;
+    font-size: 10px;
+    line-height: 1.5;
+}
+

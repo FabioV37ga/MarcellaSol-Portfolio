@@ -1,0 +1,132 @@
+.financial-payment-dialog {
+    width: min(640px, calc(100% - 32px));
+    max-height: calc(100dvh - 24px);
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 12px;
+    font-family: "confort";
+}
+
+.financial-payment-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.financial-payment-dialog::backdrop {
+    background: rgb(0 0 0 / 45%);
+}
+
+.financial-payment-dialog form {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.financial-payment-dialog header {
+    margin-bottom: 18px;
+}
+
+.financial-payment-dialog header h2 {
+    margin-bottom: 7px;
+    font-size: 21px;
+}
+
+.financial-payment-dialog header p,
+.financial-payment-preview>p {
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.financial-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+}
+
+.financial-field {
+    display: grid;
+    min-width: 0;
+    gap: 5px;
+}
+
+.financial-field>span {
+    font-size: 12px;
+}
+
+.financial-field b {
+    color: var(--orange);
+}
+
+.financial-field small {
+    min-height: 27px;
+    color: var(--gray);
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.financial-field input {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--borderGray);
+    border-radius: 7px;
+    font: inherit;
+    font-size: 12px;
+}
+
+.financial-field input:focus {
+    border-color: var(--orange);
+    outline: 1px solid var(--orange);
+}
+
+.financial-payment-preview {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--borderGray);
+}
+
+.financial-payment-preview[hidden] {
+    display: none;
+}
+
+.financial-payment-preview[aria-busy="true"] {
+    opacity: .72;
+}
+
+.financial-payment-preview-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 16px;
+}
+
+.financial-payment-preview-summary span {
+    font-size: 10px;
+}
+
+.financial-payment-preview-summary strong {
+    color: var(--orange);
+    font-size: 14px;
+}
+
+.financial-payment-preview h3 {
+    margin-bottom: 5px;
+    font-size: 15px;
+}
+
+.financial-payment-preview>p {
+    margin-bottom: 12px;
+}
+
+.financial-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 17px;
+}
+

@@ -1,0 +1,163 @@
+.financial-management-container {
+    box-sizing: border-box;
+    max-width: 100%;
+    width: calc(100% - 24px);
+    margin: 0 auto 32px;
+    color: #1f1f1f;
+    font-family: "confort";
+}
+
+.financial-management-container *,
+.financial-payment-dialog,
+.financial-payment-dialog *,
+.financial-delete-dialog,
+.financial-delete-dialog * {
+    box-sizing: border-box;
+}
+
+.financial-management-container .page-index {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 18px;
+    font-size: 12px;
+}
+
+.financial-management-container .root-index {
+    color: var(--orange);
+    cursor: pointer;
+}
+
+.financial-management-container .page-index p,
+.financial-management-container .page-index span,
+.financial-subtitle {
+    color: var(--gray);
+}
+
+.financial-title {
+    margin-bottom: 20px;
+}
+
+.financial-title h1 {
+    margin-bottom: 8px;
+    font-size: 24px;
+}
+
+.financial-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--orange);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.financial-subtitle,
+.financial-panel-heading p,
+.financial-empty {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.financial-panel {
+    padding: 18px;
+    border: 1px solid var(--borderGray);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.financial-panel-heading {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.financial-panel-heading-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.financial-panel-icon {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 18px;
+}
+
+.financial-panel-heading h2 {
+    margin-bottom: 5px;
+    font-size: 17px;
+}
+
+.financial-panel-heading p,
+.financial-empty {
+    color: var(--gray);
+}
+
+#financial-new-payment,
+.financial-payment-edit,
+.financial-payment-delete,
+#financial-payment-save,
+#financial-payment-cancel,
+#financial-delete-cancel,
+#financial-delete-confirm {
+    min-height: 42px;
+    padding: 0 18px;
+    border: 1px solid var(--orange);
+    border-radius: 8px;
+    font-family: "confort";
+    cursor: pointer;
+}
+
+#financial-new-payment,
+#financial-payment-save {
+    background: var(--orange);
+    color: #fff;
+}
+
+#financial-payment-cancel,
+.financial-payment-edit {
+    background: #fff;
+    color: var(--orange);
+}
+
+.financial-payment-card-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.financial-payment-delete {
+    min-height: 34px;
+    padding: 0 12px;
+    border-color: #b42318;
+    background: #fff;
+    color: #b42318;
+    white-space: nowrap;
+}
+
+button:disabled {
+    cursor: wait;
+    opacity: .6;
+}
+
+.financial-feedback,
+.financial-form-feedback {
+    min-height: 18px;
+    color: var(--orange);
+    font-size: 12px;
+}
+

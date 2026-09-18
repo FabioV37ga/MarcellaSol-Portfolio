@@ -1,0 +1,23 @@
+.client-financial-actions {
+    margin-top: 16px;
+}
+
+#client-financial-back {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 2px solid var(--orange);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--orange);
+    font-family: "confort";
+    cursor: pointer;
+}
+
+#client-financial-back:hover,
+#client-financial-back:focus-visible {
+    background: var(--orange);
+    color: #fff;
+    outline: none;
+}
+

@@ -362,9 +362,12 @@ test("financeiro preserva formulário após erro de prévia, permite nova tentat
 
     await expect(page.locator("#financial-title-name")).toHaveText("Cliente Financeiro E2E");
     await expect(page.locator("#financial-payments-list")).toContainText("Nenhum pagamento cadastrado");
+    await expect(page.locator(".financial-management-container")).toHaveCSS("font-family", /confort/);
+    await expect(page.locator(".financial-panel")).toHaveCSS("border-radius", "12px");
     expect(paymentsAuthorization).toBe("Bearer e2e-admin-token");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-financial");
     await page.locator("#financial-new-payment").click();
+    await expect(page.locator("#financial-payment-dialog form")).toHaveCSS("border-radius", "12px");
     await page.locator("#financial-payment-title").fill("Projeto E2E");
     await page.locator("#financial-payment-total").fill("1000");
     await page.locator("#financial-payment-first-due-date").fill("2026-10-01");

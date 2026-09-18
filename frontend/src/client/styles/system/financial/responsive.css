@@ -1,0 +1,38 @@
+@media (min-width: 900px) {
+    .client-financial-page {
+        width: calc(100% - 60px);
+    }
+
+    .client-financial-panel {
+        padding: 22px;
+    }
+
+    .client-financial-highlight {
+        padding: 22px;
+    }
+
+    .client-financial-highlight-payment {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, .65fr);
+        align-items: end;
+    }
+
+    .client-financial-payment {
+        padding: 20px;
+    }
+
+    #client-financial-back {
+        width: 170px;
+    }
+}
+
+@media (max-width: 520px) {
+    .client-financial-part {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .client-financial-part-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

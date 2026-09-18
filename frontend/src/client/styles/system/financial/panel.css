@@ -1,0 +1,88 @@
+.client-financial-panel {
+    padding: 18px;
+    border: 1px solid var(--borderGray);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.client-financial-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.client-financial-panel-icon {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 18px;
+}
+
+.client-financial-panel h2 {
+    margin-bottom: 5px;
+    font-size: 17px;
+}
+
+.client-financial-panel p {
+    color: var(--gray);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.client-financial-state {
+    margin-top: 18px;
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.client-financial-state[hidden] {
+    display: none;
+}
+
+.client-financial-empty {
+    padding: 30px 12px;
+    border: 1px dashed var(--borderGray);
+    border-radius: 9px;
+    text-align: center;
+}
+
+.client-financial-feedback {
+    min-height: 18px;
+    color: var(--orange);
+}
+
+.client-financial-payments-list {
+    display: grid;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.client-financial-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 18px;
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.client-financial-pagination button {
+    min-height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--orange);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--orange);
+}
+
+.client-financial-pagination button:disabled {
+    cursor: wait;
+    opacity: .6;
+}
+

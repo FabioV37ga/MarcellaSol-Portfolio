@@ -54,6 +54,32 @@ test("cliente vê alterações concluídas sem nova aprovação", async ({ page 
     await expect(page.locator(".client-approval-reject")).toHaveCount(0);
 });
 
+test("carrega os estilos componentizados do financeiro do cliente", async ({ page }) => {
+    await mockClient(page);
+    await page.route("**/api/client/payments", route => route.fulfill({
+        json: {
+            payments: [],
+            page: { limit: 20, hasMore: false },
+            summary: {
+                paymentCount: 0,
+                totalAmountCents: 0,
+                paidAmountCents: 0,
+                remainingAmountCents: 0
+            }
+        }
+    }));
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-financial").click();
+
+    await expect(page.locator(".client-financial-page")).toHaveCSS("font-family", /confort/);
+    await expect(page.locator(".client-financial-highlight")).toHaveCSS("border-radius", "12px");
+    await expect(page.locator(".client-financial-panel")).toHaveCSS("border-radius", "12px");
+    await expect(page.locator("#client-financial-empty")).toBeVisible();
+});
+
 test("cliente preserva comentário e anexo após falha e aprova na nova tentativa", async ({ page }) => {
     let multipartBody = "";
     let authorization = "";
