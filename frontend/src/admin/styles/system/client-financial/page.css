@@ -149,7 +149,9 @@
     white-space: nowrap;
 }
 
-button:disabled {
+.financial-management-container button:disabled,
+.financial-payment-dialog button:disabled,
+.financial-delete-dialog button:disabled {
     cursor: wait;
     opacity: .6;
 }
@@ -160,4 +162,3 @@ button:disabled {
     color: var(--orange);
     font-size: 12px;
 }
-

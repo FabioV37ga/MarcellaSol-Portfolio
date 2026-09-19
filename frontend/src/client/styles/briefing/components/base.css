@@ -24,9 +24,10 @@
     --briefing-shadow: 0 12px 34px rgb(67 44 28 / 8%);
 }
 
-*,
-*::before,
-*::after {
+.briefing-app,
+.briefing-app *,
+.briefing-app *::before,
+.briefing-app *::after {
     box-sizing: border-box;
 }
 
@@ -35,7 +36,7 @@
 
 }
 
-html {
+html:has(body.client-briefing-active) {
     min-width: 320px;
     background: var(--briefing-bg);
 }
@@ -53,17 +54,17 @@ body.client-briefing-active {
     line-height: 1.55;
 }
 
-button,
-input,
-select,
-textarea {
+.briefing-app button,
+.briefing-app input,
+.briefing-app select,
+.briefing-app textarea {
     color: inherit;
     font: inherit;
 }
 
-button,
-a,
-label {
+.briefing-app button,
+.briefing-app a,
+.briefing-app label {
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -278,8 +279,8 @@ textarea.briefing-input-big {
 .briefing-input-half:focus,
 .briefing-input-medium:focus,
 .briefing-input-big:focus,
-select:focus,
-textarea:focus {
+.briefing-app select:focus,
+.briefing-app textarea:focus {
     border-color: var(--briefing-accent);
     box-shadow: 0 0 0 3px rgb(167 84 37 / 12%);
 }
@@ -298,7 +299,7 @@ input[type="file"].briefing-input {
     color: var(--briefing-muted);
 }
 
-input[type="file"]::file-selector-button {
+.briefing-app input[type="file"]::file-selector-button {
     margin-right: 12px;
     padding: 8px 12px;
     border: 1px solid var(--briefing-accent);
@@ -401,4 +402,3 @@ input[type="file"]::file-selector-button {
     padding-inline: 10px 30px;
     font-size: 12px;
 }
-

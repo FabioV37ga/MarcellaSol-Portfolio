@@ -79,8 +79,10 @@ async function moveStoredDraftToPage(page: Page, currentPage: number): Promise<v
 test("carrega os estilos componentizados do briefing", async ({ page }) => {
     await mockClientApi(page);
     await page.goto("/cliente.html");
+    await expect(page.locator("html")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     await loginWithRememberedSession(page);
 
+    await expect(page.locator("html")).toHaveCSS("background-color", "rgb(247, 243, 237)");
     await expect(page.locator(".briefing-app header")).toHaveCSS("height", "76px");
     await expect(page.locator(".form-page-container")).toHaveCSS("border-radius", "12px");
     await page.getByText("Começar briefing").click();
