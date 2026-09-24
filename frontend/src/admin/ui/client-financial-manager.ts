@@ -11,6 +11,7 @@ import type {
 } from "../infrastructure/payments.api.js";
 import type { ClientFinancialElements } from "../selectors/client-financial.selector.js";
 import { dueDateLabel, isOverdue } from "@/shared/financial/payment-presentation.js";
+import { HttpError } from "@/shared/http/http-error.js";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -258,7 +259,9 @@ export class ClientFinancialManager {
         } catch (error) {
             input.checked = !input.checked;
             input.disabled = false;
-            this.elements.feedback.textContent = errorMessage(error, "Não foi possível atualizar o pagamento.");
+            if (!await this.recoverFromConcurrencyConflict(error)) {
+                this.elements.feedback.textContent = errorMessage(error, "Não foi possível atualizar o pagamento.");
+            }
         }
     }
 
@@ -351,6 +354,7 @@ export class ClientFinancialManager {
             this.elements.deleteCountdown.hidden = false;
             this.elements.deleteCountdown.textContent = message;
             this.elements.feedback.textContent = message;
+            await this.recoverFromConcurrencyConflict(error);
         } finally {
             this.deleting = false;
         }
@@ -517,7 +521,9 @@ export class ClientFinancialManager {
             this.elements.dialog.close();
             this.elements.feedback.textContent = "Pagamento salvo com sucesso.";
         } catch (error) {
-            this.formFeedback.textContent = errorMessage(error, "Não foi possível salvar o pagamento.");
+            if (!await this.recoverFromConcurrencyConflict(error)) {
+                this.formFeedback.textContent = errorMessage(error, "Não foi possível salvar o pagamento.");
+            }
         } finally {
             this.saving = false;
             this.save.disabled = false;
@@ -534,6 +540,30 @@ export class ClientFinancialManager {
         this.render();
     }
 
+    private async recoverFromConcurrencyConflict(error: unknown): Promise<boolean> {
+        if (!(error instanceof HttpError)
+            || error.status !== 409
+            || !hasErrorCode(error.payload, "PAYMENT_VERSION_CONFLICT")) return false;
+        try {
+            const page = await this.api.loadPayments(this.session, this.clientId);
+            this.payments = page.payments;
+            this.nextCursor = page.page.nextCursor;
+            this.totalPaymentCount = page.summary.paymentCount;
+            this.editing = undefined;
+            this.deletingPayment = undefined;
+            if (this.elements.dialog.open) this.elements.dialog.close();
+            if (this.elements.deleteDialog.open) this.elements.deleteDialog.close();
+            this.render();
+            this.elements.feedback.textContent = `${error.message}. Os dados atuais foram recarregados.`;
+        } catch (reloadError) {
+            this.elements.feedback.textContent = `${error.message}. ${errorMessage(
+                reloadError,
+                "Não foi possível recarregar os dados atuais."
+            )}`;
+        }
+        return true;
+    }
+
     private conditionsText(payment: ClientPayment): string {
         const conditions = [`${payment.installmentCount}x`];
         if (payment.downPaymentPercentage > 0) conditions.push(`${formatPercentage(payment.downPaymentPercentage)} de entrada`);
@@ -547,6 +577,11 @@ function required<T extends HTMLElement = HTMLElement>(root: HTMLElement, select
     const element = root.querySelector<T>(selector);
     if (!element) throw new Error(`A view client-financial está desatualizada: ${selector} não foi encontrado.`);
     return element;
+}
+
+function hasErrorCode(payload: unknown, code: string): boolean {
+    return Boolean(payload && typeof payload === "object"
+        && "code" in payload && (payload as { code?: unknown }).code === code);
 }
 
 function switchControl(label: string, checked: boolean, disabled = false, dueDate?: string): HTMLLabelElement {

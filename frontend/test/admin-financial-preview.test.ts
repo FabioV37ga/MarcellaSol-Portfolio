@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ClientFinancialManager } from "../src/admin/ui/client-financial-manager.js";
 import type { AdminSystemApi } from "../src/admin/infrastructure/admin-system.api.js";
 import type { ClientFinancialElements } from "../src/admin/selectors/client-financial.selector.js";
+import { HttpError } from "../src/shared/http/http-error.js";
 
 describe("prévia financeira administrativa", () => {
     afterEach(() => {
@@ -57,7 +58,63 @@ describe("prévia financeira administrativa", () => {
 
         manager.dispose();
     });
+
+    it("recarrega a página financeira quando outra sessão altera a mesma cobrança", async () => {
+        installDialogMethods();
+        document.body.innerHTML = financialView();
+        const elements = financialElements();
+        const current = payment(2, false);
+        const updated = payment(3, true);
+        const api = {
+            setInstallmentPaid: vi.fn().mockRejectedValue(new HttpError(
+                "Este pagamento foi alterado em outra sessão. Atualize a página e tente novamente",
+                409,
+                { code: "PAYMENT_VERSION_CONFLICT" }
+            )),
+            loadPayments: vi.fn().mockResolvedValue({
+                payments: [updated],
+                page: { limit: 20, hasMore: false },
+                summary: {
+                    paymentCount: 1,
+                    totalAmountCents: 100000,
+                    paidAmountCents: 100000,
+                    remainingAmountCents: 0
+                }
+            })
+        } as unknown as AdminSystemApi;
+        const manager = new ClientFinancialManager(elements, api, { token: "token" }, "client-1", {
+            payments: [current],
+            page: { limit: 20, hasMore: false },
+            summary: { paymentCount: 1, totalAmountCents: 100000, paidAmountCents: 0, remainingAmountCents: 100000 }
+        });
+
+        const installment = elements.root.querySelector<HTMLInputElement>('input[aria-label="Parcela 1 pago"]')!;
+        installment.checked = true;
+        installment.dispatchEvent(new Event("change", { bubbles: true }));
+
+        await vi.waitFor(() => expect(api.loadPayments).toHaveBeenCalledWith(
+            { token: "token" }, "client-1"
+        ));
+        expect(elements.feedback.textContent).toContain("Os dados atuais foram recarregados");
+        expect(elements.root.querySelector<HTMLInputElement>('input[aria-label="Parcela 1 pago"]')?.checked).toBe(true);
+        manager.dispose();
+    });
 });
+
+function payment(version: number, paid: boolean) {
+    return {
+        id: "payment-1", version, clientId: "client-1", title: "Projeto", currency: "BRL",
+        timeZone: "America/Sao_Paulo", status: paid ? "paid" : "open",
+        totalAmountCents: 100000, installmentCount: 1, firstDueDate: "2026-10-01",
+        downPaymentPercentage: 0, discountPercentage: 0, interestPercentage: 0,
+        discountAmountCents: 0, downPayment: { amountCents: 0, isPaid: false },
+        financedAmountCents: 100000, interestAmountCents: 0, installmentTotalCents: 100000,
+        finalAmountCents: 100000, paidAmountCents: paid ? 100000 : 0,
+        remainingAmountCents: paid ? 0 : 100000, financialTermsLocked: paid,
+        installments: [{ number: 1, amountCents: 100000, isPaid: paid, dueDate: "2026-10-01" }],
+        createdAt: "2026-09-01T10:00:00.000Z", updatedAt: "2026-09-24T10:00:00.000Z"
+    };
+}
 
 function setInput(selector: string, value: string): void {
     const input = document.querySelector<HTMLInputElement>(selector)!;

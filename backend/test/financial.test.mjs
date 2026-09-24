@@ -391,7 +391,7 @@ test("edição financeira exige versão atual e registra auditoria", async () =>
 
     await assert.rejects(
         () => service.edit(clientId, paymentId, { ...fields, version: 1 }, actor),
-        error => error.status === 409
+        error => error.status === 409 && error.code === "PAYMENT_VERSION_CONFLICT"
     );
     assert.equal(updates.length, 1);
 });

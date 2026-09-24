@@ -614,7 +614,7 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 
 ### Execução da Etapa priorizada 10 — persistência e listagens
 
-Estado em 24/09/2026: **terceiro recorte concluído; Etapa 10 em 3/5**.
+Estado em 24/09/2026: **quarto recorte concluído; Etapa 10 em 4/5**.
 
 - O primeiro recorte restringiu `ListClientsService` às portas mínimas de listagem de clientes e briefings.
 - O segundo recorte implementou paginação por cursor opaco na listagem administrativa de clientes, ordenada por `_id` decrescente, com 20 itens por padrão e máximo de 50.
@@ -625,8 +625,12 @@ Estado em 24/09/2026: **terceiro recorte concluído; Etapa 10 em 3/5**.
 - A ordem anterior por atualização foi preservada; `_id` atua como desempate determinístico quando duas propostas possuem o mesmo horário.
 - Ambas as telas acrescentam itens sem duplicação e mantêm etapas, mutações, anexos e decisões nos contratos existentes.
 - As referências `dev/database/client-proposals-view.json` e `dev/database/client-stages-approvals-view.json` foram atualizadas e precisam ser sincronizadas/substituídas no banco.
+- O quarto recorte confirmou a compatibilidade financeira legada: versões ausentes continuam equivalentes à versão zero e respostas públicas continuam omitindo campos administrativos.
+- As mutações permanecem protegidas por versão, cliente, transação e auditoria atômica; nenhum pagamento real foi alterado para validar o recorte.
+- O frontend administrativo agora reconhece o conflito de concorrência 409 pelo código estável `PAYMENT_VERSION_CONFLICT`, descarta o estado obsoleto e recarrega a primeira página antes de permitir nova ação.
+- Conflitos funcionais distintos, como bloqueio de condições após recebimento e confirmação reforçada de remoção, não são confundidos com concorrência.
 - Nenhum pagamento ou outro dado real foi escrito, migrado ou recalculado.
-- O próximo recorte será a revisão de compatibilidade e concorrência financeira.
+- O próximo recorte será a revisão final da Etapa 10.
 
 Fluxo resumido:
 

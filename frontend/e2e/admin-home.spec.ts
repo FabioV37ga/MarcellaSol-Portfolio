@@ -488,6 +488,62 @@ test("financeiro preserva formulário após erro de prévia, permite nova tentat
     expect(pageErrors).toEqual([]);
 });
 
+test("financeiro recarrega a cobrança após conflito com outra sessão", async ({ page }) => {
+    const client = {
+        id: "client-financial-conflict", name: "Cliente Concorrência", type: "residencial",
+        hasFilledBriefing: false, currentStageKey: "briefing", currentStageStatus: "not-started"
+    };
+    const payment = (version: number, paid: boolean) => ({
+        id: "payment-conflict", version, clientId: client.id, title: "Projeto concorrente",
+        currency: "BRL", timeZone: "America/Sao_Paulo", status: paid ? "paid" : "open",
+        totalAmountCents: 100000, installmentCount: 1, firstDueDate: "2026-10-01",
+        downPaymentPercentage: 0, discountPercentage: 0, interestPercentage: 0,
+        discountAmountCents: 0, downPayment: { amountCents: 0, isPaid: false, status: "not-applicable" },
+        financedAmountCents: 100000, interestAmountCents: 0, installmentTotalCents: 100000,
+        finalAmountCents: 100000, paidAmountCents: paid ? 100000 : 0,
+        remainingAmountCents: paid ? 0 : 100000, financialTermsLocked: paid,
+        installments: [{ number: 1, amountCents: 100000, isPaid: paid, status: paid ? "paid" : "pending", dueDate: "2026-10-01" }],
+        createdAt: "2026-09-01T10:00:00.000Z", updatedAt: "2026-09-24T10:00:00.000Z"
+    });
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/client-financial-conflict", route => route.fulfill({
+        json: { client: { ...client, projectStages: [], hasProjectStageOrder: false } }
+    }));
+    let listRequests = 0;
+    await page.route("**/api/admin/clients/client-financial-conflict/payments**", route => {
+        if (route.request().method() === "PATCH") return route.fulfill({
+            status: 409,
+            json: {
+                message: "Este pagamento foi alterado em outra sessão. Atualize a página e tente novamente",
+                code: "PAYMENT_VERSION_CONFLICT"
+            }
+        });
+        listRequests += 1;
+        const current = payment(listRequests === 1 ? 1 : 2, listRequests > 1);
+        return route.fulfill({ json: {
+            payments: [current], page: { limit: 20, hasMore: false },
+            summary: {
+                paymentCount: 1, totalAmountCents: 100000,
+                paidAmountCents: current.paidAmountCents, remainingAmountCents: current.remainingAmountCents
+            }
+        } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='client-financial-conflict']").click();
+    await page.locator("#client-management-financial").click();
+
+    const installment = page.locator('input[aria-label="Parcela 1 pago"]');
+    await expect(installment).not.toBeChecked();
+    await installment.check();
+    await expect(page.locator("#financial-feedback")).toContainText("Os dados atuais foram recarregados");
+    await expect(page.locator('input[aria-label="Parcela 1 pago"]')).toBeChecked();
+    expect(listRequests).toBe(2);
+});
+
 test("encerra a sessão administrativa usando o cliente HTTP compartilhado", async ({ page }) => {
     let authorization = "";
     await mockAdminApi(page);

@@ -21,7 +21,10 @@ export const errorHandler: ErrorRequestHandler = (error: HttpParserError, reques
 
     const original = error instanceof RouteFailure ? error.original : error;
     if (original instanceof ApplicationError) {
-        response.status(original.status).json({ message: original.message });
+        response.status(original.status).json({
+            message: original.message,
+            ...(original.code ? { code: original.code } : {})
+        });
         return;
     }
     if (error instanceof RouteFailure) {

@@ -715,7 +715,7 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 ## 24. Estado atual da persistência e listagens
 
 - A Etapa 10 foi dividida em cinco recortes: portas mínimas; paginação de clientes; paginação de propostas; compatibilidade/concorrência financeira; revisão final.
-- Os três primeiros recortes foram concluídos em 24/09/2026, deixando a etapa em 3/5.
+- Os quatro primeiros recortes foram concluídos em 24/09/2026, deixando a etapa em 4/5.
 - `ListClientsService` depende de `ClientListingRepository` e `BriefingListingRepository`, não das classes concretas completas.
 - As portas de listagem expõem apenas leitura administrativa de clientes e definições de briefing; capacidades de escrita não atravessam essa fronteira.
 - A manutenção temporária de `ObjectId` nos registros projetados é uma decisão incremental e não autoriza documentos Mongoose completos na resposta HTTP.
@@ -729,7 +729,11 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - As propostas administrativas e as aprovações do cliente usam cursor opaco composto por `updatedAt` e `_id`, preservando a ordem histórica existente e garantindo desempate estável.
 - As duas interfaces acrescentam páginas pelo botão `Carregar mais`, deduplicam propostas por `_id` e invalidam respostas após o descarte da tela.
 - As referências `dev/database/client-proposals-view.json` e `dev/database/client-stages-approvals-view.json` precisam ser sincronizadas/substituídas no banco no deploy.
-- O próximo recorte é a revisão de compatibilidade e concorrência financeira, sem mutação dos pagamentos reais durante a refatoração.
+- A concorrência financeira continua baseada em `__v`, filtros atômicos por cliente e versão, transação MongoDB e evento de auditoria na mesma transação.
+- Quando o administrador recebe o conflito 409 com código `PAYMENT_VERSION_CONFLICT`, o frontend descarta o estado obsoleto, recarrega a primeira página e passa a operar sobre a versão atual.
+- A recuperação se aplica à edição, remoção e confirmação/reversão manual de entrada ou parcela; outros erros 409 preservam seus fluxos específicos.
+- Nenhuma migração, escrita em banco ou execução da integração MongoDB foi realizada durante este recorte.
+- O próximo recorte é a revisão final da Etapa 10.
 
 ## 25. Planejamento da persistência visual
 

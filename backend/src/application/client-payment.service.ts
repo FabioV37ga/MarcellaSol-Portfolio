@@ -304,7 +304,11 @@ function legacyReceiptId(paymentId: string, partType: "down-payment" | "installm
 }
 
 function conflictError(): ApplicationError {
-    return new ApplicationError("Este pagamento foi alterado em outra sessão. Atualize a página e tente novamente", 409);
+    return new ApplicationError(
+        "Este pagamento foi alterado em outra sessão. Atualize a página e tente novamente",
+        409,
+        "PAYMENT_VERSION_CONFLICT"
+    );
 }
 
 function termsSnapshot(title: string, payment: PaymentSchedule | ClientPaymentObject): PaymentTermsSnapshot {
