@@ -198,8 +198,9 @@ test("carrega os estilos componentizados da gestão de propostas", async ({ page
     await expect(page.locator(".admin-project-progress")).toHaveCSS("border-radius", "12px");
     await expect(page.locator("[data-proposal-id='styled-proposal']")).toHaveCSS("border-radius", "10px");
     await page.locator("#new-proposal").click();
-    await expect(page.locator("#proposal-dialog")).toBeVisible();
-    await expect(page.locator("#proposal-dialog .proposal-dialog-form")).toHaveCSS("border-radius", "12px");
+    const proposalDialog = page.locator("#proposal-dialog");
+    await expect(proposalDialog).toBeVisible();
+    await expect(proposalDialog).toHaveCSS("border-radius", "12px");
 });
 
 test("usa Voltar, preserva o rascunho e inicia novo cliente com campos vazios", async ({ page }) => {
@@ -469,7 +470,7 @@ test("financeiro preserva formulário após erro de prévia, permite nova tentat
     expect(paymentsAuthorization).toBe("Bearer e2e-admin-token");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("client-financial");
     await page.locator("#financial-new-payment").click();
-    await expect(page.locator("#financial-payment-dialog form")).toHaveCSS("border-radius", "12px");
+    await expect(page.locator("#financial-payment-dialog")).toHaveCSS("border-radius", "12px");
     await page.locator("#financial-payment-title").fill("Projeto E2E");
     await page.locator("#financial-payment-total").fill("1000");
     await page.locator("#financial-payment-first-due-date").fill("2026-10-01");
