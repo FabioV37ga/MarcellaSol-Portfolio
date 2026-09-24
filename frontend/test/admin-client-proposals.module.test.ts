@@ -44,7 +44,10 @@ describe("AdminClientProposalsModule", () => {
                 projectStages: stages,
                 hasProjectStageOrder: false
             }),
-            loadProposals: vi.fn().mockResolvedValue([])
+            loadProposals: vi.fn().mockResolvedValue({
+                proposals: [],
+                page: { limit: 20, hasMore: false }
+            })
         } as unknown as AdminSystemApi;
         const view = new AdminSystemView();
         const navButton = document.querySelector<HTMLElement>(".desktop-nav-item-selected")!;
@@ -64,5 +67,42 @@ describe("AdminClientProposalsModule", () => {
         expect(document.querySelector("#proposals-title-name")?.textContent).toBe("Cliente A");
         expect(document.querySelector("#open-proposals-list")?.textContent).toContain("Nenhuma proposta aberta");
         expect(document.querySelector(".proposals-management-container")).not.toBe(template);
+    });
+
+    it("acrescenta a próxima página de propostas sem duplicar itens", async () => {
+        const proposal = (id: string, title: string) => ({
+            _id: id, userId: "client-a", title, description: "Descrição", attachments: [],
+            userComment: "", clientResponses: [], status: "sent" as const,
+            createdAt: "2026-09-24T10:00:00.000Z", updatedAt: "2026-09-24T10:00:00.000Z"
+        });
+        const api = {
+            loadClient: vi.fn().mockResolvedValue({
+                id: "client-a", name: "Cliente A", type: "client", hasFilledBriefing: true,
+                currentStageKey: "briefing", projectStages: stages, hasProjectStageOrder: false
+            }),
+            loadProposals: vi.fn()
+                .mockResolvedValueOnce({
+                    proposals: [proposal("proposal-a", "Proposta A")],
+                    page: { limit: 1, hasMore: true, nextCursor: "cursor-2" }
+                })
+                .mockResolvedValueOnce({
+                    proposals: [proposal("proposal-b", "Proposta B")],
+                    page: { limit: 1, hasMore: false }
+                })
+        } as unknown as AdminSystemApi;
+        const module = new AdminClientProposalsModule(
+            new AdminSystemView(), { clientProposals: await proposalsTemplate() }, api,
+            { token: "test-token" }, vi.fn(), () => undefined
+        );
+
+        await module.mount("client-a");
+        document.querySelector<HTMLButtonElement>("#proposals-load-more")!.click();
+
+        await vi.waitFor(() => expect(document.querySelectorAll(".proposal-card")).toHaveLength(2));
+        expect(api.loadProposals).toHaveBeenNthCalledWith(
+            2, { token: "test-token" }, "client-a", "cursor-2"
+        );
+        expect(document.querySelector("#proposals-pagination-status")?.textContent)
+            .toBe("2 propostas exibidas");
     });
 });

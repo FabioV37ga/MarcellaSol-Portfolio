@@ -345,3 +345,46 @@ test("não permite remover o único anexo da proposta", async () => {
     );
     assert.equal(storageCalled, false);
 });
+
+test("listagem de propostas devolve cursor da última proposta da página", async () => {
+    const userId = "507f1f77bcf86cd799439011";
+    const proposalId = "507f1f77bcf86cd799439012";
+    const updatedAt = new Date("2026-09-24T12:00:00.000Z");
+    const calls = [];
+    const service = new ClientProposalService(
+        { async findById() { return { _id: userId, hasFilledBriefing: true }; } },
+        {
+            async findPageByUserId(id, options) {
+                calls.push({ id, options });
+                return {
+                    records: [{ _id: { toString: () => proposalId }, updatedAt, title: "Proposta" }],
+                    hasMore: true
+                };
+            }
+        },
+        {}
+    );
+
+    const result = await service.list(userId, undefined, "1");
+
+    assert.equal(calls[0].id, userId);
+    assert.equal(calls[0].options.limit, 1);
+    assert.equal(result.page.hasMore, true);
+    assert.deepEqual(
+        JSON.parse(Buffer.from(result.page.nextCursor, "base64url").toString("utf8")),
+        { updatedAt: updatedAt.toISOString(), id: proposalId }
+    );
+});
+
+test("listagem de propostas rejeita cursor e limite inválidos antes da consulta", async () => {
+    let queried = false;
+    const service = new ClientProposalService(
+        { async findById() { return { hasFilledBriefing: true }; } },
+        { async findPageByUserId() { queried = true; return { records: [], hasMore: false }; } },
+        {}
+    );
+
+    await assert.rejects(() => service.list("507f1f77bcf86cd799439011", "inválido"), error => error.status === 400);
+    await assert.rejects(() => service.list("507f1f77bcf86cd799439011", undefined, "51"), error => error.status === 400);
+    assert.equal(queried, false);
+});

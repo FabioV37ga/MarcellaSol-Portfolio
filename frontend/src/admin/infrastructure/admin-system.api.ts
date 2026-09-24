@@ -1,14 +1,14 @@
 import type { NewClientPayload } from "@/shared/briefing/briefing.types.js";
 import type { ProjectStageKey, ProjectStageStatus } from "@/shared/project-stages.js";
-import { AdminClientsApi, type AdminClientsGateway, type AdminClientDetails, type AdminClientListItem, type BriefingReportStatus, type UpdatedClientProjectStage } from "./clients.api.js";
+import { AdminClientsApi, type AdminClientsGateway, type AdminClientDetails, type AdminClientListItem, type AdminClientPage, type BriefingReportStatus, type UpdatedClientProjectStage } from "./clients.api.js";
 import { AdminPaymentsApi, type AdminPaymentsGateway, type ClientPayment, type PaymentFields, type PaymentPage, type PaymentPreview, type PaymentPreviewFields } from "./payments.api.js";
-import { AdminProposalsApi, type AdminProposalsGateway, type ClientProposal, type ProposalFields, type ProposalStageMutation } from "./proposals.api.js";
+import { AdminProposalsApi, type AdminProposalsGateway, type ClientProposal, type ProposalFields, type ProposalPage, type ProposalStageMutation } from "./proposals.api.js";
 import { AdminViewsApi, type AdminViewsGateway } from "./views.api.js";
 import type { dbView } from "../templates/interface.js";
 
-export type { AdminClientDetails, AdminClientListItem, BriefingReportStatus, UpdatedClientProjectStage } from "./clients.api.js";
+export type { AdminClientDetails, AdminClientListItem, AdminClientPage, BriefingReportStatus, UpdatedClientProjectStage } from "./clients.api.js";
 export type { ClientPayment, PaymentFields, PaymentInstallment, PaymentPage, PaymentPart, PaymentPreview, PaymentPreviewFields } from "./payments.api.js";
-export type { ClientProposal, ProposalFields, ProposalStageMutation, ProposalStatus } from "./proposals.api.js";
+export type { ClientProposal, ProposalFields, ProposalPage, ProposalStageMutation, ProposalStatus } from "./proposals.api.js";
 export interface AdminSession { token: string; }
 
 export class AdminSystemApi implements AdminClientsGateway, AdminPaymentsGateway, AdminProposalsGateway, AdminViewsGateway {
@@ -26,13 +26,13 @@ export class AdminSystemApi implements AdminClientsGateway, AdminPaymentsGateway
     removePayment(s: AdminSession, id: string, paymentId: string, version: number, confirmed: boolean): Promise<void> { return this.payments.removePayment(s, id, paymentId, version, confirmed); }
     setDownPaymentPaid(s: AdminSession, id: string, paymentId: string, paid: boolean, version: number): Promise<ClientPayment> { return this.payments.setDownPaymentPaid(s, id, paymentId, paid, version); }
     setInstallmentPaid(s: AdminSession, id: string, paymentId: string, number: number, paid: boolean, version: number): Promise<ClientPayment> { return this.payments.setInstallmentPaid(s, id, paymentId, number, paid, version); }
-    loadProposals(s: AdminSession, id: string): Promise<ClientProposal[]> { return this.proposals.loadProposals(s, id); }
+    loadProposals(s: AdminSession, id: string, cursor?: string): Promise<ProposalPage> { return this.proposals.loadProposals(s, id, cursor); }
     createProposal(s: AdminSession, id: string, fields: ProposalFields): Promise<ProposalStageMutation> { return this.proposals.createProposal(s, id, fields); }
     editProposal(s: AdminSession, id: string, proposalId: string, fields: ProposalFields): Promise<ClientProposal> { return this.proposals.editProposal(s, id, proposalId, fields); }
     confirmProposalChanges(s: AdminSession, id: string, proposalId: string): Promise<ProposalStageMutation> { return this.proposals.confirmProposalChanges(s, id, proposalId); }
     deleteProposal(s: AdminSession, id: string, proposalId: string): Promise<void> { return this.proposals.deleteProposal(s, id, proposalId); }
     deleteProposalAttachment(s: AdminSession, id: string, proposalId: string, index: number): Promise<ClientProposal> { return this.proposals.deleteProposalAttachment(s, id, proposalId, index); }
-    loadClients(s: AdminSession): Promise<AdminClientListItem[]> { return this.clients.loadClients(s); }
+    loadClients(s: AdminSession, cursor?: string): Promise<AdminClientPage> { return this.clients.loadClients(s, cursor); }
     loadClient(s: AdminSession, id: number | string): Promise<AdminClientDetails> { return this.clients.loadClient(s, id); }
     createClient(s: AdminSession, client: NewClientPayload): Promise<unknown> { return this.clients.createClient(s, client); }
     deleteClient(s: AdminSession, id: string, name: string): Promise<void> { return this.clients.deleteClient(s, id, name); }

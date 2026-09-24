@@ -1,5 +1,6 @@
 import type mongoose from "mongoose";
 import type { ProjectStage, ProjectStageKey } from "../../models/projectStage.js";
+import type { ClientPageOptions } from "../pagination/client-list-pagination.js";
 
 export interface AdminClientListRecord {
     _id: mongoose.Types.ObjectId;
@@ -19,7 +20,10 @@ export interface AdminBriefingListRecord {
 }
 
 export interface ClientListingRepository {
-    findAllForAdmin(): PromiseLike<AdminClientListRecord[]>;
+    findPageForAdmin(options: ClientPageOptions): PromiseLike<{
+        records: AdminClientListRecord[];
+        hasMore: boolean;
+    }>;
     findByIdForAdmin(id: string): PromiseLike<AdminClientDetailsRecord | null>;
 }
 

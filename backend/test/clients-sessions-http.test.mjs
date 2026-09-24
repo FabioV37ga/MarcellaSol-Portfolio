@@ -22,7 +22,13 @@ import viewRoutes from "../dist/src/routes/viewRoutes.js";
 function testApp() {
     const calls = [];
     const clients = {
-        async execute() { calls.push(["list"]); return [{ id: "client-1", name: "Cliente" }]; },
+        async execute() {
+            calls.push(["list"]);
+            return {
+                clients: [{ id: "client-1", name: "Cliente" }],
+                page: { limit: 20, hasMore: false }
+            };
+        },
         async executeOne(id) { calls.push(["one", id]); return { id, name: "Cliente" }; }
     };
     const projectStages = {

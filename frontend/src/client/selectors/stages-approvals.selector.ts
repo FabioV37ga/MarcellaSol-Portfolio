@@ -5,6 +5,8 @@ interface StagesApprovalsElements {
     loading: HTMLElement;
     empty: HTMLElement;
     feedback: HTMLElement;
+    paginationStatus: HTMLElement;
+    loadMore: HTMLButtonElement;
     approveDialog: HTMLDialogElement;
     approveComment: HTMLTextAreaElement;
     approveAttachments: HTMLInputElement;
@@ -34,6 +36,8 @@ export function getStagesApprovalsElements(): StagesApprovalsElements {
         loading: requiredElement("#client-approvals-loading"),
         empty: requiredElement("#client-approvals-empty"),
         feedback: requiredElement("#client-approvals-feedback"),
+        paginationStatus: requiredElement("#client-approvals-pagination-status"),
+        loadMore: requiredElement("#client-approvals-load-more"),
         approveDialog: requiredElement("#client-approval-approve-dialog"),
         approveComment: requiredElement("#client-approval-approve-comment"),
         approveAttachments: requiredElement("#client-approval-approve-attachments"),

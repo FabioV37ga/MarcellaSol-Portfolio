@@ -8,10 +8,15 @@ export interface ClientProposal {
     clientResponses: ClientProposalResponse[]; stageKey?: ProjectStageKey; status: ClientProposalStatus;
     createdAt: string; updatedAt: string;
 }
-export interface ClientProjectResponse { proposals: ClientProposal[]; projectStages: ProjectStage[]; currentStageKey: ProjectStageKey; }
+export interface ClientProjectResponse {
+    proposals: ClientProposal[];
+    projectStages: ProjectStage[];
+    currentStageKey: ProjectStageKey;
+    page: { limit: number; hasMore: boolean; nextCursor?: string };
+}
 export interface ClientProposalDecision { proposal: ClientProposal; projectStages: ProjectStage[]; currentStageKey: ProjectStageKey; }
 export interface ClientProposalsGateway {
-    loadProposals(token: string): Promise<ClientProjectResponse>;
+    loadProposals(token: string, cursor?: string): Promise<ClientProjectResponse>;
     approveProposal(token: string, proposalId: string, comment: string, files?: File[]): Promise<ClientProposalDecision>;
     beatProposal(token: string, proposalId: string, comment: string, confirmRevisionRound: boolean, files?: File[]): Promise<ClientProposalDecision>;
 }
@@ -19,9 +24,19 @@ export interface ClientProposalsGateway {
 export class ClientProposalsApi implements ClientProposalsGateway {
     constructor(private readonly http: HttpClient = httpClient) { }
 
-    async loadProposals(token: string): Promise<ClientProjectResponse> {
-        const result = await this.http.request<Partial<ClientProjectResponse>>("/client/proposals", { token });
-        return { proposals: result?.proposals ?? [], projectStages: result?.projectStages ?? [], currentStageKey: result?.currentStageKey ?? "briefing" };
+    async loadProposals(token: string, cursor?: string): Promise<ClientProjectResponse> {
+        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+        const result = await this.http.request<Partial<ClientProjectResponse>>(`/client/proposals${query}`, { token });
+        return {
+            proposals: result?.proposals ?? [],
+            projectStages: result?.projectStages ?? [],
+            currentStageKey: result?.currentStageKey ?? "briefing",
+            page: {
+                limit: typeof result?.page?.limit === "number" ? result.page.limit : 20,
+                hasMore: result?.page?.hasMore === true,
+                ...(typeof result?.page?.nextCursor === "string" ? { nextCursor: result.page.nextCursor } : {})
+            }
+        };
     }
 
     approveProposal(token: string, proposalId: string, comment: string, files: File[] = []): Promise<ClientProposalDecision> {

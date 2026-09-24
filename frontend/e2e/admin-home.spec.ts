@@ -20,8 +20,86 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
         json: { token: "e2e-admin-token", name: "Administrador E2E" }
     }));
     await page.route("**/api/view/admin", route => route.fulfill({ json: { view: views } }));
-    await page.route("**/api/admin/clients", route => route.fulfill({ json: { clients } }));
+    await page.route("**/api/admin/clients", route => route.fulfill({
+        json: { clients, page: { limit: 20, hasMore: false } }
+    }));
 }
+
+test("carrega páginas adicionais de clientes sem remover os itens visíveis", async ({ page }) => {
+    await mockAdminApi(page);
+    const requests: string[] = [];
+    await page.route("**/api/admin/clients**", route => {
+        const cursor = new URL(route.request().url()).searchParams.get("cursor");
+        requests.push(cursor ?? "primeira");
+        const client = cursor
+            ? { id: "client-b", name: "Cliente B" }
+            : { id: "client-a", name: "Cliente A" };
+        return route.fulfill({ json: {
+            clients: [{
+                ...client, type: "residencial", hasFilledBriefing: false,
+                currentStageKey: "briefing", currentStageStatus: "not-started"
+            }],
+            page: cursor
+                ? { limit: 1, hasMore: false }
+                : { limit: 1, hasMore: true, nextCursor: "cursor-2" }
+        } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+
+    await expect(page.locator("[data-client-id='client-a']")).toBeVisible();
+    await page.locator("#client-list-load-more").click();
+    await expect(page.locator("[data-client-id='client-b']")).toBeVisible();
+    await expect(page.locator(".client-list-client")).toHaveCount(2);
+    await expect(page.locator("#client-list-pagination-status")).toHaveText("2 clientes exibidos");
+    await expect(page.locator("#client-list-load-more")).toBeHidden();
+    expect(requests).toEqual(["primeira", "cursor-2"]);
+});
+
+test("carrega páginas adicionais de propostas no histórico administrativo", async ({ page }) => {
+    const projectStages = ["contract", "briefing", "layout", "project-development", "survey", "budgets-definitions", "executive-project", "final-delivery"]
+        .map((key, index) => ({ key, index, status: index === 0 ? "completed" : "not-started" }));
+    const client = {
+        id: "proposal-page-client", name: "Cliente Paginação", type: "residencial",
+        hasFilledBriefing: false, currentStageKey: "briefing", currentStageStatus: "not-started",
+        projectStages, hasProjectStageOrder: true
+    };
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/proposal-page-client", route => route.fulfill({ json: { client } }));
+    await page.route("**/api/admin/clients/proposal-page-client/briefing-report", route => route.fulfill({ json: { exists: false } }));
+    await page.route("**/api/admin/clients/proposal-page-client/proposals**", route => {
+        const cursor = new URL(route.request().url()).searchParams.get("cursor");
+        const suffix = cursor ? "2" : "1";
+        return route.fulfill({ json: {
+            proposals: [{
+                _id: `proposal-${suffix}`, userId: client.id, title: `Proposta ${suffix}`,
+                description: "Descrição", attachments: ["https://example.com/proposta.pdf"],
+                userComment: "", clientResponses: [], stageKey: "briefing", status: "sent",
+                createdAt: "2026-09-24T10:00:00.000Z", updatedAt: "2026-09-24T10:00:00.000Z"
+            }],
+            page: cursor
+                ? { limit: 1, hasMore: false }
+                : { limit: 1, hasMore: true, nextCursor: "cursor-2" }
+        } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='proposal-page-client']").click();
+    await page.locator("#client-management-proposals").click();
+
+    await expect(page.locator("[data-proposal-id='proposal-1']")).toBeVisible();
+    await page.locator("#proposals-load-more").click();
+    await expect(page.locator("[data-proposal-id='proposal-2']")).toBeVisible();
+    await expect(page.locator(".proposal-card")).toHaveCount(2);
+    await expect(page.locator("#proposals-pagination-status")).toHaveText("2 propostas exibidas");
+    await expect(page.locator("#proposals-load-more")).toBeHidden();
+});
 
 test("confirma alterações com cancelamento, falha, nova tentativa e etapa aguardando cliente", async ({ page }) => {
     const client = { id: "changes-client", name: "Cliente Alterações", hasFilledBriefing: true,

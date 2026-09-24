@@ -68,6 +68,8 @@ export class AdminClientProposalsModule {
         const deleteDialog = root.querySelector<HTMLDialogElement>("#proposal-delete-dialog")!;
         const form = root.querySelector<HTMLFormElement>("#proposal-form")!;
         const feedback = root.querySelector<HTMLElement>("#proposals-feedback")!;
+        const paginationStatus = root.querySelector<HTMLElement>("#proposals-pagination-status")!;
+        const loadMore = root.querySelector<HTMLButtonElement>("#proposals-load-more")!;
         const attachmentInput = root.querySelector<HTMLInputElement>("#proposal-attachment")!;
         const attachmentHelp = root.querySelector<HTMLElement>("#proposal-current-attachment")!;
         const existingAttachments = root.querySelector<HTMLElement>("#proposal-existing-attachments");
@@ -83,6 +85,8 @@ export class AdminClientProposalsModule {
         let deletingProposal: ClientProposal | undefined;
         let savingProposal = false;
         let removingAttachment = false;
+        let loadingMore = false;
+        let nextCursor: string | undefined;
         let currentStageKey: ProjectStageKey = "briefing";
         let projectStageEditor: ProjectStageEditor | undefined;
 
@@ -102,6 +106,15 @@ export class AdminClientProposalsModule {
 
         const proposalAttachments = (proposal: ClientProposal): string[] => proposal.attachments?.length
             ? proposal.attachments : proposal.attachment ? [proposal.attachment] : [];
+
+        const updatePagination = (): void => {
+            loadMore.hidden = !nextCursor;
+            loadMore.disabled = loadingMore;
+            loadMore.textContent = loadingMore && nextCursor ? "Carregando..." : "Carregar mais";
+            paginationStatus.textContent = proposals.length > 0
+                ? `${proposals.length} ${proposals.length === 1 ? "proposta exibida" : "propostas exibidas"}`
+                : "";
+        };
 
         const renderEditorAttachments = (): void => {
             if (!existingAttachments || !existingAttachmentsList || !attachmentItemTemplate) return;
@@ -166,6 +179,30 @@ export class AdminClientProposalsModule {
             });
             this.toggleProposalEmpty(openList, "Nenhuma proposta aberta.");
             this.toggleProposalEmpty(closedList, "Nenhuma proposta no histórico.");
+            updatePagination();
+        };
+
+        const loadNextPage = async (): Promise<void> => {
+            if (!nextCursor || loadingMore) return;
+            loadingMore = true;
+            feedback.textContent = "";
+            updatePagination();
+            try {
+                const loaded = await this.api.loadProposals(this.session, clientId, nextCursor);
+                if (requestId !== this.requestId) return;
+                const existing = new Set(proposals.map(proposal => proposal._id));
+                proposals.push(...loaded.proposals.filter(proposal => !existing.has(proposal._id)));
+                nextCursor = loaded.page.nextCursor;
+                render();
+            } catch (error) {
+                if (requestId !== this.requestId) return;
+                feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar mais propostas.";
+            } finally {
+                if (requestId === this.requestId) {
+                    loadingMore = false;
+                    updatePagination();
+                }
+            }
         };
 
         const openDeleteDialog = (proposal: ClientProposal): void => {
@@ -204,6 +241,7 @@ export class AdminClientProposalsModule {
         u(root.querySelector("#proposals-client-index") as HTMLElement).off("click").on("click", () => this.navigate("client-management", clientId));
         u(root.querySelector("#proposals-back") as HTMLElement).off("click").on("click", () => this.navigate("client-management", clientId));
         u(root.querySelector("#new-proposal") as HTMLElement).off("click").on("click", () => openEditor());
+        loadMore.onclick = () => void loadNextPage();
         u(root.querySelector("#proposal-cancel") as HTMLElement).off("click").on("click", () => dialog.close());
         u(root.querySelector("#proposal-delete-cancel") as HTMLElement).off("click").on("click", () => {
             deletingProposal = undefined;
@@ -297,7 +335,8 @@ export class AdminClientProposalsModule {
                     syncProposalStageOptions(result.projectStages);
                 }
             );
-            proposals = loaded;
+            proposals = loaded.proposals;
+            nextCursor = loaded.page.nextCursor;
             feedback.textContent = "";
             render();
         } catch (error) {

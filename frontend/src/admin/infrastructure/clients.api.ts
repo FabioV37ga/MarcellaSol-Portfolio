@@ -16,11 +16,15 @@ export interface AdminClientDetails extends AdminClientListItem {
     projectStages: ProjectStage[];
     hasProjectStageOrder: boolean;
 }
+export interface AdminClientPage {
+    clients: AdminClientListItem[];
+    page: { limit: number; hasMore: boolean; nextCursor?: string };
+}
 export interface UpdatedClientProjectStage { currentStageKey: ProjectStageKey; projectStages: ProjectStage[]; }
 export interface BriefingReportStatus { exists: boolean; folderUrl?: string; }
 
 export interface AdminClientsGateway {
-    loadClients(session: AdminSession): Promise<AdminClientListItem[]>;
+    loadClients(session: AdminSession, cursor?: string): Promise<AdminClientPage>;
     loadClient(session: AdminSession, id: number | string): Promise<AdminClientDetails>;
     createClient(session: AdminSession, client: NewClientPayload): Promise<unknown>;
     deleteClient(session: AdminSession, clientId: string, confirmationName: string): Promise<void>;
@@ -33,9 +37,17 @@ export interface AdminClientsGateway {
 export class AdminClientsApi implements AdminClientsGateway {
     constructor(private readonly http: HttpClient = httpClient) { }
 
-    async loadClients(session: AdminSession): Promise<AdminClientListItem[]> {
-        const result = await this.http.request<{ clients?: AdminClientListItem[] }>("/admin/clients", { token: session.token });
-        return result?.clients ?? [];
+    async loadClients(session: AdminSession, cursor?: string): Promise<AdminClientPage> {
+        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+        const result = await this.http.request<Partial<AdminClientPage>>(`/admin/clients${query}`, { token: session.token });
+        return {
+            clients: Array.isArray(result?.clients) ? result.clients : [],
+            page: {
+                limit: typeof result?.page?.limit === "number" ? result.page.limit : 20,
+                hasMore: result?.page?.hasMore === true,
+                ...(typeof result?.page?.nextCursor === "string" ? { nextCursor: result.page.nextCursor } : {})
+            }
+        };
     }
 
     async loadClient(session: AdminSession, id: number | string): Promise<AdminClientDetails> {

@@ -6,7 +6,7 @@ export class AdminProposalsController {
 
     clientProposals = async (request: Request, response: Response): Promise<Response> => {
         const id = this.routeParameter(request.params.id);
-        return response.status(200).json({ proposals: await this.proposals.list(id) });
+        return response.status(200).json(await this.proposals.list(id, request.query.cursor, request.query.limit));
     };
 
     createClientProposal = async (request: Request, response: Response): Promise<Response> => {

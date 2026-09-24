@@ -30,7 +30,8 @@ function project(): ClientProjectResponse {
             status: "sent",
             createdAt: "2026-09-24T10:00:00.000Z",
             updatedAt: "2026-09-24T10:00:00.000Z"
-        }]
+        }],
+        page: { limit: 20, hasMore: false }
     };
 }
 
@@ -64,13 +65,34 @@ describe("etapas e aprovações do cliente", () => {
 
         await module.mount(navigation);
 
-        expect(loadProposals).toHaveBeenCalledWith("client-token");
+        expect(loadProposals).toHaveBeenCalledWith("client-token", undefined);
         expect(document.querySelector("[data-proposal-id='proposal-1']")).not.toBeNull();
         expect(document.querySelector("[data-stage-key='briefing']")?.getAttribute("data-status"))
             .toBe("awaiting-approval");
         document.querySelector<HTMLElement>("#client-stages-back")!.click();
         expect(navigate).toHaveBeenCalledWith("home");
         expect(navigation.classList.contains("desktop-nav-item-selected")).toBe(true);
+    });
+
+    it("acrescenta a próxima página de aprovações", async () => {
+        const second = structuredClone(project());
+        second.proposals[0]._id = "proposal-2";
+        second.proposals[0].title = "Layout revisado";
+        const first = project();
+        first.page = { limit: 1, hasMore: true, nextCursor: "cursor-2" };
+        second.page = { limit: 1, hasMore: false };
+        const loadProposals = vi.fn().mockResolvedValueOnce(first).mockResolvedValueOnce(second);
+        const module = new ClientStagesApprovalsModule(
+            new ClientSystemView(), await stagesTemplate(), api(loadProposals), "client-token", vi.fn()
+        );
+
+        await module.mount();
+        document.querySelector<HTMLButtonElement>("#client-approvals-load-more")!.click();
+
+        await vi.waitFor(() => expect(document.querySelectorAll("[data-proposal-id]")).toHaveLength(2));
+        expect(loadProposals).toHaveBeenNthCalledWith(2, "client-token", "cursor-2");
+        expect(document.querySelector("#client-approvals-pagination-status")?.textContent)
+            .toBe("2 propostas exibidas");
     });
 
     it("ignora uma resposta antiga depois que a tela é descartada", async () => {

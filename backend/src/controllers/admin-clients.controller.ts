@@ -13,8 +13,9 @@ export class AdminClientsController {
         private readonly deleteClient: Pick<DeleteClientService, "execute">
     ) { }
 
-    clients = async (_request: Request, response: Response): Promise<Response> => {
-        return response.status(200).json({ clients: await this.listClients.execute() });
+    clients = async (request: Request, response: Response): Promise<Response> => {
+        const result = await this.listClients.execute(request.query.cursor, request.query.limit);
+        return response.status(200).json(result);
     };
 
     client = async (request: Request, response: Response): Promise<Response> => {

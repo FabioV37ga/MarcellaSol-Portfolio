@@ -715,13 +715,21 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 ## 24. Estado atual da persistência e listagens
 
 - A Etapa 10 foi dividida em cinco recortes: portas mínimas; paginação de clientes; paginação de propostas; compatibilidade/concorrência financeira; revisão final.
-- O primeiro recorte foi concluído em 24/09/2026, deixando a etapa em 1/5.
+- Os três primeiros recortes foram concluídos em 24/09/2026, deixando a etapa em 3/5.
 - `ListClientsService` depende de `ClientListingRepository` e `BriefingListingRepository`, não das classes concretas completas.
 - As portas de listagem expõem apenas leitura administrativa de clientes e definições de briefing; capacidades de escrita não atravessam essa fronteira.
 - A manutenção temporária de `ObjectId` nos registros projetados é uma decisão incremental e não autoriza documentos Mongoose completos na resposta HTTP.
+- A listagem administrativa de clientes usa paginação por cursor opaco baseada no `_id`, em ordem decrescente, com página padrão de 20 e limite máximo de 50 itens.
+- A consulta busca um item excedente para detectar a próxima página e carrega briefings somente para os clientes presentes na página atual.
+- O frontend preserva os itens já renderizados e acrescenta a próxima página pelo botão `Carregar mais`, deduplicando clientes pela identidade estável.
+- O índice nativo de `_id` atende esse recorte; nenhuma criação de índice ou migração de dados foi necessária.
 - Refatorações desta etapa não podem escrever, migrar ou recalcular pagamentos reais como efeito colateral.
 - Índices de banco só podem ser introduzidos quando houver consulta e cardinalidade justificadas, por operação explícita.
-- O próximo recorte é a paginação da listagem administrativa de clientes.
+- A referência persistida `dev/database/admin-clients-view.json` ganhou o estado e a ação de paginação e precisa ser sincronizada/substituída no banco no deploy.
+- As propostas administrativas e as aprovações do cliente usam cursor opaco composto por `updatedAt` e `_id`, preservando a ordem histórica existente e garantindo desempate estável.
+- As duas interfaces acrescentam páginas pelo botão `Carregar mais`, deduplicam propostas por `_id` e invalidam respostas após o descarte da tela.
+- As referências `dev/database/client-proposals-view.json` e `dev/database/client-stages-approvals-view.json` precisam ser sincronizadas/substituídas no banco no deploy.
+- O próximo recorte é a revisão de compatibilidade e concorrência financeira, sem mutação dos pagamentos reais durante a refatoração.
 
 ## 25. Planejamento da persistência visual
 

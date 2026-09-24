@@ -126,6 +126,32 @@
     border-radius: 10px;
 }
 
+.client-list-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 34px;
+    font: 11px "confort";
+    color: var(--gray);
+}
+
+#client-list-load-more {
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--orange);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--orange);
+    font: 700 11px "confort";
+    cursor: pointer;
+}
+
+#client-list-load-more:disabled {
+    cursor: wait;
+    opacity: .55;
+}
+
 .client-delete {
     width: 30px;
     height: 30px;

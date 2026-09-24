@@ -75,7 +75,7 @@ function multipart(fields = {}, count = 2) {
 
 test("propostas administrativas preservam parâmetros, envelopes e status em todas as operações", async () => {
     const calls = [];
-    const results = { list: [proposal], create: { proposal, ...projectState }, edit: proposal,
+    const results = { list: { proposals: [proposal], page: { limit: 20, hasMore: false } }, create: { proposal, ...projectState }, edit: proposal,
         confirmChanges: { proposal, ...projectState }, removeAttachment: proposal, remove: undefined };
     const proposals = Object.fromEntries(Object.entries(results).map(([method, result]) => [method, async (...args) => {
         calls.push([method, ...args]); return result;
@@ -83,7 +83,7 @@ test("propostas administrativas preservam parâmetros, envelopes e status em tod
     await withServer(proposalApp({ proposals }), async base => {
         const path = `${base}/api/admin/clients/client-123/proposals`;
         for (const [method, suffix, body, status, expected] of [
-            ["GET", "", undefined, 200, { proposals: [proposal] }],
+            ["GET", "?cursor=opaque&limit=3", undefined, 200, { proposals: [proposal], page: { limit: 20, hasMore: false } }],
             ["POST", "", multipart({ title: "Título", description: "Texto", stageKey: "layout" }), 201, { proposal, ...projectState }],
             ["PUT", "/proposal-1", multipart({ title: "Editado", description: "Texto", stageKey: "layout" }), 200, { proposal }],
             ["POST", "/proposal-1/complete-changes", undefined, 200, { proposal, ...projectState }],
@@ -96,7 +96,7 @@ test("propostas administrativas preservam parâmetros, envelopes e status em tod
             else assert.deepEqual(await response.json(), expected);
         }
     });
-    assert.deepEqual(calls[0], ["list", "client-123"]);
+    assert.deepEqual(calls[0], ["list", "client-123", "opaque", "3"]);
     for (const [index, method, title] of [[1, "create", "Título"], [2, "edit", "Editado"]]) {
         const args = calls[index];
         assert.equal(args[0], method);
@@ -131,15 +131,22 @@ test("listagem do cliente preserva anexos legados, etapas e omite campos interno
     const calls = [];
     await withServer(proposalApp({
         clients: { async findById(id) { calls.push(["client", id]); return { hasFilledBriefing: false }; } },
-        proposals: { async list(id) { calls.push(["proposals", id]); return [proposal]; } }
+        proposals: { async list(id, cursor, limit) {
+            calls.push(["proposals", id, cursor, limit]);
+            return { proposals: [proposal], page: { limit: 20, hasMore: false } };
+        } }
     }, "client"), async base => {
-        const response = await fetch(`${base}/api/client/proposals?clientId=forged`, requestOptions("client"));
+        const response = await fetch(`${base}/api/client/proposals?clientId=forged&cursor=opaque&limit=3`, requestOptions("client"));
         assert.equal(response.status, 200);
         assert.deepEqual(await response.json(), {
-            currentStageKey: "briefing", projectStages: normalizedProjectStages(undefined, false), proposals: [publicProposal]
+            currentStageKey: "briefing", projectStages: normalizedProjectStages(undefined, false),
+            proposals: [publicProposal], page: { limit: 20, hasMore: false }
         });
     });
-    assert.deepEqual(calls, [["proposals", "authenticated-client"], ["client", "authenticated-client"]]);
+    assert.deepEqual(calls, [
+        ["proposals", "authenticated-client", "opaque", "3"],
+        ["client", "authenticated-client"]
+    ]);
 });
 
 test("aprovação e alteração multipart preservam anexos, confirmação e sujeito da sessão", async () => {

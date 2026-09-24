@@ -37,15 +37,21 @@ export interface ProposalStageMutation {
     projectStages: ProjectStage[];
 }
 
+export interface ProposalPage {
+    proposals: ClientProposal[];
+    page: { limit: number; hasMore: boolean; nextCursor?: string };
+}
+
 interface ProposalEnvelope {
     proposal?: ClientProposal;
     proposals?: ClientProposal[];
     currentStageKey?: ProjectStageKey;
     projectStages?: ProjectStage[];
+    page?: ProposalPage["page"];
 }
 
 export interface AdminProposalsGateway {
-    loadProposals(session: AdminSession, clientId: string): Promise<ClientProposal[]>;
+    loadProposals(session: AdminSession, clientId: string, cursor?: string): Promise<ProposalPage>;
     createProposal(session: AdminSession, clientId: string, fields: ProposalFields): Promise<ProposalStageMutation>;
     editProposal(session: AdminSession, clientId: string, proposalId: string, fields: ProposalFields): Promise<ClientProposal>;
     confirmProposalChanges(session: AdminSession, clientId: string, proposalId: string): Promise<ProposalStageMutation>;
@@ -56,9 +62,17 @@ export interface AdminProposalsGateway {
 export class AdminProposalsApi implements AdminProposalsGateway {
     constructor(private readonly http: HttpClient = httpClient) { }
 
-    async loadProposals(session: AdminSession, clientId: string): Promise<ClientProposal[]> {
-        const result = await this.http.request<ProposalEnvelope>(this.collectionPath(clientId), { token: session.token });
-        return result?.proposals ?? [];
+    async loadProposals(session: AdminSession, clientId: string, cursor?: string): Promise<ProposalPage> {
+        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+        const result = await this.http.request<ProposalEnvelope>(`${this.collectionPath(clientId)}${query}`, { token: session.token });
+        return {
+            proposals: result?.proposals ?? [],
+            page: {
+                limit: typeof result?.page?.limit === "number" ? result.page.limit : 20,
+                hasMore: result?.page?.hasMore === true,
+                ...(typeof result?.page?.nextCursor === "string" ? { nextCursor: result.page.nextCursor } : {})
+            }
+        };
     }
 
     async createProposal(session: AdminSession, clientId: string, fields: ProposalFields): Promise<ProposalStageMutation> {

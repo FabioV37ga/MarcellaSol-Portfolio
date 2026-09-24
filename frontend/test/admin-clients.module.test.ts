@@ -39,7 +39,10 @@ describe("AdminClientsModule", () => {
             currentStageStatus: "completed" as const
         };
         const api = {
-            loadClients: vi.fn().mockResolvedValue([client]),
+            loadClients: vi.fn().mockResolvedValue({
+                clients: [client],
+                page: { limit: 20, hasMore: false }
+            }),
             deleteClient: vi.fn().mockResolvedValue(undefined)
         } as unknown as AdminSystemApi;
         const module = new AdminClientsModule(
@@ -65,5 +68,43 @@ describe("AdminClientsModule", () => {
         expect(api.deleteClient).toHaveBeenCalledWith(
             { token: "test-token" }, "client-a", "Cliente A"
         );
+    });
+
+    it("acrescenta a próxima página sem recriar os clientes já exibidos", async () => {
+        const first = {
+            id: "client-a", name: "Cliente A", type: "residencial", hasFilledBriefing: true,
+            currentStageKey: "briefing" as const, currentStageStatus: "completed" as const
+        };
+        const second = {
+            ...first, id: "client-b", name: "Cliente B"
+        };
+        const api = {
+            loadClients: vi.fn()
+                .mockResolvedValueOnce({
+                    clients: [first],
+                    page: { limit: 1, hasMore: true, nextCursor: "cursor-2" }
+                })
+                .mockResolvedValueOnce({
+                    clients: [second],
+                    page: { limit: 1, hasMore: false }
+                }),
+            deleteClient: vi.fn()
+        } as unknown as AdminSystemApi;
+        const module = new AdminClientsModule(
+            new AdminSystemView(), await clientsTemplate(), api, { token: "test-token" },
+            vi.fn(), vi.fn(), () => document.querySelector<HTMLElement>("#clients-navigation")!
+        );
+
+        module.mount();
+        const loadMore = document.querySelector<HTMLButtonElement>("#client-list-load-more")!;
+        await vi.waitFor(() => expect(loadMore.hidden).toBe(false));
+        expect(document.querySelectorAll(".client-list-client")).toHaveLength(1);
+        loadMore.click();
+
+        await vi.waitFor(() => expect(document.querySelectorAll(".client-list-client")).toHaveLength(2));
+        expect(api.loadClients).toHaveBeenNthCalledWith(2, { token: "test-token" }, "cursor-2");
+        expect(loadMore.hidden).toBe(true);
+        expect(document.querySelector("#client-list-pagination-status")?.textContent)
+            .toBe("2 clientes exibidos");
     });
 });

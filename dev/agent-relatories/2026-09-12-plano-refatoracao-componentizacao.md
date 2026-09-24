@@ -612,6 +612,22 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 11. portfólio público — aguardando descrição de arquitetura;
 12. persistência visual — planejada, aguardando início explícito.
 
+### Execução da Etapa priorizada 10 — persistência e listagens
+
+Estado em 24/09/2026: **terceiro recorte concluído; Etapa 10 em 3/5**.
+
+- O primeiro recorte restringiu `ListClientsService` às portas mínimas de listagem de clientes e briefings.
+- O segundo recorte implementou paginação por cursor opaco na listagem administrativa de clientes, ordenada por `_id` decrescente, com 20 itens por padrão e máximo de 50.
+- A consulta usa o índice nativo de `_id`, busca um registro excedente para detectar continuação e consulta briefings apenas para os clientes da página atual.
+- A interface acrescenta páginas pelo botão `Carregar mais`, mantém os itens existentes e deduplica registros por `client.id`.
+- A referência `dev/database/admin-clients-view.json` foi atualizada e deve substituir/sincronizar a view persistida antes do teste em produção.
+- O terceiro recorte paginou propostas no fluxo administrativo e aprovações no fluxo do cliente com cursor opaco composto por `updatedAt` e `_id`.
+- A ordem anterior por atualização foi preservada; `_id` atua como desempate determinístico quando duas propostas possuem o mesmo horário.
+- Ambas as telas acrescentam itens sem duplicação e mantêm etapas, mutações, anexos e decisões nos contratos existentes.
+- As referências `dev/database/client-proposals-view.json` e `dev/database/client-stages-approvals-view.json` foram atualizadas e precisam ser sincronizadas/substituídas no banco.
+- Nenhum pagamento ou outro dado real foi escrito, migrado ou recalculado.
+- O próximo recorte será a revisão de compatibilidade e concorrência financeira.
+
 Fluxo resumido:
 
 ```text

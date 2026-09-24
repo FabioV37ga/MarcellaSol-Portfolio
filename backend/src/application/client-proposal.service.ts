@@ -13,6 +13,7 @@ import {
 } from "../models/projectStage.js";
 import type { ProposalStatus } from "../models/clientProposal.js";
 import { ClientProposalResponseService } from "./client-proposal-response.service.js";
+import { encodeProposalCursor, proposalPageOptions } from "./pagination/proposal-list-pagination.js";
 
 interface ProposalInput { title?: unknown; description?: unknown; stageKey?: unknown; }
 
@@ -28,9 +29,19 @@ export class ClientProposalService {
         this.responses = responses ?? new ClientProposalResponseService(clients, proposals, storage);
     }
 
-    async list(userId: string) {
+    async list(userId: string, cursorValue?: unknown, limitValue?: unknown) {
         await this.requireClient(userId, false);
-        return this.proposals.findByUserId(userId);
+        const options = proposalPageOptions(cursorValue, limitValue);
+        const result = await this.proposals.findPageByUserId(userId, options);
+        const last = result.records[result.records.length - 1];
+        return {
+            proposals: result.records,
+            page: {
+                limit: options.limit,
+                hasMore: result.hasMore,
+                ...(result.hasMore && last ? { nextCursor: encodeProposalCursor(last.updatedAt, last._id) } : {})
+            }
+        };
     }
 
     async create(userId: string, input: ProposalInput, files: Express.Multer.File[] = []) {

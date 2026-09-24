@@ -189,3 +189,26 @@
     font-size: 12px;
 }
 
+.proposals-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    color: #6c625c;
+    font-size: 0.9rem;
+}
+
+#proposals-load-more {
+    border: 1px solid var(--orange);
+    border-radius: 999px;
+    padding: 0.65rem 1.15rem;
+    background: transparent;
+    color: var(--orange);
+    cursor: pointer;
+}
+
+#proposals-load-more:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import proposals, { type ProposalStatus } from "../models/clientProposal.js";
 import type { ProjectStageKey } from "../models/projectStage.js";
 import type { ClientProposalResponse } from "../models/clientProposal.js";
+import type { ProposalPageOptions } from "../application/pagination/proposal-list-pagination.js";
 
 export interface CreateProposalData {
     _id: mongoose.Types.ObjectId;
@@ -16,8 +17,18 @@ export interface CreateProposalData {
 }
 
 export class ClientProposalRepository {
-    findByUserId(userId: string) {
-        return proposals.find({ userId }).sort({ updatedAt: -1 }).lean();
+    async findPageByUserId(userId: string, options: ProposalPageOptions) {
+        const cursor = options.cursor;
+        const records = await proposals.find({
+            userId,
+            ...(cursor ? {
+                $or: [
+                    { updatedAt: { $lt: cursor.updatedAt } },
+                    { updatedAt: cursor.updatedAt, _id: { $lt: cursor.id } }
+                ]
+            } : {})
+        }).sort({ updatedAt: -1, _id: -1 }).limit(options.limit + 1).lean();
+        return { records: records.slice(0, options.limit), hasMore: records.length > options.limit };
     }
 
     findByIdAndUserId(id: string, userId: string) {

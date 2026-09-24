@@ -5,12 +5,13 @@ import { presentClientProposal } from "../dist/src/application/proposals/client-
 import { ApplicationError } from "../dist/src/application/errors/application-error.js";
 
 test("listagem de aprovações rejeita cliente ausente e propaga falhas de consulta", async () => {
-    const service = new ListClientApprovalsService({ async findById() { return null; } }, { async list() { return []; } });
+    const emptyPage = { proposals: [], page: { limit: 20, hasMore: false } };
+    const service = new ListClientApprovalsService({ async findById() { return null; } }, { async list() { return emptyPage; } });
     await assert.rejects(() => service.execute("client"), error => error instanceof ApplicationError
         && error.status === 404 && error.message === "Cliente não encontrado");
 
     const failure = new Error("Falha de leitura");
-    const failing = new ListClientApprovalsService({ async findById() { throw failure; } }, { async list() { return []; } });
+    const failing = new ListClientApprovalsService({ async findById() { throw failure; } }, { async list() { return emptyPage; } });
     await assert.rejects(() => failing.execute("client"), error => error === failure);
 });
 
@@ -36,10 +37,14 @@ test("listagem mantém etapa atual, ordem personalizada e status existentes", as
         status: key === "layout" ? "changes-requested" : "completed" }));
     const client = { currentStageKey: "layout", hasFilledBriefing: true, projectStages: stages };
     const before = structuredClone(client);
-    const service = new ListClientApprovalsService({ async findById() { return client; } }, { async list() { return []; } });
+    const service = new ListClientApprovalsService(
+        { async findById() { return client; } },
+        { async list() { return { proposals: [], page: { limit: 20, hasMore: false } }; } }
+    );
     const result = await service.execute("client");
     assert.equal(result.currentStageKey, "layout");
     assert.deepEqual(result.projectStages, stages);
     assert.deepEqual(result.proposals, []);
+    assert.deepEqual(result.page, { limit: 20, hasMore: false });
     assert.deepEqual(client, before);
 });

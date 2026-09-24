@@ -4,6 +4,7 @@ import type {
     BriefingListingRepository,
     ClientListingRepository
 } from "./ports/client-listing.repositories.js";
+import { clientPageOptions, encodeClientCursor } from "./pagination/client-list-pagination.js";
 import {
     hasConfiguredProjectStageOrder,
     isProjectStageKey,
@@ -28,14 +29,21 @@ export interface AdminClientDetails extends AdminClientListItem {
     hasProjectStageOrder: boolean;
 }
 
+export interface AdminClientPage {
+    clients: AdminClientListItem[];
+    page: { limit: number; hasMore: boolean; nextCursor?: string };
+}
+
 export class ListClientsService {
     constructor(
         private readonly clients: ClientListingRepository,
         private readonly briefings: BriefingListingRepository
     ) { }
 
-    async execute(): Promise<AdminClientListItem[]> {
-        const clients = await this.clients.findAllForAdmin();
+    async execute(cursorValue?: unknown, limitValue?: unknown): Promise<AdminClientPage> {
+        const options = clientPageOptions(cursorValue, limitValue);
+        const result = await this.clients.findPageForAdmin(options);
+        const clients = result.records;
         const clientBriefings = await this.briefings.findByClientIds(
             clients.map(client => client._id)
         );
@@ -46,7 +54,7 @@ export class ListClientsService {
             ])
         );
 
-        return clients.map(client => {
+        const items = clients.map(client => {
             const projectStages = normalizedProjectStages(client.projectStages, client.hasFilledBriefing);
             const currentStageKey = isProjectStageKey(client.currentStageKey)
                 && client.currentStageKey !== "contract" ? client.currentStageKey : "briefing";
@@ -62,6 +70,15 @@ export class ListClientsService {
                 currentStageStatus
             };
         });
+        const last = clients[clients.length - 1];
+        return {
+            clients: items,
+            page: {
+                limit: options.limit,
+                hasMore: result.hasMore,
+                ...(result.hasMore && last ? { nextCursor: encodeClientCursor(last._id) } : {})
+            }
+        };
     }
 
     async executeOne(id: string): Promise<AdminClientDetails> {

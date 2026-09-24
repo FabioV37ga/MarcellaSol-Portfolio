@@ -17,16 +17,17 @@ export class ListClientApprovalsService {
         private readonly proposals: Pick<ClientProposalService, "list">
     ) { }
 
-    async execute(clientId: string) {
-        const [proposals, client] = await Promise.all([
-            this.proposals.list(clientId),
+    async execute(clientId: string, cursorValue?: unknown, limitValue?: unknown) {
+        const [proposalPage, client] = await Promise.all([
+            this.proposals.list(clientId, cursorValue, limitValue),
             this.clients.findById(clientId)
         ]);
         if (!client) throw new ApplicationError("Cliente não encontrado", 404);
         return {
             currentStageKey: client.currentStageKey ?? "briefing",
             projectStages: normalizedProjectStages(client.projectStages, client.hasFilledBriefing),
-            proposals: proposals.map(presentClientProposal)
+            proposals: proposalPage.proposals.map(presentClientProposal),
+            page: proposalPage.page
         };
     }
 }

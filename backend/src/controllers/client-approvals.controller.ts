@@ -10,8 +10,12 @@ export class ClientApprovalsController {
         private readonly responses: Pick<ClientProposalResponseService, "approve" | "beat">
     ) { }
 
-    approvals = async (_request: Request, response: Response): Promise<Response> => {
-        return response.status(200).json(await this.listApprovals.execute(authenticatedPrincipal(response).subject));
+    approvals = async (request: Request, response: Response): Promise<Response> => {
+        return response.status(200).json(await this.listApprovals.execute(
+            authenticatedPrincipal(response).subject,
+            request.query.cursor,
+            request.query.limit
+        ));
     };
 
     approveProposal = async (request: Request, response: Response): Promise<Response> => {

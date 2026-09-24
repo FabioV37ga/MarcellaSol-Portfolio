@@ -37,31 +37,60 @@ export class ClientStagesApprovalsModule {
         const proposalResponses = new ClientProposalResponseModule(elements, this.api, this.token, progressRoot);
         this.proposalResponses = proposalResponses;
         proposalResponses.mount();
+        let nextCursor: string | undefined;
+        let loading = false;
+        let loadedCount = 0;
 
-        try {
-            const project = await this.api.loadProposals(this.token);
-            if (!this.isCurrent(generation, root)) return;
-            renderProjectStages(progressRoot, project.projectStages, project.currentStageKey);
-            elements.list.replaceChildren();
-            if (project.proposals.length === 0) {
-                elements.loading.hidden = true;
-                elements.empty.hidden = false;
-                return;
+        const updatePagination = (): void => {
+            elements.loadMore.hidden = !nextCursor;
+            elements.loadMore.disabled = loading;
+            elements.loadMore.textContent = loading && nextCursor ? "Carregando..." : "Carregar mais";
+            elements.paginationStatus.textContent = loadedCount > 0
+                ? `${loadedCount} ${loadedCount === 1 ? "proposta exibida" : "propostas exibidas"}`
+                : "";
+        };
+
+        const loadPage = async (cursor?: string): Promise<void> => {
+            if (loading) return;
+            loading = true;
+            elements.feedback.textContent = "";
+            updatePagination();
+            try {
+                const project = await this.api.loadProposals(this.token, cursor);
+                if (!this.isCurrent(generation, root)) return;
+                renderProjectStages(progressRoot, project.projectStages, project.currentStageKey);
+                if (!cursor) elements.list.replaceChildren();
+                const existing = new Set(Array.from(
+                    elements.list.querySelectorAll<HTMLElement>("[data-proposal-id]")
+                ).map(item => item.dataset.proposalId));
+                const items = document.createDocumentFragment();
+                project.proposals.forEach(proposal => {
+                    if (!existing.has(proposal._id)) items.append(proposalResponses.render(proposal));
+                });
+                elements.list.append(items);
+                loadedCount = elements.list.querySelectorAll("[data-proposal-id]").length;
+                nextCursor = project.page.nextCursor;
+                elements.empty.hidden = loadedCount > 0;
+            } catch (error) {
+                if (!this.isCurrent(generation, root)) return;
+                elements.feedback.textContent = error instanceof Error
+                    ? error.message
+                    : "Não foi possível carregar as aprovações.";
+            } finally {
+                if (this.isCurrent(generation, root)) {
+                    loading = false;
+                    elements.loading.hidden = true;
+                    updatePagination();
+                }
             }
-            elements.empty.hidden = true;
-            const items = document.createDocumentFragment();
-            project.proposals.forEach(proposal => items.append(proposalResponses.render(proposal)));
-            elements.list.append(items);
-        } catch (error) {
-            if (!this.isCurrent(generation, root)) return;
-            elements.loading.hidden = true;
-            elements.feedback.textContent = error instanceof Error
-                ? error.message
-                : "Não foi possível carregar as aprovações.";
-            return;
-        }
+        };
 
-        elements.loading.hidden = true;
+        elements.loadMore.onclick = () => {
+            if (nextCursor) void loadPage(nextCursor);
+        };
+
+        updatePagination();
+        await loadPage();
     }
 
     dispose(): void {

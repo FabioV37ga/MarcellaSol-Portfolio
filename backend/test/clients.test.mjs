@@ -69,8 +69,8 @@ test("listagem administrativa retorna a etapa e o status atuais de cada cliente"
     const firstId = { toString: () => "507f1f77bcf86cd799439011" };
     const secondId = { toString: () => "507f1f77bcf86cd799439012" };
     const clients = {
-        async findAllForAdmin() {
-            return [
+        async findPageForAdmin() {
+            return { records: [
                 {
                     _id: firstId,
                     name: "Cliente A",
@@ -93,7 +93,7 @@ test("listagem administrativa retorna a etapa e o status atuais de cada cliente"
                     hasFilledBriefing: false,
                     projectStages: []
                 }
-            ];
+            ], hasMore: false };
         }
     };
     const briefings = {
@@ -107,7 +107,7 @@ test("listagem administrativa retorna a etapa e o status atuais de cada cliente"
     const service = new ListClientsService(clients, briefings);
 
     const result = await service.execute();
-    assert.deepEqual(result.map(client => ({
+    assert.deepEqual(result.clients.map(client => ({
         name: client.name,
         type: client.type,
         stage: client.currentStageKey,
@@ -123,15 +123,16 @@ test("listagem administrativa depende somente das consultas mínimas de clientes
     const calls = [];
     const service = new ListClientsService(
         {
-            async findAllForAdmin() {
+            async findPageForAdmin(options) {
                 calls.push("clients:list");
-                return [{
+                assert.equal(options.limit, 20);
+                return { records: [{
                     _id: clientId,
                     name: "Cliente Consulta",
                     hasFilledBriefing: false,
                     currentStageKey: "briefing",
                     projectStages: []
-                }];
+                }], hasMore: false };
             },
             async findByIdForAdmin() {
                 calls.push("clients:details");
@@ -152,6 +153,51 @@ test("listagem administrativa depende somente das consultas mínimas de clientes
 
     const result = await service.execute();
 
-    assert.equal(result[0].name, "Cliente Consulta");
+    assert.equal(result.clients[0].name, "Cliente Consulta");
     assert.deepEqual(calls, ["clients:list", "briefings:list:1"]);
+});
+
+test("listagem administrativa expõe cursor opaco para a próxima página", async () => {
+    const firstId = new mongoose.Types.ObjectId("507f1f77bcf86cd799439019");
+    const secondId = new mongoose.Types.ObjectId("507f1f77bcf86cd799439018");
+    const calls = [];
+    const service = new ListClientsService(
+        {
+            async findPageForAdmin(options) {
+                calls.push(options);
+                return {
+                    records: [{
+                        _id: secondId,
+                        name: "Cliente da página",
+                        hasFilledBriefing: false,
+                        currentStageKey: "briefing",
+                        projectStages: []
+                    }],
+                    hasMore: true
+                };
+            }
+        },
+        { async findByClientIds() { return []; } }
+    );
+    const cursor = Buffer.from(JSON.stringify({ id: firstId.toString() })).toString("base64url");
+
+    const result = await service.execute(cursor, "1");
+
+    assert.equal(calls[0].limit, 1);
+    assert.equal(calls[0].cursor.id.toString(), firstId.toString());
+    assert.equal(result.page.hasMore, true);
+    assert.deepEqual(
+        JSON.parse(Buffer.from(result.page.nextCursor, "base64url").toString("utf8")),
+        { id: secondId.toString() }
+    );
+});
+
+test("listagem administrativa rejeita cursor e limite inválidos", async () => {
+    const service = new ListClientsService(
+        { async findPageForAdmin() { throw new Error("não deveria consultar"); } },
+        { async findByClientIds() { return []; } }
+    );
+
+    await assert.rejects(() => service.execute("cursor-inválido"), error => error.status === 400);
+    await assert.rejects(() => service.execute(undefined, "51"), error => error.status === 400);
 });

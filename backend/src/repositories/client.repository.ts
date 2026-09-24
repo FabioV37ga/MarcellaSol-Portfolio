@@ -2,6 +2,7 @@ import clients from "../models/client.js";
 import type { BriefingObject } from "../models/briefing.js";
 import type mongoose from "mongoose";
 import type { ProjectStage, ProjectStageKey } from "../models/projectStage.js";
+import type { ClientPageOptions } from "../application/pagination/client-list-pagination.js";
 
 export interface CreateClientData {
     login: string;
@@ -15,10 +16,16 @@ export interface CreateClientData {
 }
 
 export class ClientRepository {
-    findAllForAdmin() {
-        return clients
-            .find({}, { _id: 1, name: 1, hasFilledBriefing: 1, currentStageKey: 1, projectStages: 1 })
+    async findPageForAdmin(options: ClientPageOptions) {
+        const records = await clients
+            .find(
+                options.cursor ? { _id: { $lt: options.cursor.id } } : {},
+                { _id: 1, name: 1, hasFilledBriefing: 1, currentStageKey: 1, projectStages: 1 }
+            )
+            .sort({ _id: -1 })
+            .limit(options.limit + 1)
             .lean();
+        return { records: records.slice(0, options.limit), hasMore: records.length > options.limit };
     }
 
     findByIdForAdmin(id: string) {

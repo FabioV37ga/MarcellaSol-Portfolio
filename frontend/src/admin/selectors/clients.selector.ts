@@ -2,6 +2,8 @@ interface clientsElements {
     new_client: HTMLElement
     list: HTMLElement
     itemTemplate: HTMLTemplateElement
+    paginationStatus: HTMLElement
+    loadMore: HTMLButtonElement
     deleteDialog: HTMLDialogElement
     deleteForm: HTMLFormElement
     deleteName: HTMLElement
@@ -21,6 +23,8 @@ function getClientsElements(): clientsElements {
     const new_client = requiredElement<HTMLElement>("#add-client")
     const list = requiredElement<HTMLElement>(".client-list")
     const itemTemplate = requiredElement<HTMLTemplateElement>("#client-list-item-template")
+    const paginationStatus = requiredElement<HTMLElement>("#client-list-pagination-status")
+    const loadMore = requiredElement<HTMLButtonElement>("#client-list-load-more")
     const deleteDialog = requiredElement<HTMLDialogElement>("#client-delete-dialog")
     const deleteForm = requiredElement<HTMLFormElement>("#client-delete-form")
     const deleteName = requiredElement<HTMLElement>("#client-delete-name")
@@ -33,6 +37,8 @@ function getClientsElements(): clientsElements {
         new_client,
         list,
         itemTemplate,
+        paginationStatus,
+        loadMore,
         deleteDialog,
         deleteForm,
         deleteName,
