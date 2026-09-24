@@ -45,4 +45,14 @@ describe("restauração da rota após recarregar com sessão salva", () => {
         expect(render).toHaveBeenCalledOnce();
         expect(render).toHaveBeenCalledWith("briefing", undefined);
     });
+
+    it("restaura etapas e aprovações depois de montar o shell autenticado", () => {
+        const render = vi.fn();
+        window.history.replaceState({ scope: "client", page: "stages-approvals" }, "");
+
+        new ClientSystemRouter(render).start("base", true);
+
+        expect(render.mock.calls).toEqual([["base", undefined], ["stages-approvals", undefined]]);
+        expect(window.history.state).toEqual({ scope: "client", page: "stages-approvals" });
+    });
 });

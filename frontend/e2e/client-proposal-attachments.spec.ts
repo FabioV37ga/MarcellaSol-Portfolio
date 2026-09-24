@@ -132,6 +132,26 @@ test("financeiro ignora carregamento concluído depois do retorno à home", asyn
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("home");
 });
 
+test("sessão salva restaura diretamente a tela de etapas e aprovações", async ({ page }) => {
+    await mockClient(page);
+    await page.route("**/api/client/session", route => route.fulfill({
+        json: { name: "Cliente Anexo", hasFilledBriefing: true }
+    }));
+    await page.goto("/cliente.html");
+    await page.evaluate(() => {
+        localStorage.setItem("Client-Section", JSON.stringify({
+            token: "client-token",
+            timestamp: Date.now()
+        }));
+        history.replaceState({ scope: "client", page: "stages-approvals" }, "");
+    });
+    await page.reload();
+
+    await expect(page.locator(".stages-approvals-page")).toBeVisible();
+    await expect(page.locator("#client-nav-stages")).toHaveClass(/desktop-nav-item-selected/);
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("stages-approvals");
+});
+
 test("cliente vê alterações concluídas sem nova aprovação", async ({ page }) => {
     await mockClient(page, "changes-completed");
     await page.goto("/cliente.html");
