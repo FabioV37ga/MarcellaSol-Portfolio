@@ -105,6 +105,33 @@ test("etapas e aprovações apresenta falha de carregamento sem bloquear a naveg
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("home");
 });
 
+test("financeiro ignora carregamento concluído depois do retorno à home", async ({ page }) => {
+    let releasePayments!: () => void;
+    const pendingPayments = new Promise<void>(resolve => { releasePayments = resolve; });
+    await mockClient(page);
+    await page.route("**/api/client/payments", async route => {
+        await pendingPayments;
+        await route.fulfill({
+            json: {
+                payments: [],
+                page: { limit: 20, hasMore: false },
+                summary: { paymentCount: 0, totalAmountCents: 0, paidAmountCents: 0, remainingAmountCents: 0 }
+            }
+        });
+    });
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-financial").click();
+    await expect(page.locator(".client-financial-page")).toBeVisible();
+    await page.locator("#client-financial-back").click();
+    releasePayments();
+
+    await expect(page.locator("#client-stages-processes")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("home");
+});
+
 test("cliente vê alterações concluídas sem nova aprovação", async ({ page }) => {
     await mockClient(page, "changes-completed");
     await page.goto("/cliente.html");

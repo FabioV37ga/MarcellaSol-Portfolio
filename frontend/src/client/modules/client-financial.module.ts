@@ -1,4 +1,3 @@
-import u from "umbrellajs";
 import type { ClientRoute } from "../navigation/client-system.router.js";
 import type { baseElements } from "../selectors/base.selector.js";
 import { getClientFinancialElements } from "../selectors/financial.selector.js";
@@ -13,6 +12,7 @@ export class ClientFinancialModule {
     private analysisWindowTimer?: number;
     private pixCountdownTimer?: number;
     private pixCopyFeedbackTimer?: number;
+    private listeners?: AbortController;
 
     constructor(
         private readonly view: ClientSystemView,
@@ -24,6 +24,8 @@ export class ClientFinancialModule {
 
     dispose(): void {
         this.requestId += 1;
+        this.listeners?.abort();
+        this.listeners = undefined;
         window.clearTimeout(this.analysisWindowTimer);
         window.clearInterval(this.pixCountdownTimer);
         window.clearTimeout(this.pixCopyFeedbackTimer);
@@ -39,16 +41,19 @@ export class ClientFinancialModule {
             return;
         }
 
+        this.dispose();
         this.view.render(model, ".page-content");
         this.view.styleNavButton(baseElements?.desktop_nav_financial);
         const elements = getClientFinancialElements();
         const requestId = ++this.requestId;
+        this.listeners = new AbortController();
+        const listenerOptions = { signal: this.listeners.signal };
         window.clearTimeout(this.analysisWindowTimer);
         window.clearInterval(this.pixCountdownTimer);
         window.clearTimeout(this.pixCopyFeedbackTimer);
         this.view.registerDisposer(() => this.dispose());
-        u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
-        u(elements.back).off("click").on("click", () => this.navigate("home"));
+        elements.homeIndex.addEventListener("click", () => this.navigate("home"), listenerOptions);
+        elements.back.addEventListener("click", () => this.navigate("home"), listenerOptions);
 
         let payments: ClientPayment[] = [];
         let nextCursor: string | undefined;
@@ -134,6 +139,7 @@ export class ClientFinancialModule {
                     1000
                 );
             } catch (error) {
+                if (requestId !== this.requestId) return;
                 elements.pixLoading.hidden = true;
                 elements.pixFeedback.textContent = error instanceof Error ? error.message : "Não foi possível gerar o código Pix.";
             }
@@ -142,11 +148,12 @@ export class ClientFinancialModule {
             window.clearInterval(this.pixCountdownTimer);
             elements.pixDialog.close();
         };
-        elements.pixClose.addEventListener("click", closePix);
-        elements.pixDialog.addEventListener("cancel", event => { event.preventDefault(); closePix(); });
+        elements.pixClose.addEventListener("click", closePix, listenerOptions);
+        elements.pixDialog.addEventListener("cancel", event => { event.preventDefault(); closePix(); }, listenerOptions);
         elements.pixCopy.addEventListener("click", async () => {
             try {
                 await navigator.clipboard.writeText(elements.pixCode.value);
+                if (requestId !== this.requestId) return;
                 elements.pixCopy.textContent = "Código copiado";
                 window.clearTimeout(this.pixCopyFeedbackTimer);
                 this.pixCopyFeedbackTimer = window.setTimeout(() => {
@@ -154,11 +161,12 @@ export class ClientFinancialModule {
                     this.pixCopyFeedbackTimer = undefined;
                 }, 2000);
             } catch {
+                if (requestId !== this.requestId) return;
                 elements.pixCode.focus();
                 elements.pixCode.select();
                 elements.pixFeedback.textContent = "Selecione e copie o código manualmente.";
             }
-        });
+        }, listenerOptions);
         elements.loadMore.addEventListener("click", async () => {
             if (!nextCursor || loadingMore) return;
             loadingMore = true;
@@ -173,12 +181,13 @@ export class ClientFinancialModule {
                 highlight = page.highlight;
                 renderPayments();
             } catch (error) {
+                if (requestId !== this.requestId) return;
                 elements.feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar mais pagamentos.";
             } finally {
                 loadingMore = false;
                 if (requestId === this.requestId) renderPayments();
             }
-        });
+        }, listenerOptions);
 
         try {
             const page = await this.api.loadPayments(this.token);

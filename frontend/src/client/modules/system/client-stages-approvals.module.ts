@@ -8,6 +8,7 @@ import { renderProjectStages } from "@/shared/project-stages.js";
 
 export class ClientStagesApprovalsModule {
     private generation = 0;
+    private proposalResponses?: ClientProposalResponseModule;
 
     constructor(
         private readonly view: ClientSystemView,
@@ -32,7 +33,9 @@ export class ClientStagesApprovalsModule {
         u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
+        this.proposalResponses?.dispose();
         const proposalResponses = new ClientProposalResponseModule(elements, this.api, this.token, progressRoot);
+        this.proposalResponses = proposalResponses;
         proposalResponses.mount();
 
         try {
@@ -63,6 +66,8 @@ export class ClientStagesApprovalsModule {
 
     dispose(): void {
         this.generation += 1;
+        this.proposalResponses?.dispose();
+        this.proposalResponses = undefined;
     }
 
     private invalidate(generation: number): void {

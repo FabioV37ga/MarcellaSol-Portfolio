@@ -545,7 +545,7 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 9 — aplicação do cliente fora do briefing
 
-- Estado: em andamento, 3/5.
+- Estado: em andamento, 4/5.
 - componentizar shell, home, etapas/aprovações e financeiro residual;
 - reduzir `ClientSystemModules` a composição e roteamento.
 
@@ -676,14 +676,16 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 ## 23. Estado atual da aplicação do cliente fora do briefing
 
 - A Etapa 9 foi dividida em cinco recortes: shell; home; etapas/aprovações; revisão de propostas e financeiro; simplificação final da composição e do ciclo de vida.
-- Os recortes de shell, home e etapas/aprovações foram concluídos em 24/09/2026, deixando a etapa em 3/5.
+- Os recortes de shell, home, etapas/aprovações e ciclo de vida de propostas/financeiro foram concluídos em 24/09/2026, deixando a etapa em 4/5.
 - `ClientShellModule` é o proprietário da estrutura base autenticada, navegação desktop e móvel e encaminhamento do logout.
 - `ClientHomeModule` monta a home persistida, seleciona sua navegação e encaminha os acessos rápidos para etapas/aprovações e financeiro.
 - O selector da home deve falhar explicitamente quando a view persistida não trouxer seus acessos obrigatórios.
 - `ClientStagesApprovalsModule` controla a tela, o carregamento, os estados vazio/erro, a apresentação das etapas e a composição das respostas a propostas.
 - Carregamentos de propostas pendentes devem ser invalidados ao desmontar a tela, sem atualizar elementos de uma rota anterior.
+- `ClientProposalResponseModule` possui descarte explícito: listeners e decisões pendentes não sobrevivem à tela de origem.
+- `ClientFinancialModule` vincula navegação, paginação, Pix e clipboard ao mesmo ciclo de vida que invalida requisições e timers.
 - Listeners globais do menu móvel usam o ciclo de vida da `ClientSystemView` e são descartados com o corpo da aplicação.
 - `ClientSystemModules` deve continuar perdendo detalhes de interface até atuar somente como composição e roteamento.
 - Um E2E cobre a navegação móvel do shell, mas não foi executado conforme a regra vigente.
 - Não houve alteração de view persistida, migração ou sincronização do banco neste recorte.
-- O próximo recorte é a revisão do ciclo de vida das respostas a propostas e do financeiro residual.
+- O próximo recorte é a simplificação final da composição e a revisão estrutural da aplicação do cliente.

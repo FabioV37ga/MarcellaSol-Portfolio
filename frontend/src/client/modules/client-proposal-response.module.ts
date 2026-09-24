@@ -12,6 +12,8 @@ type ProposalResponseApi = Pick<ClientProposalsGateway, "approveProposal" | "bea
 export class ClientProposalResponseModule {
     private approvedProposalId = "";
     private rejectedProposalId = "";
+    private listeners?: AbortController;
+    private requestId = 0;
 
     constructor(
         private readonly elements: StagesApprovalsElements,
@@ -21,29 +23,41 @@ export class ClientProposalResponseModule {
     ) { }
 
     mount(): void {
-        this.elements.approveCancel.addEventListener("click", () => this.elements.approveDialog.close());
-        this.elements.approveDialog.addEventListener("close", () => this.resetApproveDialog());
-        this.elements.approveConfirm.addEventListener("click", () => { void this.approve(); });
-        this.elements.rejectCancel.addEventListener("click", () => this.elements.rejectDialog.close());
-        this.elements.rejectDialog.addEventListener("close", () => this.resetRejectDialog());
-        this.elements.rejectConfirm.addEventListener("click", () => { void this.reject(); });
+        this.dispose();
+        this.listeners = new AbortController();
+        const options = { signal: this.listeners.signal };
+        this.elements.approveCancel.addEventListener("click", () => this.elements.approveDialog.close(), options);
+        this.elements.approveDialog.addEventListener("close", () => this.resetApproveDialog(), options);
+        this.elements.approveConfirm.addEventListener("click", () => { void this.approve(); }, options);
+        this.elements.rejectCancel.addEventListener("click", () => this.elements.rejectDialog.close(), options);
+        this.elements.rejectDialog.addEventListener("close", () => this.resetRejectDialog(), options);
+        this.elements.rejectConfirm.addEventListener("click", () => { void this.reject(); }, options);
+    }
+
+    dispose(): void {
+        this.listeners?.abort();
+        this.listeners = undefined;
+        this.requestId += 1;
+        this.approvedProposalId = "";
+        this.rejectedProposalId = "";
     }
 
     render(proposal: ClientProposal): HTMLElement {
         const card = clientApprovalItem(proposal);
+        const options = this.listeners ? { signal: this.listeners.signal } : undefined;
         card.querySelector<HTMLButtonElement>(".client-approval-approve")?.addEventListener("click", () => {
             this.approvedProposalId = proposal._id;
             this.elements.feedback.textContent = "";
             this.resetApproveDialog(false);
             this.elements.approveDialog.showModal();
             this.elements.approveComment.focus();
-        });
+        }, options);
         card.querySelector<HTMLButtonElement>(".client-approval-reject")?.addEventListener("click", () => {
             this.rejectedProposalId = proposal._id;
             this.resetRejectDialog(false);
             this.elements.rejectDialog.showModal();
             this.elements.rejectComment.focus();
-        });
+        }, options);
         return card;
     }
 
@@ -107,11 +121,13 @@ export class ClientProposalResponseModule {
         request: () => Promise<ClientProposalDecision>,
         fallbackMessage: string
     ): Promise<void> {
+        const requestId = this.requestId;
         confirm.disabled = true;
         cancel.disabled = true;
         feedback.textContent = "";
         try {
             const result = await request();
+            if (!this.isActive(requestId)) return;
             const current = this.elements.list.querySelector<HTMLElement>(
                 `[data-proposal-id="${CSS.escape(result.proposal._id)}"]`
             );
@@ -119,11 +135,19 @@ export class ClientProposalResponseModule {
             renderProjectStages(this.progressRoot, result.projectStages, result.currentStageKey);
             dialog.close();
         } catch (error) {
+            if (!this.isActive(requestId)) return;
             feedback.textContent = error instanceof Error ? error.message : fallbackMessage;
         } finally {
+            if (!this.isActive(requestId)) return;
             confirm.disabled = false;
             cancel.disabled = false;
         }
+    }
+
+    private isActive(requestId: number): boolean {
+        return requestId === this.requestId
+            && Boolean(this.listeners)
+            && this.elements.list.isConnected;
     }
 
     private showValidation(feedback: HTMLElement, field: HTMLElement, message: string): void {
