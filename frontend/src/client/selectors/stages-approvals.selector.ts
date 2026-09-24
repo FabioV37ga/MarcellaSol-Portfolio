@@ -22,7 +22,7 @@ interface StagesApprovalsElements {
 
 function requiredElement<T extends HTMLElement>(selector: string): T {
     const element = document.querySelector<T>(selector);
-    if (!element) throw new Error(`Elemento ${selector} não encontrado.`);
+    if (!element) throw new Error(`Elemento ${selector} não encontrado na view de etapas e aprovações do cliente.`);
     return element;
 }
 

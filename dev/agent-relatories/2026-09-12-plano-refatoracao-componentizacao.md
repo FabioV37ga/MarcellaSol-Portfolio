@@ -920,3 +920,9 @@ Estado em 24/09/2026: **concluído; etapa 1/5**. A montagem da estrutura base, a
 Estado em 24/09/2026: **concluído; etapa 2/5**. A montagem da home, a seleção visual do item de navegação e os acessos rápidos para etapas/aprovações e financeiro foram extraídos para `ClientHomeModule`. `ClientSystemModules` apenas instancia o módulo e encaminha a rota `home`, sem conhecer os elementos ou eventos específicos da tela.
 
 O selector da home passou a validar os dois elementos obrigatórios e a identificar explicitamente uma view persistida incompatível. Testes unitários cobrem as duas rotas e a ausência de elementos; um E2E cobre a navegação pelos dois acessos rápidos, mas não foi executado conforme o padrão vigente. O build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: extrair etapas e aprovações.
+
+### Terceiro recorte — etapas e aprovações
+
+Estado em 24/09/2026: **concluído; etapa 3/5**. A montagem da tela, a navegação de retorno, o carregamento de propostas, a apresentação das etapas e os estados vazio e de erro foram extraídos para `ClientStagesApprovalsModule`. O módulo compõe `ClientProposalResponseModule`, mas não absorve as regras dos diálogos ou decisões sobre propostas.
+
+O ciclo de vida agora invalida carregamentos pendentes quando a tela é descartada, impedindo respostas antigas de alterarem uma interface que não está mais ativa. Testes unitários cobrem carregamento, navegação, falha e descarte durante uma requisição; foi adicionado um E2E para o estado de erro e retorno à home, sem execução conforme o padrão vigente. O build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: revisar o ciclo de vida das respostas a propostas e o financeiro residual.

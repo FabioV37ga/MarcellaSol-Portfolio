@@ -86,6 +86,25 @@ test("home do cliente encaminha os dois acessos rápidos", async ({ page }) => {
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("financial");
 });
 
+test("etapas e aprovações apresenta falha de carregamento sem bloquear a navegação", async ({ page }) => {
+    await mockClient(page);
+    await page.route("**/api/client/proposals", route => route.fulfill({
+        status: 503,
+        json: { message: "Propostas temporariamente indisponíveis." }
+    }));
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-stages-processes").click();
+
+    await expect(page.locator("#client-approvals-feedback"))
+        .toHaveText("Propostas temporariamente indisponíveis.");
+    await page.locator("#client-stages-back").click();
+    await expect(page.locator("#client-stages-processes")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("home");
+});
+
 test("cliente vê alterações concluídas sem nova aprovação", async ({ page }) => {
     await mockClient(page, "changes-completed");
     await page.goto("/cliente.html");

@@ -1,20 +1,18 @@
-import u from "umbrellajs";
 import ClientBriefingController from "../controllers/briefing.controller.js";
 import type { ClientRoute } from "../navigation/client-system.router.js";
 import type { system } from "../templates/interface.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
 import { ClientSystemApi } from "../infrastructure/client-system.api.js";
-import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
-import { renderProjectStages } from "@/shared/project-stages.js";
 import { ClientFinancialModule } from "./client-financial.module.js";
-import { ClientProposalResponseModule } from "./client-proposal-response.module.js";
 import { ClientHomeModule } from "./system/client-home.module.js";
 import { ClientShellModule } from "./system/client-shell.module.js";
+import { ClientStagesApprovalsModule } from "./system/client-stages-approvals.module.js";
 
 export class ClientSystemModules {
     private readonly financial: ClientFinancialModule;
     private readonly home: ClientHomeModule;
     private readonly shell: ClientShellModule;
+    private readonly stagesApprovals: ClientStagesApprovalsModule;
 
     constructor(
         private readonly view: ClientSystemView,
@@ -27,10 +25,18 @@ export class ClientSystemModules {
         this.financial = new ClientFinancialModule(view, models, api, token, navigate);
         this.home = new ClientHomeModule(view, models.home, navigate);
         this.shell = new ClientShellModule(view, models.base, token, navigate);
+        this.stagesApprovals = new ClientStagesApprovalsModule(
+            view,
+            models["stages-approvals"],
+            api,
+            token,
+            navigate
+        );
     }
 
     mount(route: ClientRoute, briefingStep?: number): void {
         if (route !== "financial") this.financial.dispose();
+        if (route !== "stages-approvals") this.stagesApprovals.dispose();
         document.body.classList.toggle("client-briefing-active", route === "briefing");
         switch (route) {
             case "base":
@@ -43,54 +49,12 @@ export class ClientSystemModules {
                 this.mountBriefing(briefingStep);
                 break;
             case "stages-approvals":
-                void this.mountStagesApprovals();
+                void this.stagesApprovals.mount(this.shell.stagesNavigation);
                 break;
             case "financial":
                 void this.financial.mount(this.shell.baseElements);
                 break;
         }
-    }
-
-    private async mountStagesApprovals(): Promise<void> {
-        const model = this.models["stages-approvals"];
-        if (!model) {
-            console.error('A view "stages-approvals" não foi encontrada para o cliente.');
-            return;
-        }
-
-        this.view.render(model, ".page-content");
-        this.view.styleNavButton(this.shell.stagesNavigation);
-        const elements = getStagesApprovalsElements();
-        const progressRoot = document.querySelector(".project-progress") ?? document;
-        u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
-        u(elements.back).off("click").on("click", () => this.navigate("home"));
-
-        const proposalResponses = new ClientProposalResponseModule(elements, this.api, this.token, progressRoot);
-        proposalResponses.mount();
-
-        try {
-            const project = await this.api.loadProposals(this.token);
-            renderProjectStages(progressRoot, project.projectStages, project.currentStageKey);
-            const proposals = project.proposals;
-            elements.list.replaceChildren();
-            if (proposals.length === 0) {
-                elements.loading.hidden = true;
-                elements.empty.hidden = false;
-                return;
-            }
-            elements.empty.hidden = true;
-            const items = document.createDocumentFragment();
-            proposals.forEach(proposal => items.append(proposalResponses.render(proposal)));
-            elements.list.append(items);
-        } catch (error) {
-            elements.loading.hidden = true;
-            elements.feedback.textContent = error instanceof Error
-                ? error.message
-                : "Não foi possível carregar as aprovações.";
-            return;
-        }
-
-        elements.loading.hidden = true;
     }
 
     private mountBriefing(step?: number): void {
