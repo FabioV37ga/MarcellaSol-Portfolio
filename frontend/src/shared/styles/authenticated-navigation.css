@@ -9,6 +9,7 @@
 
 .navigation-container-content {
     width: calc(100% - 32px);
+    height: 75px;
     /* background: blue; */
     display: flex;
     justify-content: space-between;

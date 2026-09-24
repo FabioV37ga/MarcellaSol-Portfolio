@@ -904,3 +904,13 @@ Testes estruturais protegem os imports, responsabilidades e uso do componente co
 Estado em 18/09/2026: **concluído; etapa finalizada em 5/5**. Os três resets idênticos de administrador, cliente e portfólio foram consolidados em `shared/styles/reset.css`, mantendo pontos de entrada compatíveis em cada aplicação. Seletores genéricos do briefing foram limitados a `.briefing-app` e ao estado `client-briefing-active`; o estado desabilitado do financeiro administrativo foi restringido ao seu contêiner e diálogos. Assim, folhas carregadas globalmente deixam de alterar controles pertencentes a outras telas.
 
 Testes estruturais protegem o reset compartilhado e impedem a reintrodução dos seletores globais auditados. A cobertura E2E do briefing verifica que o fundo específico só é aplicado durante o fluxo, mas não foi executada. A suíte comum e o build de produção foram aprovados. Não há alteração de view, migração ou sincronização do banco. Etapa priorizada 8: **5/5 concluída**. Próxima etapa priorizada: aplicação do cliente fora do briefing.
+
+## 31. Execução da Etapa priorizada 9 — aplicação do cliente fora do briefing
+
+A etapa será executada em cinco recortes: shell autenticado e navegação; home; etapas e aprovações; revisão dos módulos de resposta a propostas e financeiro; simplificação final da composição e do ciclo de vida da aplicação do cliente.
+
+### Primeiro recorte — shell autenticado e navegação
+
+Estado em 24/09/2026: **concluído; etapa 1/5**. A montagem da estrutura base, a navegação desktop e móvel e o encaminhamento do logout foram extraídos de `ClientSystemModules` para `ClientShellModule`. O módulo expõe somente os elementos de navegação necessários aos módulos de página e mantém os listeners globais vinculados ao ciclo de vida da view por `AbortController`.
+
+`ClientSystemModules` deixou de conhecer os detalhes de abertura, fechamento, teclado, redimensionamento e sincronização do menu móvel. O teste unitário passou a exercitar diretamente o novo componente, e foi adicionado um cenário E2E de navegação pelo shell móvel; conforme o padrão vigente, o E2E não foi executado. O build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: extrair a home do cliente.

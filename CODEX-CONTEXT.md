@@ -545,6 +545,7 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 9 — aplicação do cliente fora do briefing
 
+- Estado: em andamento, 1/5.
 - componentizar shell, home, etapas/aprovações e financeiro residual;
 - reduzir `ClientSystemModules` a composição e roteamento.
 
@@ -670,4 +671,15 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - As classes e a cascata da view persistida foram preservadas; não foi necessário sincronizar o banco.
 - Testes estruturais devem proteger os pontos de entrada e a responsabilidade de cada arquivo.
 - Mudanças desta etapa recebem cobertura E2E visual/comportamental aplicável, mas a suíte E2E só é executada quando o usuário solicitar explicitamente.
-- A próxima etapa priorizada é a Etapa 9, aplicação do cliente fora do briefing.
+- A etapa priorizada atual é a Etapa 9, aplicação do cliente fora do briefing.
+
+## 23. Estado atual da aplicação do cliente fora do briefing
+
+- A Etapa 9 foi dividida em cinco recortes: shell; home; etapas/aprovações; revisão de propostas e financeiro; simplificação final da composição e do ciclo de vida.
+- O primeiro recorte foi concluído em 24/09/2026, deixando a etapa em 1/5.
+- `ClientShellModule` é o proprietário da estrutura base autenticada, navegação desktop e móvel e encaminhamento do logout.
+- Listeners globais do menu móvel usam o ciclo de vida da `ClientSystemView` e são descartados com o corpo da aplicação.
+- `ClientSystemModules` deve continuar perdendo detalhes de interface até atuar somente como composição e roteamento.
+- Um E2E cobre a navegação móvel do shell, mas não foi executado conforme a regra vigente.
+- Não houve alteração de view persistida, migração ou sincronização do banco neste recorte.
+- O próximo recorte é a extração da home do cliente.

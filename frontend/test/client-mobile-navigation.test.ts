@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClientSystemModules } from "../src/client/modules/client-system.modules.js";
-import type ClientBriefingController from "../src/client/controllers/briefing.controller.js";
-import type { ClientSystemApi } from "../src/client/infrastructure/client-system.api.js";
-import type { system } from "../src/client/templates/interface.js";
+import { ClientShellModule } from "../src/client/modules/system/client-shell.module.js";
 import { ClientSystemView } from "../src/client/views/clientSystem.view.js";
 
 function baseTemplate(): HTMLElement {
@@ -40,16 +37,14 @@ describe("menu mobile do cliente", () => {
     it("abre e encaminha para a rota correspondente uma única vez", () => {
         const navigate = vi.fn();
         const view = new ClientSystemView();
-        const modules = new ClientSystemModules(
+        const shell = new ClientShellModule(
             view,
-            { base: baseTemplate() } satisfies system,
-            {} as ClientBriefingController,
-            {} as ClientSystemApi,
+            baseTemplate(),
             "test-token",
             navigate
         );
 
-        modules.mount("base");
+        shell.mount();
         const expandButton = document.querySelector<HTMLElement>(".expand-menu")!;
         const menu = document.querySelector<HTMLElement>("#client-mobile-navigation")!;
         const financial = menu.querySelectorAll<HTMLElement>(".mobile-navigation-item")[2];

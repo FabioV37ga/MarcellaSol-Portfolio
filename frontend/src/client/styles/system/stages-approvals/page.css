@@ -14,6 +14,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
+    margin-top: 15px;
     margin-bottom: 18px;
     color: var(--gray);
     font-size: 11px;

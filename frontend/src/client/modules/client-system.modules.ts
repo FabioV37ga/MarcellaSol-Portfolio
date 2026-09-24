@@ -1,20 +1,19 @@
 import u from "umbrellajs";
 import ClientBriefingController from "../controllers/briefing.controller.js";
 import type { ClientRoute } from "../navigation/client-system.router.js";
-import { getBaseElements, type baseElements } from "../selectors/base.selector.js";
 import { getHomeElements } from "../selectors/home.selector.js";
 import type { system } from "../templates/interface.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
 import { ClientSystemApi } from "../infrastructure/client-system.api.js";
 import { getStagesApprovalsElements } from "../selectors/stages-approvals.selector.js";
-import { logoutSession } from "@/shared/session/logout.js";
 import { renderProjectStages } from "@/shared/project-stages.js";
 import { ClientFinancialModule } from "./client-financial.module.js";
 import { ClientProposalResponseModule } from "./client-proposal-response.module.js";
+import { ClientShellModule } from "./system/client-shell.module.js";
 
 export class ClientSystemModules {
-    private baseElements?: baseElements;
     private readonly financial: ClientFinancialModule;
+    private readonly shell: ClientShellModule;
 
     constructor(
         private readonly view: ClientSystemView,
@@ -25,6 +24,7 @@ export class ClientSystemModules {
         private readonly navigate: (route: ClientRoute) => void
     ) {
         this.financial = new ClientFinancialModule(view, models, api, token, navigate);
+        this.shell = new ClientShellModule(view, models.base, token, navigate);
     }
 
     mount(route: ClientRoute, briefingStep?: number): void {
@@ -32,7 +32,7 @@ export class ClientSystemModules {
         document.body.classList.toggle("client-briefing-active", route === "briefing");
         switch (route) {
             case "base":
-                this.mountBase();
+                this.shell.mount();
                 break;
             case "home":
                 this.mountHome();
@@ -44,39 +44,19 @@ export class ClientSystemModules {
                 void this.mountStagesApprovals();
                 break;
             case "financial":
-                void this.financial.mount(this.baseElements);
+                void this.financial.mount(this.shell.baseElements);
                 break;
         }
     }
 
     private mountHome(): void {
         this.view.render(this.models.home, ".page-content");
-        this.view.styleNavButton(this.baseElements?.desktop_nav_home);
+        this.view.styleNavButton(this.shell.homeNavigation);
         const home = getHomeElements();
         u(home.stagesProcesses)
             .off("click")
             .on("click", () => this.navigate("stages-approvals"));
         u(home.financial)
-            .off("click")
-            .on("click", () => this.navigate("financial"));
-    }
-
-    private mountBase(): void {
-        this.view.render(this.models.base, "body");
-        this.baseElements = getBaseElements();
-        this.mountMobileNavigation();
-        this.view.styleNavButton(this.baseElements.desktop_nav_home);
-        u(this.baseElements.desktop_logout).off("click").on("click", () => {
-            void logoutSession("client", this.token);
-        });
-
-        u(this.baseElements.desktop_nav_home)
-            .off("click")
-            .on("click", () => this.navigate("home"));
-        u(this.baseElements.desktop_nav_client)
-            .off("click")
-            .on("click", () => this.navigate("stages-approvals"));
-        u(this.baseElements.desktop_nav_financial)
             .off("click")
             .on("click", () => this.navigate("financial"));
     }
@@ -89,7 +69,7 @@ export class ClientSystemModules {
         }
 
         this.view.render(model, ".page-content");
-        this.view.styleNavButton(this.baseElements?.desktop_nav_client);
+        this.view.styleNavButton(this.shell.stagesNavigation);
         const elements = getStagesApprovalsElements();
         const progressRoot = document.querySelector(".project-progress") ?? document;
         u(elements.homeIndex).off("click").on("click", () => this.navigate("home"));
@@ -121,70 +101,6 @@ export class ClientSystemModules {
         }
 
         elements.loading.hidden = true;
-    }
-
-    private mountMobileNavigation(): void {
-        const expandButton = this.baseElements?.mobile_expand_button;
-        const desktopNavigation = document.querySelector<HTMLElement>(".desktop-navigation");
-        const menu = document.querySelector<HTMLElement>("#client-mobile-navigation");
-        if (!expandButton || !desktopNavigation || !menu) return;
-        const globalListeners = new AbortController();
-        this.view.registerDisposer(() => globalListeners.abort(), "body");
-
-        const closeMenu = (): void => {
-            menu.classList.remove("mobile-navigation-menu-open");
-            menu.setAttribute("aria-hidden", "true");
-            expandButton.setAttribute("aria-expanded", "false");
-            expandButton.setAttribute("aria-label", "Abrir menu de navegação");
-            expandButton.querySelector("i")?.classList.replace("fa-times", "fa-bars");
-        };
-
-        const toggleMenu = (): void => {
-            const willOpen = !menu.classList.contains("mobile-navigation-menu-open");
-            menu.classList.toggle("mobile-navigation-menu-open", willOpen);
-            menu.setAttribute("aria-hidden", String(!willOpen));
-            expandButton.setAttribute("aria-expanded", String(willOpen));
-            expandButton.setAttribute("aria-label", willOpen ? "Fechar menu de navegação" : "Abrir menu de navegação");
-            expandButton.querySelector("i")?.classList.replace(
-                willOpen ? "fa-bars" : "fa-times",
-                willOpen ? "fa-times" : "fa-bars"
-            );
-        };
-
-        expandButton.addEventListener("click", toggleMenu);
-        expandButton.addEventListener("keydown", (event: KeyboardEvent) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            toggleMenu();
-        });
-
-        const desktopItems = Array.from(desktopNavigation.querySelectorAll<HTMLElement>(".desktop-navigation-item"));
-        const mobileItems = Array.from(menu.querySelectorAll<HTMLElement>(".mobile-navigation-item"));
-        mobileItems.forEach((item, index) => {
-            item.addEventListener("click", () => {
-                desktopItems[index]?.click();
-                mobileItems.forEach(mobileItem => mobileItem.classList.remove("mobile-nav-item-selected"));
-                item.classList.add("mobile-nav-item-selected");
-                closeMenu();
-            });
-        });
-
-        const desktopLogout = document.querySelector<HTMLElement>(".logout-desktop");
-        menu.querySelector<HTMLElement>(".logout-mobile")?.addEventListener("click", () => {
-            desktopLogout?.click();
-            closeMenu();
-        });
-
-        document.addEventListener("click", (event: MouseEvent) => {
-            const target = event.target as Node;
-            if (!menu.contains(target) && !expandButton.contains(target)) closeMenu();
-        }, { signal: globalListeners.signal });
-        document.addEventListener("keydown", (event: KeyboardEvent) => {
-            if (event.key === "Escape") closeMenu();
-        }, { signal: globalListeners.signal });
-        window.addEventListener("resize", () => {
-            if (window.innerWidth >= 900) closeMenu();
-        }, { signal: globalListeners.signal });
     }
 
     private mountBriefing(step?: number): void {

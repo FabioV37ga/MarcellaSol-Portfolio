@@ -42,6 +42,27 @@ async function mockClient(page: Page, status = "sent"): Promise<void> {
     }));
 }
 
+test("navega pelo shell móvel do cliente e fecha o menu", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await mockClient(page);
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+
+    const expand = page.locator(".expand-menu");
+    const menu = page.locator("#client-mobile-navigation");
+    await expand.click();
+    await expect(expand).toHaveAttribute("aria-expanded", "true");
+    await expect(menu).toHaveClass(/mobile-navigation-menu-open/);
+    await menu.locator(".mobile-navigation-item").nth(1).click();
+
+    await expect(page.locator(".stages-approvals-page")).toBeVisible();
+    await expect(menu).not.toHaveClass(/mobile-navigation-menu-open/);
+    await expect(expand).toHaveAttribute("aria-expanded", "false");
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("stages-approvals");
+});
+
 test("cliente vê alterações concluídas sem nova aprovação", async ({ page }) => {
     await mockClient(page, "changes-completed");
     await page.goto("/cliente.html");
