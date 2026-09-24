@@ -411,24 +411,18 @@ Separar home, aprovações, financeiro, sessão e navegação.
 
 ## 14. Setor K — portfólio público
 
-### Responsabilidade desejada
+### Estado
 
-Manter o portfólio simples, isolando carregamento de projetos, animações e apresentação.
+**Aguardando descrição de arquitetura.**
 
-### Componentes propostos
+A arquitetura, a experiência de uso, as responsabilidades e a estratégia de implementação desta área ainda serão definidas pelo responsável do projeto. As propostas anteriores para navegação, carregamento, renderização, componentes visuais e animações foram retiradas do planejamento.
 
-- API de projetos;
-- mapper/presenter de projeto;
-- carousel de projetos;
-- ciclo de vida das animações;
-- selectors específicos por página.
+Até que uma nova descrição seja fornecida:
 
-### Critério de conclusão
-
-- `app.ts` somente inicializa e compõe;
-- animações não mantêm listeners duplicados;
-- páginas públicas podem ser construídas sem dependências administrativas;
-- aparência responsiva permanece igual.
+- não iniciar refatoração ou componentização do portfólio público;
+- não presumir módulos, fluxos, contratos ou estrutura de diretórios futuros;
+- preservar o funcionamento atual em alterações feitas nas demais áreas;
+- elaborar um novo planejamento somente depois da definição de arquitetura e usabilidade pelo responsável do projeto.
 
 ## 15. Setor L — views persistidas no banco
 
@@ -615,7 +609,7 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 8. CSS das telas complexas;
 9. aplicação do cliente fora do briefing;
 10. persistência e listagens;
-11. portfólio público.
+11. portfólio público — aguardando descrição de arquitetura.
 
 Fluxo resumido:
 
@@ -630,7 +624,7 @@ Briefing do cliente
 → CSS
 → módulos restantes do cliente
 → persistência
-→ portfólio público
+→ portfólio público (aguardando descrição de arquitetura)
 ```
 
 ### Primeiro recorte desta ordem
@@ -938,3 +932,15 @@ No financeiro, todos os eventos da tela foram associados a um `AbortController`,
 Estado em 24/09/2026: **concluído; etapa finalizada em 5/5**. A entrada no briefing foi encapsulada em `ClientBriefingRouteModule`, que controla montagem única, inicialização e encaminhamento da etapa restaurada. `ClientSystemModules` passou a compor exclusivamente módulos de rota — shell, home, briefing, etapas/aprovações e financeiro — e não retém mais view, modelos, API, token ou callback de navegação depois de construir seus componentes.
 
 Testes unitários cobrem montagem única do briefing, etapas válidas e inválidas e restauração da tela de etapas/aprovações depois do shell. Um E2E cobre restauração direta dessa tela com sessão salva, mas não foi executado conforme o padrão vigente. A suíte comum e o build de produção foram aprovados. Não há alteração de view, migração ou sincronização do banco. Etapa priorizada 9: **5/5 concluída**. Próxima etapa priorizada: persistência e listagens.
+
+## 32. Execução da Etapa priorizada 10 — persistência e listagens
+
+A etapa será executada em cinco recortes: portas mínimas de consulta; paginação de clientes; paginação de propostas; compatibilidade e concorrência financeira; revisão final das fronteiras de persistência e listagens.
+
+Alterações desta etapa devem ser incrementais. Pagamentos reais não podem ser regravados ou migrados como efeito de uma refatoração, e qualquer índice novo deverá ser justificado pela consulta que o utiliza e aplicado por operação explícita.
+
+### Primeiro recorte — portas mínimas de consulta
+
+Estado em 24/09/2026: **concluído; etapa 1/5**. Foram criadas `ClientListingRepository` e `BriefingListingRepository` na camada de portas da aplicação. `ListClientsService` passou a depender somente das quatro consultas necessárias para listar clientes e carregar detalhes, sem importar as classes concretas de persistência nem receber capacidades de escrita.
+
+Os registros projetados pela consulta administrativa possuem contratos explícitos, preservando `ObjectId`, etapas e definição legada do briefing neste recorte incremental. Teste de contrato garante que a listagem utiliza apenas as consultas mínimas; foi adicionado um E2E para a apresentação de nome, tipo, etapa e status devolvidos pela consulta, mas não foi executado conforme o padrão vigente. O build do backend foi aprovado. Não houve escrita, migração, índice, alteração de view ou acesso a pagamentos reais. Próximo recorte: paginação da listagem de clientes.

@@ -249,6 +249,30 @@ test("lista e exclui um cliente com confirmação nominal", async ({ page }) => 
     expect(JSON.parse(deletionBody)).toEqual({ confirmationName: "Cliente Exclusão E2E" });
 });
 
+test("lista clientes com etapa, status e tipo fornecidos pela consulta administrativa", async ({ page }) => {
+    await mockAdminApi(page, [{
+        id: "client-list-contract",
+        name: "Cliente Listagem",
+        type: "Apartamento",
+        hasFilledBriefing: true,
+        currentStageKey: "survey",
+        currentStageStatus: "in-progress"
+    }]);
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+
+    const row = page.locator("[data-client-id='client-list-contract']");
+    await expect(row).toContainText("Cliente Listagem");
+    await expect(row).toContainText("Apartamento");
+    await expect(row).toContainText("Levantamento");
+    await expect(row).toContainText("Em andamento");
+    await expect(row).toHaveAttribute("data-stage-key", "survey");
+    await expect(row).toHaveAttribute("data-stage-status", "in-progress");
+});
+
 test("recupera falha ao gerar relatório de briefing e permite acessar após nova tentativa", async ({ page }) => {
     const client = {
         id: "client-management-e2e",

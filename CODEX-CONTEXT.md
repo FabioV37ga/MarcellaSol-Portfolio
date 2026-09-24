@@ -551,6 +551,7 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 10 — persistência e listagens
 
+- Estado: em andamento, 1/5.
 - portas mínimas;
 - paginação de clientes e propostas;
 - compatibilidade legada;
@@ -559,9 +560,11 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 11 — portfólio público
 
-- separar navegação, carregamento e renderização;
-- revisar estrutura de diretórios real do `portfolio`;
-- melhorar leitura sem introduzir framework novo.
+- Estado: aguardando descrição de arquitetura e usabilidade pelo responsável do projeto.
+- A metodologia anteriormente planejada foi desconsiderada.
+- Não presumir componentes, módulos, fluxos, contratos ou organização futura para esta etapa.
+- Não iniciar alterações estruturais no portfólio público até o usuário fornecer a nova descrição.
+- Ao receber a descrição, criar um planejamento novo antes de implementar.
 
 Itens de governança posteriores:
 
@@ -691,3 +694,14 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - Um E2E cobre a navegação móvel do shell, mas não foi executado conforme a regra vigente.
 - Não houve alteração de view persistida, migração ou sincronização do banco neste recorte.
 - A próxima etapa priorizada é a Etapa 10, persistência e listagens, com atenção máxima à compatibilidade dos pagamentos reais.
+
+## 24. Estado atual da persistência e listagens
+
+- A Etapa 10 foi dividida em cinco recortes: portas mínimas; paginação de clientes; paginação de propostas; compatibilidade/concorrência financeira; revisão final.
+- O primeiro recorte foi concluído em 24/09/2026, deixando a etapa em 1/5.
+- `ListClientsService` depende de `ClientListingRepository` e `BriefingListingRepository`, não das classes concretas completas.
+- As portas de listagem expõem apenas leitura administrativa de clientes e definições de briefing; capacidades de escrita não atravessam essa fronteira.
+- A manutenção temporária de `ObjectId` nos registros projetados é uma decisão incremental e não autoriza documentos Mongoose completos na resposta HTTP.
+- Refatorações desta etapa não podem escrever, migrar ou recalcular pagamentos reais como efeito colateral.
+- Índices de banco só podem ser introduzidos quando houver consulta e cardinalidade justificadas, por operação explícita.
+- O próximo recorte é a paginação da listagem administrativa de clientes.

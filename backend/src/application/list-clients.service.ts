@@ -1,7 +1,9 @@
-import { ClientBriefingRepository } from "../repositories/client-briefing.repository.js";
-import { ClientRepository } from "../repositories/client.repository.js";
 import mongoose from "mongoose";
 import { ApplicationError } from "./errors/application-error.js";
+import type {
+    BriefingListingRepository,
+    ClientListingRepository
+} from "./ports/client-listing.repositories.js";
 import {
     hasConfiguredProjectStageOrder,
     isProjectStageKey,
@@ -28,8 +30,8 @@ export interface AdminClientDetails extends AdminClientListItem {
 
 export class ListClientsService {
     constructor(
-        private readonly clients: ClientRepository,
-        private readonly briefings: ClientBriefingRepository
+        private readonly clients: ClientListingRepository,
+        private readonly briefings: BriefingListingRepository
     ) { }
 
     async execute(): Promise<AdminClientListItem[]> {

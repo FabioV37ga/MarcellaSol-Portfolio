@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import mongoose from "mongoose";
 import { DeleteClientService } from "../dist/src/application/delete-client.service.js";
 import { ListClientsService } from "../dist/src/application/list-clients.service.js";
 
@@ -115,4 +116,42 @@ test("listagem administrativa retorna a etapa e o status atuais de cada cliente"
         { name: "Cliente A", type: "Apartamento", stage: "survey", status: "in-progress" },
         { name: "Cliente B", type: "Não informado", stage: "briefing", status: "not-started" }
     ]);
+});
+
+test("listagem administrativa depende somente das consultas mínimas de clientes e briefings", async () => {
+    const clientId = new mongoose.Types.ObjectId("507f1f77bcf86cd799439013");
+    const calls = [];
+    const service = new ListClientsService(
+        {
+            async findAllForAdmin() {
+                calls.push("clients:list");
+                return [{
+                    _id: clientId,
+                    name: "Cliente Consulta",
+                    hasFilledBriefing: false,
+                    currentStageKey: "briefing",
+                    projectStages: []
+                }];
+            },
+            async findByIdForAdmin() {
+                calls.push("clients:details");
+                return null;
+            }
+        },
+        {
+            async findByClientIds(ids) {
+                calls.push(`briefings:list:${ids.length}`);
+                return [];
+            },
+            async findByClientIdForAdmin() {
+                calls.push("briefings:details");
+                return null;
+            }
+        }
+    );
+
+    const result = await service.execute();
+
+    assert.equal(result[0].name, "Cliente Consulta");
+    assert.deepEqual(calls, ["clients:list", "briefings:list:1"]);
 });
