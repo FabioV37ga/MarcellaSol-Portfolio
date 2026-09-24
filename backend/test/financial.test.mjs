@@ -185,9 +185,9 @@ test("consulta financeira usa exclusivamente o cliente recebido da sessão", asy
         TEST_PIX_RECEIVER,
         { async findById(id) { assert.equal(id, clientId); return { _id: id }; } },
         {
-            async findByClientId(id) {
+            async findPageByClientId(id) {
                 queriedIds.push(id);
-                return [{
+                return { records: [{
                     _id: { toString: () => "507f1f77bcf86cd799439012" },
                     clientId: { toString: () => clientId },
                     title: "Projeto completo",
@@ -208,13 +208,21 @@ test("consulta financeira usa exclusivamente o cliente recebido da sessão", asy
                     ],
                     createdAt: new Date(),
                     updatedAt: new Date()
-                }];
+                }], hasMore: false };
+            },
+            async summarizeByClientId(id) {
+                queriedIds.push(id);
+                return { paymentCount: 1, totalAmountCents: 100000, paidAmountCents: 55000, remainingAmountCents: 45000 };
+            },
+            async findHighlightCandidatesByClientId(id) {
+                queriedIds.push(id);
+                return {};
             }
         }
     );
 
     const result = await service.list(clientId);
-    assert.deepEqual(queriedIds, [clientId]);
+    assert.deepEqual(queriedIds, [clientId, clientId, clientId]);
     assert.equal(result.payments[0].paidAmountCents, 55000);
     assert.equal(result.payments[0].remainingAmountCents, 45000);
     assert.equal(result.summary.paidAmountCents, 55000);
@@ -226,8 +234,8 @@ test("resposta financeira do cliente omite identificadores e cálculos internos"
         TEST_PIX_RECEIVER,
         { async findById() { return { _id: clientId }; } },
         {
-            async findByClientId() {
-                return [{
+            async findPageByClientId() {
+                return { records: [{
                     _id: { toString: () => "507f1f77bcf86cd799439012" },
                     __v: 4,
                     clientId: { toString: () => clientId },
@@ -247,8 +255,12 @@ test("resposta financeira do cliente omite identificadores e cálculos internos"
                     installments: [{ number: 1, amountCents: 10000, isPaid: false, dueDate: "2026-10-03" }],
                     createdAt: new Date(),
                     updatedAt: new Date()
-                }];
-            }
+                }], hasMore: false };
+            },
+            async summarizeByClientId() {
+                return { paymentCount: 1, totalAmountCents: 10000, paidAmountCents: 0, remainingAmountCents: 10000 };
+            },
+            async findHighlightCandidatesByClientId() { return {}; }
         }
     );
 

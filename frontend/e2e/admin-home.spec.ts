@@ -488,6 +488,60 @@ test("financeiro preserva formulário após erro de prévia, permite nova tentat
     expect(pageErrors).toEqual([]);
 });
 
+test("financeiro acrescenta a próxima página sem remover pagamentos já exibidos", async ({ page }) => {
+    const client = {
+        id: "client-financial-pagination", name: "Cliente Paginação", type: "residencial",
+        hasFilledBriefing: false, currentStageKey: "briefing", currentStageStatus: "not-started"
+    };
+    const payment = (id: string, title: string, createdAt: string) => ({
+        id, version: 0, clientId: client.id, title,
+        currency: "BRL", timeZone: "America/Sao_Paulo", status: "open",
+        totalAmountCents: 100000, installmentCount: 1, firstDueDate: "2026-10-01",
+        downPaymentPercentage: 0, discountPercentage: 0, interestPercentage: 0,
+        discountAmountCents: 0, downPayment: { amountCents: 0, isPaid: false, status: "not-applicable" },
+        financedAmountCents: 100000, interestAmountCents: 0, installmentTotalCents: 100000,
+        finalAmountCents: 100000, paidAmountCents: 0, remainingAmountCents: 100000,
+        financialTermsLocked: false,
+        installments: [{ number: 1, amountCents: 100000, isPaid: false, status: "pending", dueDate: "2026-11-01" }],
+        createdAt, updatedAt: createdAt
+    });
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/client-financial-pagination", route => route.fulfill({
+        json: { client: { ...client, projectStages: [], hasProjectStageOrder: false } }
+    }));
+    const cursors: string[] = [];
+    await page.route("**/api/admin/clients/client-financial-pagination/payments**", route => {
+        const cursor = new URL(route.request().url()).searchParams.get("cursor");
+        cursors.push(cursor ?? "primeira");
+        const secondPage = cursor === "financial-cursor-2";
+        return route.fulfill({ json: {
+            payments: [secondPage
+                ? payment("payment-b", "Projeto B", "2026-09-01T10:00:00.000Z")
+                : payment("payment-a", "Projeto A", "2026-09-02T10:00:00.000Z")],
+            page: secondPage
+                ? { limit: 1, hasMore: false }
+                : { limit: 1, hasMore: true, nextCursor: "financial-cursor-2" },
+            summary: { paymentCount: 2, totalAmountCents: 200000, paidAmountCents: 0, remainingAmountCents: 200000 }
+        } });
+    });
+
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='client-financial-pagination']").click();
+    await page.locator("#client-management-financial").click();
+
+    await expect(page.locator("#financial-payments-list")).toContainText("Projeto A");
+    await page.locator("#financial-load-more").click();
+    await expect(page.locator("#financial-payments-list")).toContainText("Projeto A");
+    await expect(page.locator("#financial-payments-list")).toContainText("Projeto B");
+    await expect(page.locator("#financial-pagination-status")).toHaveText("2 de 2 pagamentos exibidos");
+    await expect(page.locator("#financial-load-more")).toBeHidden();
+    expect(cursors).toEqual(["primeira", "financial-cursor-2"]);
+});
+
 test("financeiro recarrega a cobrança após conflito com outra sessão", async ({ page }) => {
     const client = {
         id: "client-financial-conflict", name: "Cliente Concorrência", type: "residencial",

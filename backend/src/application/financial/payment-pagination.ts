@@ -1,10 +1,14 @@
 import mongoose from "mongoose";
 import type { ClientPaymentObject } from "../../models/clientPayment.js";
 import { FINANCIAL_TIME_ZONE } from "../../domain/financial-domain.js";
-import { ClientPaymentRepository } from "../../repositories/client-payment.repository.js";
-import type { PaymentHighlightCandidate, PaymentHighlightCandidates } from "../../repositories/client-payment.repository.js";
 import { ApplicationError } from "../errors/application-error.js";
-import { paymentResponse, pixAnalysisWindowEnd } from "./payment-presenter.js";
+import type {
+    PaymentHighlightCandidate,
+    PaymentHighlightCandidates,
+    PaymentListingRepository,
+    PaymentSummary
+} from "../ports/payment-listing.repository.js";
+import { pixAnalysisWindowEnd } from "./payment-presenter.js";
 
 const DEFAULT_PAYMENT_PAGE_SIZE = 20;
 const MAX_PAYMENT_PAGE_SIZE = 100;
@@ -29,7 +33,7 @@ export function paymentPageOptions(cursorValue: unknown, limitValue: unknown) {
 
 export function paymentPageResponse<T>(
     page: { records: ClientPaymentObject[]; hasMore: boolean },
-    summary: { paymentCount: number; totalAmountCents: number; paidAmountCents: number; remainingAmountCents: number },
+    summary: PaymentSummary,
     highlight: ReturnType<typeof paymentHighlightResponse> | undefined,
     limit: number,
     presenter: (payment: ClientPaymentObject) => T
@@ -47,39 +51,21 @@ export function paymentPageResponse<T>(
 }
 
 export async function loadPaymentPage(
-    repository: ClientPaymentRepository,
+    repository: PaymentListingRepository,
     clientId: string,
     options: ReturnType<typeof paymentPageOptions>,
     now = new Date()
 ) {
-    const compatible = repository as ClientPaymentRepository & {
-        findByClientId?: (id: string) => Promise<ClientPaymentObject[]>;
-    };
-    if (typeof compatible.findPageByClientId === "function" && typeof compatible.summarizeByClientId === "function") {
-        const today = dateOnlyInFinancialTimeZone(now);
-        const monthStart = `${today.slice(0, 8)}01`;
-        const [year, month] = today.split("-").map(Number);
-        const nextMonthStart = `${month === 12 ? year + 1 : year}-${String(month === 12 ? 1 : month + 1).padStart(2, "0")}-01`;
-        const [page, summary, candidates] = await Promise.all([
-            compatible.findPageByClientId(clientId, options), compatible.summarizeByClientId(clientId),
-            typeof compatible.findHighlightCandidatesByClientId === "function"
-                ? compatible.findHighlightCandidatesByClientId(clientId, today, monthStart, nextMonthStart)
-                : Promise.resolve(undefined)
-        ]);
-        return { page, summary, highlight: candidates ? selectPaymentHighlight(candidates, today, now) : undefined };
-    }
-    const records = await compatible.findByClientId?.(clientId) ?? [];
-    const responses = records.map(paymentResponse);
-    return {
-        page: { records, hasMore: false },
-        summary: {
-            paymentCount: records.length,
-            totalAmountCents: responses.reduce((total, payment) => total + payment.finalAmountCents, 0),
-            paidAmountCents: responses.reduce((total, payment) => total + payment.paidAmountCents, 0),
-            remainingAmountCents: responses.reduce((total, payment) => total + payment.remainingAmountCents, 0)
-        },
-        highlight: selectPaymentHighlightFromRecords(records, now)
-    };
+    const today = dateOnlyInFinancialTimeZone(now);
+    const monthStart = `${today.slice(0, 8)}01`;
+    const [year, month] = today.split("-").map(Number);
+    const nextMonthStart = `${month === 12 ? year + 1 : year}-${String(month === 12 ? 1 : month + 1).padStart(2, "0")}-01`;
+    const [page, summary, candidates] = await Promise.all([
+        repository.findPageByClientId(clientId, options),
+        repository.summarizeByClientId(clientId),
+        repository.findHighlightCandidatesByClientId(clientId, today, monthStart, nextMonthStart)
+    ]);
+    return { page, summary, highlight: selectPaymentHighlight(candidates, today, now) };
 }
 
 export function selectPaymentHighlight(candidates: PaymentHighlightCandidates, today: string, now = new Date()) {
@@ -91,32 +77,6 @@ export function selectPaymentHighlight(candidates: PaymentHighlightCandidates, t
         ?? nextWithinWindow
         ?? candidates.currentLast
         ?? candidates.latestPast, now);
-}
-
-function selectPaymentHighlightFromRecords(records: ClientPaymentObject[], now: Date) {
-    const candidates = records.flatMap<PaymentHighlightCandidate>(payment => {
-        const down = payment.downPayment.amountCents > 0 ? [{
-            paymentId: payment._id, paymentTitle: payment.title,
-            partType: "down-payment" as const, amountCents: payment.downPayment.amountCents,
-            dueDate: payment.downPayment.dueDate ?? payment.firstDueDate, isPaid: payment.downPayment.isPaid,
-            pix: payment.downPayment.pix
-        }] : [];
-        return [...down, ...payment.installments.map(part => ({
-            paymentId: payment._id, paymentTitle: payment.title,
-            partType: "installment" as const, installmentNumber: part.number, amountCents: part.amountCents,
-            dueDate: part.dueDate, isPaid: part.isPaid, pix: part.pix
-        }))];
-    }).filter(part => typeof part.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(part.dueDate))
-        .sort((left, right) => left.dueDate.localeCompare(right.dueDate));
-    const today = dateOnlyInFinancialTimeZone(now);
-    const month = today.slice(0, 7);
-    const overdue = candidates.find(part => !part.isPaid && part.dueDate < today);
-    const current = candidates.filter(part => part.dueDate.startsWith(month));
-    const currentCandidate = current.find(part => !part.isPaid) ?? current[current.length - 1];
-    const next = candidates.find(part => !part.isPaid && part.dueDate > today);
-    return paymentHighlightResponse(overdue ?? (currentCandidate && !currentCandidate.isPaid ? currentCandidate : undefined)
-        ?? (next && dateOnlyDifference(today, next.dueDate) <= 28 ? next : undefined)
-        ?? currentCandidate ?? [...candidates].reverse().find(part => part.dueDate <= today), now);
 }
 
 function paymentHighlightResponse(candidate: PaymentHighlightCandidate | undefined, now = new Date()) {

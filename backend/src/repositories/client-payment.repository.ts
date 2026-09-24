@@ -1,4 +1,10 @@
 import mongoose, { type ClientSession, type QueryOptions, type UpdateQuery } from "mongoose";
+import type {
+    PaymentHighlightCandidate,
+    PaymentHighlightCandidates,
+    PaymentListingRepository,
+    PaymentPageOptions
+} from "../application/ports/payment-listing.repository.js";
 import { FINANCIAL_CURRENCY, FINANCIAL_TIME_ZONE } from "../domain/financial-domain.js";
 import type { ChargeStatus } from "../domain/financial-domain.js";
 import financialEvents, { type FinancialEventObject, type FinancialEventType } from "../models/financialEvent.js";
@@ -6,28 +12,7 @@ import payments, { type ClientPaymentObject, type PaymentAuditEvent, type PixPay
 
 export type PaymentData = Omit<ClientPaymentObject, "_id" | "createdAt" | "updatedAt" | "__v">;
 export type PaymentTermsData = Omit<PaymentData, "clientId" | "events" | "archivedAt" | "currency" | "timeZone" | "status" | "hasReceiptHistory">;
-export interface PaymentPageCursor { createdAt: Date; id: mongoose.Types.ObjectId }
-export interface PaymentPageOptions { limit: number; cursor?: PaymentPageCursor }
-export interface PaymentHighlightCandidate {
-    paymentId: mongoose.Types.ObjectId;
-    paymentTitle: string;
-    partType: "down-payment" | "installment";
-    installmentNumber?: number;
-    amountCents: number;
-    dueDate: string;
-    isPaid: boolean;
-    pix?: PixPaymentRequest;
-}
-
-export interface PaymentHighlightCandidates {
-    overdue?: PaymentHighlightCandidate;
-    currentUnpaid?: PaymentHighlightCandidate;
-    currentLast?: PaymentHighlightCandidate;
-    nextUnpaid?: PaymentHighlightCandidate;
-    latestPast?: PaymentHighlightCandidate;
-}
-
-export class ClientPaymentRepository {
+export class ClientPaymentRepository implements PaymentListingRepository {
     async findPageByClientId(clientId: string, options: PaymentPageOptions) {
         const cursorFilter = options.cursor ? {
             $or: [

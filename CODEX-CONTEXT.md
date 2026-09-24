@@ -715,7 +715,7 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 ## 24. Estado atual da persistência e listagens
 
 - A Etapa 10 foi dividida em cinco recortes: portas mínimas; paginação de clientes; paginação de propostas; compatibilidade/concorrência financeira; revisão final.
-- Os quatro primeiros recortes foram concluídos em 24/09/2026, deixando a etapa em 4/5.
+- Os cinco recortes foram concluídos em 24/09/2026.
 - `ListClientsService` depende de `ClientListingRepository` e `BriefingListingRepository`, não das classes concretas completas.
 - As portas de listagem expõem apenas leitura administrativa de clientes e definições de briefing; capacidades de escrita não atravessam essa fronteira.
 - A manutenção temporária de `ObjectId` nos registros projetados é uma decisão incremental e não autoriza documentos Mongoose completos na resposta HTTP.
@@ -732,8 +732,11 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - A concorrência financeira continua baseada em `__v`, filtros atômicos por cliente e versão, transação MongoDB e evento de auditoria na mesma transação.
 - Quando o administrador recebe o conflito 409 com código `PAYMENT_VERSION_CONFLICT`, o frontend descarta o estado obsoleto, recarrega a primeira página e passa a operar sobre a versão atual.
 - A recuperação se aplica à edição, remoção e confirmação/reversão manual de entrada ou parcela; outros erros 409 preservam seus fluxos específicos.
-- Nenhuma migração, escrita em banco ou execução da integração MongoDB foi realizada durante este recorte.
-- O próximo recorte é a revisão final da Etapa 10.
+- A revisão final tornou obrigatórias as consultas financeiras limitadas por página, resumo agregado e destaque limitado, removendo o fallback que carregava todos os pagamentos em memória.
+- `PaymentListingRepository` é a porta mínima de leitura financeira; o repositório MongoDB a implementa sem expor suas capacidades de mutação ao componente de paginação.
+- O E2E administrativo cobre a adição da próxima página financeira sem remover os pagamentos anteriores, mas não foi executado automaticamente.
+- Nenhuma migração, escrita em banco ou execução da integração MongoDB foi realizada durante esta etapa.
+- A Etapa 10 está concluída. A Etapa 11 aguarda descrição de arquitetura do usuário e a Etapa 12 permanece apenas planejada.
 
 ## 25. Planejamento da persistência visual
 

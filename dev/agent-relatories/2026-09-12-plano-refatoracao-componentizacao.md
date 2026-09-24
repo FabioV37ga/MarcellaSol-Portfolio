@@ -614,7 +614,7 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 
 ### Execução da Etapa priorizada 10 — persistência e listagens
 
-Estado em 24/09/2026: **quarto recorte concluído; Etapa 10 em 4/5**.
+Estado em 24/09/2026: **Etapa 10 concluída (5/5)**.
 
 - O primeiro recorte restringiu `ListClientsService` às portas mínimas de listagem de clientes e briefings.
 - O segundo recorte implementou paginação por cursor opaco na listagem administrativa de clientes, ordenada por `_id` decrescente, com 20 itens por padrão e máximo de 50.
@@ -630,7 +630,11 @@ Estado em 24/09/2026: **quarto recorte concluído; Etapa 10 em 4/5**.
 - O frontend administrativo agora reconhece o conflito de concorrência 409 pelo código estável `PAYMENT_VERSION_CONFLICT`, descarta o estado obsoleto e recarrega a primeira página antes de permitir nova ação.
 - Conflitos funcionais distintos, como bloqueio de condições após recebimento e confirmação reforçada de remoção, não são confundidos com concorrência.
 - Nenhum pagamento ou outro dado real foi escrito, migrado ou recalculado.
-- O próximo recorte será a revisão final da Etapa 10.
+- A revisão final eliminou a leitura financeira legada sem limite: listagens agora dependem obrigatoriamente de página limitada, resumo agregado e consulta limitada do destaque.
+- O contrato dessas três leituras foi isolado em `PaymentListingRepository`; o repositório MongoDB continua como adaptador concreto e as mutações financeiras permanecem inalteradas.
+- A cobertura E2E administrativa verifica que a segunda página financeira é acrescentada sem remover pagamentos já visíveis; conforme o padrão vigente, o E2E não foi executado automaticamente.
+- Não houve escrita, migração ou recálculo de pagamentos reais, nem mudança adicional em views persistidas.
+- A Etapa 11 permanece aguardando a descrição de arquitetura do portfólio público. A Etapa 12 está planejada, mas ainda não foi iniciada.
 
 Fluxo resumido:
 
