@@ -63,6 +63,29 @@ test("navega pelo shell móvel do cliente e fecha o menu", async ({ page }) => {
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("stages-approvals");
 });
 
+test("home do cliente encaminha os dois acessos rápidos", async ({ page }) => {
+    await mockClient(page);
+    await page.route("**/api/client/payments", route => route.fulfill({
+        json: {
+            payments: [],
+            page: { limit: 20, hasMore: false },
+            summary: { paymentCount: 0, totalAmountCents: 0, paidAmountCents: 0, remainingAmountCents: 0 }
+        }
+    }));
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+
+    await page.locator("#client-stages-processes").click();
+    await expect(page.locator(".stages-approvals-page")).toBeVisible();
+    await page.locator("#client-nav-home").click();
+    await page.locator("#client-financial").click();
+
+    await expect(page.locator(".client-financial-page")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("financial");
+});
+
 test("cliente vê alterações concluídas sem nova aprovação", async ({ page }) => {
     await mockClient(page, "changes-completed");
     await page.goto("/cliente.html");

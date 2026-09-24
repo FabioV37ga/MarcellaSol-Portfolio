@@ -1,7 +1,6 @@
 import u from "umbrellajs";
 import ClientBriefingController from "../controllers/briefing.controller.js";
 import type { ClientRoute } from "../navigation/client-system.router.js";
-import { getHomeElements } from "../selectors/home.selector.js";
 import type { system } from "../templates/interface.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
 import { ClientSystemApi } from "../infrastructure/client-system.api.js";
@@ -9,10 +8,12 @@ import { getStagesApprovalsElements } from "../selectors/stages-approvals.select
 import { renderProjectStages } from "@/shared/project-stages.js";
 import { ClientFinancialModule } from "./client-financial.module.js";
 import { ClientProposalResponseModule } from "./client-proposal-response.module.js";
+import { ClientHomeModule } from "./system/client-home.module.js";
 import { ClientShellModule } from "./system/client-shell.module.js";
 
 export class ClientSystemModules {
     private readonly financial: ClientFinancialModule;
+    private readonly home: ClientHomeModule;
     private readonly shell: ClientShellModule;
 
     constructor(
@@ -24,6 +25,7 @@ export class ClientSystemModules {
         private readonly navigate: (route: ClientRoute) => void
     ) {
         this.financial = new ClientFinancialModule(view, models, api, token, navigate);
+        this.home = new ClientHomeModule(view, models.home, navigate);
         this.shell = new ClientShellModule(view, models.base, token, navigate);
     }
 
@@ -35,7 +37,7 @@ export class ClientSystemModules {
                 this.shell.mount();
                 break;
             case "home":
-                this.mountHome();
+                this.home.mount(this.shell.homeNavigation);
                 break;
             case "briefing":
                 this.mountBriefing(briefingStep);
@@ -47,18 +49,6 @@ export class ClientSystemModules {
                 void this.financial.mount(this.shell.baseElements);
                 break;
         }
-    }
-
-    private mountHome(): void {
-        this.view.render(this.models.home, ".page-content");
-        this.view.styleNavButton(this.shell.homeNavigation);
-        const home = getHomeElements();
-        u(home.stagesProcesses)
-            .off("click")
-            .on("click", () => this.navigate("stages-approvals"));
-        u(home.financial)
-            .off("click")
-            .on("click", () => this.navigate("financial"));
     }
 
     private async mountStagesApprovals(): Promise<void> {

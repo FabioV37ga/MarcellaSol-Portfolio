@@ -914,3 +914,9 @@ A etapa será executada em cinco recortes: shell autenticado e navegação; home
 Estado em 24/09/2026: **concluído; etapa 1/5**. A montagem da estrutura base, a navegação desktop e móvel e o encaminhamento do logout foram extraídos de `ClientSystemModules` para `ClientShellModule`. O módulo expõe somente os elementos de navegação necessários aos módulos de página e mantém os listeners globais vinculados ao ciclo de vida da view por `AbortController`.
 
 `ClientSystemModules` deixou de conhecer os detalhes de abertura, fechamento, teclado, redimensionamento e sincronização do menu móvel. O teste unitário passou a exercitar diretamente o novo componente, e foi adicionado um cenário E2E de navegação pelo shell móvel; conforme o padrão vigente, o E2E não foi executado. O build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: extrair a home do cliente.
+
+### Segundo recorte — home do cliente
+
+Estado em 24/09/2026: **concluído; etapa 2/5**. A montagem da home, a seleção visual do item de navegação e os acessos rápidos para etapas/aprovações e financeiro foram extraídos para `ClientHomeModule`. `ClientSystemModules` apenas instancia o módulo e encaminha a rota `home`, sem conhecer os elementos ou eventos específicos da tela.
+
+O selector da home passou a validar os dois elementos obrigatórios e a identificar explicitamente uma view persistida incompatível. Testes unitários cobrem as duas rotas e a ausência de elementos; um E2E cobre a navegação pelos dois acessos rápidos, mas não foi executado conforme o padrão vigente. O build de produção foi aprovado. Não há alteração de view, migração ou sincronização do banco. Próximo recorte: extrair etapas e aprovações.
