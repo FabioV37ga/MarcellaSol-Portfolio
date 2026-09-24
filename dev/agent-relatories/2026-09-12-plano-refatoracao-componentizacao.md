@@ -609,7 +609,8 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 8. CSS das telas complexas;
 9. aplicação do cliente fora do briefing;
 10. persistência e listagens;
-11. portfólio público — aguardando descrição de arquitetura.
+11. portfólio público — aguardando descrição de arquitetura;
+12. persistência visual — planejada, aguardando início explícito.
 
 Fluxo resumido:
 
@@ -625,6 +626,7 @@ Briefing do cliente
 → módulos restantes do cliente
 → persistência
 → portfólio público (aguardando descrição de arquitetura)
+→ persistência visual
 ```
 
 ### Primeiro recorte desta ordem
@@ -944,3 +946,94 @@ Alterações desta etapa devem ser incrementais. Pagamentos reais não podem ser
 Estado em 24/09/2026: **concluído; etapa 1/5**. Foram criadas `ClientListingRepository` e `BriefingListingRepository` na camada de portas da aplicação. `ListClientsService` passou a depender somente das quatro consultas necessárias para listar clientes e carregar detalhes, sem importar as classes concretas de persistência nem receber capacidades de escrita.
 
 Os registros projetados pela consulta administrativa possuem contratos explícitos, preservando `ObjectId`, etapas e definição legada do briefing neste recorte incremental. Teste de contrato garante que a listagem utiliza apenas as consultas mínimas; foi adicionado um E2E para a apresentação de nome, tipo, etapa e status devolvidos pela consulta, mas não foi executado conforme o padrão vigente. O build do backend foi aprovado. Não houve escrita, migração, índice, alteração de view ou acesso a pagamentos reais. Próximo recorte: paginação da listagem de clientes.
+
+## 33. Etapa priorizada 12 — persistência visual
+
+Estado em 24/09/2026: **planejada; implementação não iniciada**. Esta seção define somente a arquitetura inicial. Nenhum cache, reconciliador ou comportamento de tela foi implementado.
+
+### Objetivo
+
+Eliminar o reaparecimento abrupto de coleções dinâmicas durante a navegação dentro da mesma sessão autenticada. Depois do primeiro carregamento de uma tela, a próxima visita deve apresentar imediatamente uma prévia baseada no último resultado conhecido, enquanto uma nova requisição valida os dados no servidor. Ao concluir, a interface aplica somente inclusões, alterações, remoções e reordenações necessárias.
+
+O cache é uma otimização visual e nunca uma fonte de verdade. Toda entrada na página continua disparando a consulta oficial, e nenhuma operação de criação, edição, exclusão, pagamento ou aprovação pode ser decidida apenas pelo conteúdo armazenado localmente.
+
+### Escopo definido
+
+Antes do primeiro recorte deverá ser criado um inventário das telas que atendem simultaneamente a estes critérios:
+
+1. realizam uma consulta autenticada de leitura;
+2. recebem uma coleção ou objeto de apresentação do backend;
+3. criam ou atualizam elementos visuais a partir dessa resposta;
+4. podem ser revisitadas na mesma sessão.
+
+O escopo aprovado abrange todas as telas autenticadas do cliente e do administrador que atendam aos critérios acima. O inventário continua obrigatório para identificar chaves, DTOs e invalidações, mas não será usado para excluir uma tela elegível. O portfólio público permanece fora do escopo enquanto a arquitetura da Etapa 11 não for definida.
+
+### Arquitetura proposta
+
+- `SessionVisualCache` será o armazenamento técnico central, mantido em uma propriedade privada de instância, com chaves separadas por papel, sujeito autenticado, tela, parâmetros e versão do contrato.
+- `VisualPersistenceController` coordenará leitura da prévia, revalidação e publicação do novo snapshot, sem conhecer DOM específico.
+- Cada módulo de tela continuará responsável por transformar seu DTO em elementos e deverá fornecer identidade estável para cada item.
+- A reconciliação será feita por chave estável, como `client.id`, `proposal._id` ou `payment.id`, nunca pela posição visual.
+- Cada adaptador de coleção deverá distinguir `insert`, `update`, `remove`, `move` e `unchanged`.
+- Atualizações deverão preservar nós DOM inalterados sempre que possível, evitando reconstruir toda a lista, perder foco, reiniciar animações ou causar deslocamentos visuais desnecessários.
+- Requisições concorrentes para a mesma chave serão deduplicadas ou versionadas; somente a resposta mais recente da tela ativa poderá publicar um snapshot.
+
+### Armazenamento e ciclo de vida
+
+O armazenamento será exclusivamente em memória e durará enquanto a instância da aplicação autenticada permanecer aberta. Os snapshots ficarão em propriedades privadas de classes TypeScript, como um `Map` interno; “atributos de classes” não significa atributos HTML, `dataset` ou estado acoplado ao DOM.
+
+É proibido usar `localStorage`, `sessionStorage`, IndexedDB, cookies ou qualquer persistência em disco para esta etapa. F5, fechamento da aba ou recriação da aplicação eliminam todas as prévias; a primeira visita após isso volta ao carregamento normal.
+
+Todo snapshot deverá conter `schemaVersion`, identidade da sessão e chave da consulta. Não haverá TTL: a validade máxima é a vida da instância em memória. O cache também será descartado explicitamente no logout, falha de autenticação, troca de usuário ou papel, mudança de versão incompatível e mutação que invalide a coleção.
+
+### Fluxo da tela
+
+1. O módulo solicita ao controlador a chave da tela.
+2. Se existir snapshot válido, a tela renderiza imediatamente a prévia e atualiza em segundo plano sem substituir o conteúdo por skeleton e sem apresentar indicador visual de atualização.
+3. A consulta oficial é executada em todas as entradas.
+4. O resultado é normalizado para um DTO de apresentação estável.
+5. O reconciliador compara identidades e campos relevantes, desconsiderando diferenças sem impacto visual.
+6. A interface aplica somente o delta e publica o snapshot atualizado.
+7. Em falha com cache disponível, a prévia permanece visível e o tratamento de erro normal da tela é preservado, sem criar um estado visual específico de cache desatualizado; sem cache, permanece o tratamento de erro atual.
+
+### Mutações e invalidação
+
+- criação adiciona ou invalida o item/coleção correspondente somente após confirmação do servidor;
+- edição atualiza o snapshot com a resposta oficial;
+- exclusão confirmada remove o item e quaisquer detalhes dependentes;
+- aprovação de proposta invalida proposta, etapas e listas relacionadas;
+- ações financeiras invalidam resumo, destaque, pagamento e página que os contém;
+- invalidação deve ser declarada pelo caso de uso de interface responsável, sem acoplamento implícito entre telas;
+- falhas de mutação preservam o último snapshot confirmado e os dados preenchidos para nova tentativa.
+
+### Recortes planejados
+
+1. inventário de telas, chaves estáveis, dados permitidos e eventos de invalidação;
+2. contratos do cache em memória, controlador de revalidação e proteção contra respostas antigas;
+3. reconciliador de coleções com testes de inserção, atualização, remoção e reordenação;
+4. adoção piloto na listagem administrativa de clientes;
+5. propostas e etapas/aprovações;
+6. financeiros, com política restritiva para dados sensíveis e pagamentos reais;
+7. expansão para demais telas aprovadas, auditoria de acessibilidade, desempenho e conclusão.
+
+### Testes e critérios de conclusão
+
+- testes unitários para isolamento por usuário/papel, versionamento, deduplicação, invalidação, descarte e perda integral após recriação da aplicação;
+- testes unitários do delta com objetos iguais, alterados, inseridos, removidos e reordenados;
+- testes de módulo garantindo prévia imediata, revalidação obrigatória e proteção contra resposta antiga;
+- E2E por tela demonstrando ausência do estado vazio intermediário na segunda visita e atualização apenas dos itens alterados;
+- E2E serão adicionados a cada recorte, mas executados somente quando solicitados explicitamente;
+- logout e troca de identidade não reutilizam snapshots anteriores;
+- falha de rede mantém a prévia sem introduzir indicador específico de atualização, mas não pode ocultar o erro normal da tela;
+- nenhum snapshot sobrevive a F5 ou é gravado em APIs de armazenamento do navegador;
+- mutações confirmadas não deixam dados antigos visíveis;
+- views persistidas no banco continuam sendo a estrutura principal das páginas.
+
+### Decisões definidas em 24/09/2026
+
+- armazenamento somente em propriedades de instâncias em memória;
+- nenhuma utilização de `localStorage`, `sessionStorage`, IndexedDB, cookies ou atributos DOM como repositório;
+- F5 encerra a validade de todas as prévias;
+- todas as telas autenticadas elegíveis do cliente e do administrador fazem parte do escopo;
+- não haverá TTL além da vida da aplicação em memória;
+- não haverá indicador visual específico de atualização em segundo plano.

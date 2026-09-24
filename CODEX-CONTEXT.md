@@ -566,6 +566,23 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 - Não iniciar alterações estruturais no portfólio público até o usuário fornecer a nova descrição.
 - Ao receber a descrição, criar um planejamento novo antes de implementar.
 
+### Etapa priorizada 12 — persistência visual
+
+- Estado: planejada; implementação não iniciada.
+- Objetivo: renderizar imediatamente o último snapshot visual conhecido ao revisitar uma tela e revalidá-lo obrigatoriamente no servidor.
+- O cache é somente uma otimização de apresentação e nunca substitui banco, API, autorização ou confirmação de mutações.
+- A reconciliação usa identidades estáveis e aplica inserções, atualizações, remoções e movimentos sem reconstruir itens inalterados.
+- O armazenamento será somente em propriedades privadas de instâncias TypeScript em memória, isolado por papel, usuário, tela, parâmetros e versão.
+- É proibido usar `localStorage`, `sessionStorage`, IndexedDB, cookies, atributos HTML ou `dataset` como armazenamento dessa funcionalidade.
+- F5, fechamento da aba ou recriação da aplicação descartam todas as prévias.
+- É proibido persistir tokens, senhas, BR Code/QR Code Pix, credenciais, binários ou dados internos de auditoria.
+- Não há TTL além da vida da instância; logout, troca de identidade, erro de autenticação, versão incompatível e mutações relacionadas também invalidam snapshots.
+- Todas as telas autenticadas elegíveis do cliente e do administrador estão no escopo.
+- A revalidação ocorre silenciosamente, sem indicador visual específico de atualização.
+- Financeiro exige política restritiva por conter pagamentos reais.
+- A Etapa 11 não entra no escopo até receber sua nova definição arquitetural.
+- Planejamento completo registrado na seção 33 do relatório de refatoração.
+
 Itens de governança posteriores:
 
 - versionar contratos das views;
@@ -705,3 +722,16 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - Refatorações desta etapa não podem escrever, migrar ou recalcular pagamentos reais como efeito colateral.
 - Índices de banco só podem ser introduzidos quando houver consulta e cardinalidade justificadas, por operação explícita.
 - O próximo recorte é a paginação da listagem administrativa de clientes.
+
+## 25. Planejamento da persistência visual
+
+- A Etapa 12 terá sete recortes: inventário; cache/controlador; reconciliador; piloto em clientes; propostas/aprovações; financeiros; expansão e auditoria final.
+- Toda visita à tela continuará executando uma nova requisição, mesmo quando houver prévia em cache.
+- Com cache válido, a tela não deve voltar ao estado vazio ou skeleton durante a revalidação.
+- Em falha de rede, a prévia pode permanecer e o erro normal da tela continua disponível, sem indicador específico de cache desatualizado.
+- Módulos de tela mantêm responsabilidade pela renderização; armazenamento e revalidação ficam em componentes dedicados.
+- Dados comparados devem ser DTOs de apresentação normalizados, não respostas brutas do backend.
+- Cada item dinâmico precisa de chave estável; posição no array ou no DOM não é identidade.
+- Mutações devem atualizar ou invalidar o cache somente a partir da resposta oficial.
+- Nenhum código desta etapa foi implementado em 24/09/2026.
+- Decisões fechadas: apenas memória em propriedades de classes, todas as telas autenticadas elegíveis, validade encerrada no F5 e nenhuma indicação visual de revalidação.
