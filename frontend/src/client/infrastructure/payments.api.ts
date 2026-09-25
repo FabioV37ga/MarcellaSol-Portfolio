@@ -8,15 +8,18 @@ export interface ClientPayment extends ClientPaymentContract { downPayment: Clie
 export interface ClientPaymentPage extends PaymentPageContract<ClientPayment> { }
 export interface ClientPixResponse extends PaymentPixResponseContract<ClientPayment> { }
 export interface ClientPaymentsGateway {
-    loadPayments(token: string, cursor?: string): Promise<ClientPaymentPage>;
+    loadPayments(token: string, cursor?: string, limit?: number): Promise<ClientPaymentPage>;
     generatePaymentPix(token: string, paymentId: string, partType: "down-payment" | "installment", installmentNumber?: number): Promise<ClientPixResponse>;
 }
 
 export class ClientPaymentsApi implements ClientPaymentsGateway {
     constructor(private readonly http: HttpClient = httpClient) { }
 
-    async loadPayments(token: string, cursor?: string): Promise<ClientPaymentPage> {
-        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    async loadPayments(token: string, cursor?: string, limit?: number): Promise<ClientPaymentPage> {
+        const parameters = new URLSearchParams();
+        if (cursor) parameters.set("cursor", cursor);
+        if (limit !== undefined) parameters.set("limit", String(limit));
+        const query = parameters.size > 0 ? `?${parameters.toString()}` : "";
         const result = await this.http.request<unknown>(`/client/payments${query}`, { token });
         return parsePaymentPage(result, parseClientPayment) as ClientPaymentPage;
     }

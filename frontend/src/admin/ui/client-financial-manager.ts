@@ -12,13 +12,16 @@ import type {
 import type { ClientFinancialElements } from "../selectors/client-financial.selector.js";
 import { dueDateLabel, isOverdue } from "@/shared/financial/payment-presentation.js";
 import { HttpError } from "@/shared/http/http-error.js";
+import { reconcileCollection } from "@/shared/visual-persistence/collection-reconciler.js";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export class ClientFinancialManager {
     private payments: ClientPayment[];
+    private renderedPayments: ClientPayment[] = [];
     private nextCursor?: string;
     private totalPaymentCount: number;
+    private summary: PaymentPage["summary"];
     private loadingMore = false;
     private editing?: ClientPayment;
     private deletingPayment?: ClientPayment;
@@ -47,7 +50,8 @@ export class ClientFinancialManager {
         private readonly api: AdminPaymentsGateway,
         private readonly session: AdminSession,
         private readonly clientId: string,
-        paymentPage: PaymentPage | ClientPayment[]
+        paymentPage: PaymentPage | ClientPayment[],
+        private readonly onChange?: (page: PaymentPage) => void
     ) {
         const normalizedPage = Array.isArray(paymentPage) ? {
             payments: paymentPage,
@@ -57,6 +61,7 @@ export class ClientFinancialManager {
         this.payments = normalizedPage.payments;
         this.nextCursor = normalizedPage.page.nextCursor;
         this.totalPaymentCount = normalizedPage.summary.paymentCount;
+        this.summary = normalizedPage.summary;
         const root = elements.root;
         this.title = required<HTMLInputElement>(root, "#financial-payment-title");
         this.total = required<HTMLInputElement>(root, "#financial-payment-total");
@@ -107,8 +112,10 @@ export class ClientFinancialManager {
     }
 
     private render(): void {
-        this.elements.paymentsList.replaceChildren();
+        this.elements.paymentsList.querySelector(".financial-empty")?.remove();
         if (this.payments.length === 0) {
+            this.elements.paymentsList.replaceChildren();
+            this.renderedPayments = [];
             const empty = document.createElement("p");
             empty.className = "financial-empty";
             empty.textContent = "Nenhum pagamento cadastrado.";
@@ -117,7 +124,19 @@ export class ClientFinancialManager {
             return;
         }
 
-        this.payments.forEach(payment => this.elements.paymentsList.append(this.paymentCard(payment)));
+        const delta = reconcileCollection(this.renderedPayments, this.payments, {
+            keyOf: payment => payment.id,
+            visuallyEqual: (previous, current) => JSON.stringify(previous) === JSON.stringify(current)
+        });
+        delta.removed.forEach(({ key }) => this.paymentNode(key)?.remove());
+        delta.updated.forEach(({ key, item }) => this.paymentNode(key)?.replaceWith(this.paymentCard(item)));
+        delta.inserted.forEach(({ item }) => this.elements.paymentsList.append(this.paymentCard(item)));
+        this.payments.forEach((payment, index) => {
+            const node = this.paymentNode(payment.id);
+            const nodes = this.paymentNodes();
+            if (node && nodes[index] !== node) this.elements.paymentsList.insertBefore(node, nodes[index] ?? null);
+        });
+        this.renderedPayments = [...this.payments];
         this.renderPagination();
     }
 
@@ -138,7 +157,9 @@ export class ClientFinancialManager {
             this.payments.push(...page.payments.filter(payment => !known.has(payment.id)));
             this.nextCursor = page.page.nextCursor;
             this.totalPaymentCount = page.summary.paymentCount;
+            this.summary = page.summary;
             this.render();
+            this.notifyChange();
         } catch (error) {
             this.elements.feedback.textContent = errorMessage(error, "Não foi possível carregar mais pagamentos.");
             this.renderPagination();
@@ -151,6 +172,7 @@ export class ClientFinancialManager {
     private paymentCard(payment: ClientPayment): HTMLElement {
         const card = document.createElement("article");
         card.className = "financial-payment-card";
+        card.dataset.paymentId = payment.id;
 
         const header = document.createElement("header");
         const heading = document.createElement("div");
@@ -341,8 +363,10 @@ export class ClientFinancialManager {
             );
             this.payments = this.payments.filter(item => item.id !== payment.id);
             this.totalPaymentCount = Math.max(0, this.totalPaymentCount - 1);
+            this.adjustSummary(payment, undefined);
             this.elements.deleteDialog.close();
             this.render();
+            this.notifyChange();
             this.elements.feedback.textContent = "Pagamento removido com sucesso.";
         } catch (error) {
             this.elements.deleteConfirm.disabled = false;
@@ -532,12 +556,15 @@ export class ClientFinancialManager {
 
     private replacePayment(payment: ClientPayment): void {
         const index = this.payments.findIndex(item => item.id === payment.id);
+        const previous = index >= 0 ? this.payments[index] : undefined;
         if (index >= 0) this.payments[index] = payment;
         else {
             this.payments.unshift(payment);
             this.totalPaymentCount += 1;
         }
+        this.adjustSummary(previous, payment);
         this.render();
+        this.notifyChange();
     }
 
     private async recoverFromConcurrencyConflict(error: unknown): Promise<boolean> {
@@ -549,11 +576,13 @@ export class ClientFinancialManager {
             this.payments = page.payments;
             this.nextCursor = page.page.nextCursor;
             this.totalPaymentCount = page.summary.paymentCount;
+            this.summary = page.summary;
             this.editing = undefined;
             this.deletingPayment = undefined;
             if (this.elements.dialog.open) this.elements.dialog.close();
             if (this.elements.deleteDialog.open) this.elements.deleteDialog.close();
             this.render();
+            this.notifyChange();
             this.elements.feedback.textContent = `${error.message}. Os dados atuais foram recarregados.`;
         } catch (reloadError) {
             this.elements.feedback.textContent = `${error.message}. ${errorMessage(
@@ -562,6 +591,46 @@ export class ClientFinancialManager {
             )}`;
         }
         return true;
+    }
+
+    replacePage(page: PaymentPage): void {
+        this.payments = [...page.payments];
+        this.nextCursor = page.page.nextCursor;
+        this.totalPaymentCount = page.summary.paymentCount;
+        this.summary = page.summary;
+        this.render();
+    }
+
+    private notifyChange(): void {
+        this.onChange?.({
+            payments: [...this.payments],
+            page: {
+                limit: this.payments.length,
+                hasMore: Boolean(this.nextCursor),
+                ...(this.nextCursor ? { nextCursor: this.nextCursor } : {})
+            },
+            summary: { ...this.summary }
+        });
+    }
+
+    private adjustSummary(previous: ClientPayment | undefined, current: ClientPayment | undefined): void {
+        this.summary = {
+            paymentCount: this.totalPaymentCount,
+            totalAmountCents: this.summary.totalAmountCents
+                - (previous?.finalAmountCents ?? 0) + (current?.finalAmountCents ?? 0),
+            paidAmountCents: this.summary.paidAmountCents
+                - (previous?.paidAmountCents ?? 0) + (current?.paidAmountCents ?? 0),
+            remainingAmountCents: this.summary.remainingAmountCents
+                - (previous?.remainingAmountCents ?? 0) + (current?.remainingAmountCents ?? 0)
+        };
+    }
+
+    private paymentNodes(): HTMLElement[] {
+        return Array.from(this.elements.paymentsList.querySelectorAll<HTMLElement>("[data-payment-id]"));
+    }
+
+    private paymentNode(paymentId: string): HTMLElement | undefined {
+        return this.paymentNodes().find(node => node.dataset.paymentId === paymentId);
     }
 
     private conditionsText(payment: ClientPayment): string {

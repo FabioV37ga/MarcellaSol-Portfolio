@@ -13,8 +13,8 @@ export class ClientSystemApi implements ClientPaymentsGateway, ClientProposalsGa
         private readonly views: ClientViewsGateway = new ClientViewsApi()
     ) { }
     load(token: string): Promise<ClientSystemResponse | undefined> { return this.views.load(token); }
-    loadProposals(token: string, cursor?: string): Promise<ClientProjectResponse> { return this.proposals.loadProposals(token, cursor); }
-    loadPayments(token: string, cursor?: string): Promise<ClientPaymentPage> { return this.payments.loadPayments(token, cursor); }
+    loadProposals(token: string, cursor?: string, limit?: number): Promise<ClientProjectResponse> { return this.proposals.loadProposals(token, cursor, limit); }
+    loadPayments(token: string, cursor?: string, limit?: number): Promise<ClientPaymentPage> { return this.payments.loadPayments(token, cursor, limit); }
     generatePaymentPix(token: string, id: string, type: "down-payment" | "installment", number?: number): Promise<ClientPixResponse> { return this.payments.generatePaymentPix(token, id, type, number); }
     approveProposal(token: string, id: string, comment: string, files: File[] = []): Promise<ClientProposalDecision> { return this.proposals.approveProposal(token, id, comment, files); }
     beatProposal(token: string, id: string, comment: string, confirmed: boolean, files: File[] = []): Promise<ClientProposalDecision> { return this.proposals.beatProposal(token, id, comment, confirmed, files); }

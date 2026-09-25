@@ -3,9 +3,15 @@ import type { baseElements } from "../selectors/base.selector.js";
 import { getClientFinancialElements } from "../selectors/financial.selector.js";
 import type { system } from "../templates/interface.js";
 import { clientPaymentHighlight, clientPaymentItem, type PaymentPartReference } from "../templates/client-payment-item.template.js";
-import type { ClientPayment, ClientPaymentsGateway } from "../infrastructure/payments.api.js";
-import type { FinancialHighlightContract } from "@/shared/financial/payment-contract.js";
+import type { ClientPayment, ClientPaymentPage, ClientPaymentsGateway } from "../infrastructure/payments.api.js";
+import type { FinancialHighlightContract, PaymentSummaryContract } from "@/shared/financial/payment-contract.js";
 import { ClientSystemView } from "../views/clientSystem.view.js";
+import { reconcileCollection } from "@/shared/visual-persistence/collection-reconciler.js";
+import type { VisualCacheQuery } from "@/shared/visual-persistence/visual-cache.types.js";
+import type { VisualPersistenceController } from "@/shared/visual-persistence/visual-persistence.controller.js";
+
+const MAX_CACHED_PAYMENTS = 100;
+const CLIENT_FINANCIAL_QUERY: VisualCacheQuery = { screen: "client-financial", schemaVersion: 1 };
 
 export class ClientFinancialModule {
     private requestId = 0;
@@ -19,11 +25,13 @@ export class ClientFinancialModule {
         private readonly models: system,
         private readonly api: ClientPaymentsGateway,
         private readonly token: string,
-        private readonly navigate: (route: ClientRoute) => void
+        private readonly navigate: (route: ClientRoute) => void,
+        private readonly visualPersistence: VisualPersistenceController
     ) { }
 
     dispose(): void {
         this.requestId += 1;
+        this.visualPersistence.cancel(CLIENT_FINANCIAL_QUERY);
         this.listeners?.abort();
         this.listeners = undefined;
         window.clearTimeout(this.analysisWindowTimer);
@@ -56,10 +64,30 @@ export class ClientFinancialModule {
         elements.back.addEventListener("click", () => this.navigate("home"), listenerOptions);
 
         let payments: ClientPayment[] = [];
+        let renderedPayments: ClientPayment[] = [];
         let nextCursor: string | undefined;
         let totalPaymentCount = 0;
         let loadingMore = false;
         let highlight: FinancialHighlightContract | undefined;
+        let summary: PaymentSummaryContract = {
+            paymentCount: 0,
+            totalAmountCents: 0,
+            paidAmountCents: 0,
+            remainingAmountCents: 0
+        };
+        const remember = (): void => {
+            const cached = payments.slice(0, MAX_CACHED_PAYMENTS);
+            this.visualPersistence.remember<ClientPaymentPage>(CLIENT_FINANCIAL_QUERY, {
+                payments: cached,
+                page: {
+                    limit: cached.length,
+                    hasMore: Boolean(nextCursor),
+                    ...(nextCursor ? { nextCursor } : {})
+                },
+                summary: { ...summary },
+                ...(highlight ? { highlight: structuredClone(highlight) } : {})
+            });
+        };
         const scheduleAnalysisWindowRefresh = (): void => {
             window.clearTimeout(this.analysisWindowTimer);
             const analysisWindowEnds = payments.reduce<Array<ClientPayment["downPayment"]>>((parts, payment) => {
@@ -77,17 +105,36 @@ export class ClientFinancialModule {
         const renderPayments = (): void => {
             const openPix = (part: PaymentPartReference): void => { void showPix(part); };
             elements.highlight.replaceChildren(clientPaymentHighlight(highlight, openPix));
-            elements.list.replaceChildren();
             elements.empty.hidden = payments.length > 0;
             elements.paginationStatus.textContent = `${payments.length} de ${totalPaymentCount} pagamentos exibidos`;
             elements.loadMore.hidden = !nextCursor;
             elements.loadMore.disabled = loadingMore;
             elements.loadMore.textContent = loadingMore ? "Carregando..." : "Carregar mais";
-            if (!payments.length) return;
-            const items = document.createDocumentFragment();
-            payments.forEach(payment => items.append(clientPaymentItem(payment, openPix)));
-            elements.list.append(items);
+            const delta = reconcileCollection(renderedPayments, payments, {
+                keyOf: payment => payment.id,
+                visuallyEqual: (previous, current) => JSON.stringify(previous) === JSON.stringify(current)
+            });
+            delta.removed.forEach(({ key }) => paymentNode(elements.list, key)?.remove());
+            delta.updated.forEach(({ key, item }) => {
+                paymentNode(elements.list, key)?.replaceWith(clientPaymentItem(item, openPix));
+            });
+            delta.inserted.forEach(({ item }) => elements.list.append(clientPaymentItem(item, openPix)));
+            payments.forEach((payment, index) => {
+                const node = paymentNode(elements.list, payment.id);
+                const nodes = paymentNodes(elements.list);
+                if (node && nodes[index] !== node) elements.list.insertBefore(node, nodes[index] ?? null);
+            });
+            renderedPayments = [...payments];
             scheduleAnalysisWindowRefresh();
+        };
+        const applyPage = (page: ClientPaymentPage): void => {
+            payments = page.payments;
+            nextCursor = page.page.nextCursor;
+            totalPaymentCount = page.summary.paymentCount;
+            summary = page.summary;
+            highlight = page.highlight;
+            elements.loading.hidden = true;
+            renderPayments();
         };
         const updateAnalysisWindow = (analysisWindowEndsAt: string): void => {
             const remaining = new Date(analysisWindowEndsAt).getTime() - Date.now();
@@ -132,6 +179,7 @@ export class ClientFinancialModule {
                 elements.pixLoading.hidden = true;
                 elements.pixResult.hidden = false;
                 renderPayments();
+                remember();
                 window.clearInterval(this.pixCountdownTimer);
                 updateAnalysisWindow(result.pix.analysisWindowEndsAt);
                 this.pixCountdownTimer = window.setInterval(
@@ -178,8 +226,10 @@ export class ClientFinancialModule {
                 payments.push(...page.payments.filter(payment => !known.has(payment.id)));
                 nextCursor = page.page.nextCursor;
                 totalPaymentCount = page.summary.paymentCount;
+                summary = page.summary;
                 highlight = page.highlight;
                 renderPayments();
+                remember();
             } catch (error) {
                 if (requestId !== this.requestId) return;
                 elements.feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar mais pagamentos.";
@@ -189,22 +239,37 @@ export class ClientFinancialModule {
             }
         }, listenerOptions);
 
-        try {
-            const page = await this.api.loadPayments(this.token);
-            if (requestId !== this.requestId) return;
-            payments = page.payments;
-            nextCursor = page.page.nextCursor;
-            totalPaymentCount = page.summary.paymentCount;
-            highlight = page.highlight;
-            elements.loading.hidden = true;
-            renderPayments();
-        } catch (error) {
-            if (requestId !== this.requestId) return;
-            elements.loading.hidden = true;
-            elements.highlight.textContent = "Não foi possível identificar o pagamento em destaque.";
-            elements.feedback.textContent = error instanceof Error
-                ? error.message
-                : "Não foi possível carregar os pagamentos.";
-        }
+        await this.visualPersistence.revalidate<ClientPaymentPage>({
+            query: CLIENT_FINANCIAL_QUERY,
+            presentPreview: snapshot => applyPage(snapshot),
+            load: () => this.api.loadPayments(
+                this.token,
+                undefined,
+                payments.length > 0 ? MAX_CACHED_PAYMENTS : undefined
+            ),
+            publish: snapshot => {
+                if (requestId !== this.requestId) return;
+                applyPage(snapshot);
+                elements.feedback.textContent = "";
+            },
+            reportError: error => {
+                if (requestId !== this.requestId) return;
+                elements.loading.hidden = true;
+                if (payments.length === 0) {
+                    elements.highlight.textContent = "Não foi possível identificar o pagamento em destaque.";
+                }
+                elements.feedback.textContent = error instanceof Error
+                    ? error.message
+                    : "Não foi possível carregar os pagamentos.";
+            }
+        });
     }
+}
+
+function paymentNodes(root: ParentNode): HTMLElement[] {
+    return Array.from(root.querySelectorAll<HTMLElement>("[data-payment-id]"));
+}
+
+function paymentNode(root: ParentNode, paymentId: string): HTMLElement | undefined {
+    return paymentNodes(root).find(node => node.dataset.paymentId === paymentId);
 }

@@ -19,7 +19,8 @@ export class ClientProposalResponseModule {
         private readonly elements: StagesApprovalsElements,
         private readonly api: ProposalResponseApi,
         private readonly token: string,
-        private readonly progressRoot: ParentNode
+        private readonly progressRoot: ParentNode,
+        private readonly onDecision?: (result: ClientProposalDecision) => void
     ) { }
 
     mount(): void {
@@ -133,6 +134,7 @@ export class ClientProposalResponseModule {
             );
             current?.replaceWith(this.render(result.proposal));
             renderProjectStages(this.progressRoot, result.projectStages, result.currentStageKey);
+            this.onDecision?.(result);
             dialog.close();
         } catch (error) {
             if (!this.isActive(requestId)) return;

@@ -12,7 +12,8 @@ export class AdminShellModule {
         private readonly template: HTMLElement,
         private readonly session: AdminSession,
         private readonly navigateToHome: () => void,
-        private readonly navigateToClients: () => void
+        private readonly navigateToClients: () => void,
+        private readonly beforeLogout: () => void
     ) { }
 
     mount(): void {
@@ -22,6 +23,7 @@ export class AdminShellModule {
         u(this.elements.desktop_nav_home).off("click").on("click", this.navigateToHome);
         u(this.elements.desktop_nav_client).off("click").on("click", this.navigateToClients);
         u(this.elements.desktop_logout).off("click").on("click", () => {
+            this.beforeLogout();
             void logoutSession("admin", this.session.token);
         });
     }

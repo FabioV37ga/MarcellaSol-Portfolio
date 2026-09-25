@@ -11,6 +11,8 @@ import { AdminClientsModule } from "../clients/admin-clients.module.js";
 import { AdminClientManagementModule } from "../clients/admin-client-management.module.js";
 import { AdminClientFinancialModule } from "../clients/admin-client-financial.module.js";
 import { AdminShellModule } from "./admin-shell.module.js";
+import { SessionVisualCache } from "@/shared/visual-persistence/session-visual-cache.js";
+import { VisualPersistenceController } from "@/shared/visual-persistence/visual-persistence.controller.js";
 
 export class AdminSystemModules {
     private newClient?: newClientElements;
@@ -20,6 +22,7 @@ export class AdminSystemModules {
     private readonly clientManagement: AdminClientManagementModule;
     private readonly clientFinancial: AdminClientFinancialModule;
     private readonly shell: AdminShellModule;
+    private readonly visualPersistence: VisualPersistenceController;
 
     constructor(
         private readonly view: AdminSystemView,
@@ -29,12 +32,17 @@ export class AdminSystemModules {
         private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute, id?: string) => void
     ) {
+        this.visualPersistence = new VisualPersistenceController(new SessionVisualCache({
+            role: "admin",
+            subjectId: session.subjectId
+        }));
         this.shell = new AdminShellModule(
             view,
             models.base!,
             session,
             () => navigate("home"),
-            () => navigate("clients")
+            () => navigate("clients"),
+            () => this.visualPersistence.dispose()
         );
         this.clientProposals = new AdminClientProposalsModule(
             view,
@@ -42,7 +50,8 @@ export class AdminSystemModules {
             api,
             session,
             navigate,
-            () => this.shell.clientsNavigation
+            () => this.shell.clientsNavigation,
+            this.visualPersistence
         );
         this.home = new AdminHomeModule(
             view,
@@ -57,7 +66,8 @@ export class AdminSystemModules {
             session,
             () => navigate("new-client"),
             clientId => navigate("client-management", clientId),
-            () => this.shell.clientsNavigation
+            () => this.shell.clientsNavigation,
+            this.visualPersistence
         );
         this.clientManagement = new AdminClientManagementModule(
             view,
@@ -67,7 +77,8 @@ export class AdminSystemModules {
             () => navigate("clients"),
             clientId => navigate("client-proposals", clientId),
             clientId => navigate("client-financial", clientId),
-            () => this.shell.clientsNavigation
+            () => this.shell.clientsNavigation,
+            this.visualPersistence
         );
         this.clientFinancial = new AdminClientFinancialModule(
             view,
@@ -76,7 +87,8 @@ export class AdminSystemModules {
             session,
             () => navigate("clients"),
             clientId => navigate("client-management", clientId),
-            () => this.shell.clientsNavigation
+            () => this.shell.clientsNavigation,
+            this.visualPersistence
         );
     }
 

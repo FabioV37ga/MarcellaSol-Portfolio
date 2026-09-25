@@ -41,6 +41,7 @@ export default class ClientSystem {
             briefing,
             this.api,
             this.token,
+            normalizedData.clientObject.id ?? this.name,
             (route: ClientRoute) => this.router?.navigate(route)
         );
 

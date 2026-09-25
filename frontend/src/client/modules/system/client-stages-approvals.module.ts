@@ -1,10 +1,19 @@
 import u from "umbrellajs";
 import type { ClientRoute } from "../../navigation/client-system.router.js";
-import type { ClientProposalsGateway } from "../../infrastructure/proposals.api.js";
+import type { ClientProjectResponse, ClientProposal, ClientProposalsGateway } from "../../infrastructure/proposals.api.js";
 import { getStagesApprovalsElements } from "../../selectors/stages-approvals.selector.js";
 import type { ClientSystemView } from "../../views/clientSystem.view.js";
 import { ClientProposalResponseModule } from "../client-proposal-response.module.js";
 import { renderProjectStages } from "@/shared/project-stages.js";
+import { reconcileCollection } from "@/shared/visual-persistence/collection-reconciler.js";
+import type { VisualCacheQuery } from "@/shared/visual-persistence/visual-cache.types.js";
+import type { VisualPersistenceController } from "@/shared/visual-persistence/visual-persistence.controller.js";
+
+const MAX_CACHED_PROPOSALS = 50;
+const STAGES_APPROVALS_QUERY: VisualCacheQuery = {
+    screen: "client-stages-approvals",
+    schemaVersion: 1
+};
 
 export class ClientStagesApprovalsModule {
     private generation = 0;
@@ -15,7 +24,8 @@ export class ClientStagesApprovalsModule {
         private readonly template: HTMLElement | undefined,
         private readonly api: ClientProposalsGateway,
         private readonly token: string,
-        private readonly navigate: (route: ClientRoute) => void
+        private readonly navigate: (route: ClientRoute) => void,
+        private readonly visualPersistence: VisualPersistenceController
     ) { }
 
     async mount(navigationButton?: HTMLElement): Promise<void> {
@@ -34,12 +44,75 @@ export class ClientStagesApprovalsModule {
         u(elements.back).off("click").on("click", () => this.navigate("home"));
 
         this.proposalResponses?.dispose();
-        const proposalResponses = new ClientProposalResponseModule(elements, this.api, this.token, progressRoot);
+        let proposals: ClientProposal[] = [];
+        let projectState: Pick<ClientProjectResponse, "projectStages" | "currentStageKey"> = {
+            projectStages: [],
+            currentStageKey: "briefing"
+        };
+        const remember = (): void => {
+            const cached = proposals.slice(0, MAX_CACHED_PROPOSALS);
+            this.visualPersistence.remember<ClientProjectResponse>(STAGES_APPROVALS_QUERY, {
+                ...projectState,
+                proposals: cached,
+                page: {
+                    limit: cached.length,
+                    hasMore: Boolean(nextCursor),
+                    ...(nextCursor ? { nextCursor } : {})
+                }
+            });
+        };
+        const proposalResponses = new ClientProposalResponseModule(
+            elements,
+            this.api,
+            this.token,
+            progressRoot,
+            result => {
+                proposals = proposals.map(proposal => proposal._id === result.proposal._id
+                    ? result.proposal
+                    : proposal);
+                projectState = {
+                    projectStages: result.projectStages,
+                    currentStageKey: result.currentStageKey
+                };
+                remember();
+            }
+        );
         this.proposalResponses = proposalResponses;
         proposalResponses.mount();
         let nextCursor: string | undefined;
         let loading = false;
         let loadedCount = 0;
+
+        const reconcileProposals = (next: ClientProposal[]): void => {
+            const delta = reconcileCollection(proposals, next, {
+                keyOf: proposal => proposal._id,
+                visuallyEqual: (previous, current) => JSON.stringify(previous) === JSON.stringify(current)
+            });
+            delta.removed.forEach(({ key }) => proposalNode(elements.list, key)?.remove());
+            delta.updated.forEach(({ key, item }) => {
+                proposalNode(elements.list, key)?.replaceWith(proposalResponses.render(item));
+            });
+            delta.inserted.forEach(({ item }) => elements.list.append(proposalResponses.render(item)));
+            next.forEach((proposal, index) => {
+                const node = proposalNode(elements.list, proposal._id);
+                const nodes = proposalNodes(elements.list);
+                if (node && nodes[index] !== node) elements.list.insertBefore(node, nodes[index] ?? null);
+            });
+            proposals = [...next];
+            loadedCount = proposals.length;
+            elements.empty.hidden = loadedCount > 0;
+        };
+
+        const applyProject = (project: ClientProjectResponse): void => {
+            projectState = {
+                projectStages: project.projectStages,
+                currentStageKey: project.currentStageKey
+            };
+            renderProjectStages(progressRoot, project.projectStages, project.currentStageKey);
+            reconcileProposals(project.proposals);
+            nextCursor = project.page.nextCursor;
+            updatePagination();
+        };
 
         const updatePagination = (): void => {
             elements.loadMore.hidden = !nextCursor;
@@ -58,19 +131,13 @@ export class ClientStagesApprovalsModule {
             try {
                 const project = await this.api.loadProposals(this.token, cursor);
                 if (!this.isCurrent(generation, root)) return;
-                renderProjectStages(progressRoot, project.projectStages, project.currentStageKey);
-                if (!cursor) elements.list.replaceChildren();
-                const existing = new Set(Array.from(
-                    elements.list.querySelectorAll<HTMLElement>("[data-proposal-id]")
-                ).map(item => item.dataset.proposalId));
-                const items = document.createDocumentFragment();
-                project.proposals.forEach(proposal => {
-                    if (!existing.has(proposal._id)) items.append(proposalResponses.render(proposal));
-                });
-                elements.list.append(items);
-                loadedCount = elements.list.querySelectorAll("[data-proposal-id]").length;
+                projectState = {
+                    projectStages: project.projectStages,
+                    currentStageKey: project.currentStageKey
+                };
+                reconcileProposals(cursor ? appendUnique(proposals, project.proposals) : project.proposals);
                 nextCursor = project.page.nextCursor;
-                elements.empty.hidden = loadedCount > 0;
+                remember();
             } catch (error) {
                 if (!this.isCurrent(generation, root)) return;
                 elements.feedback.textContent = error instanceof Error
@@ -90,11 +157,38 @@ export class ClientStagesApprovalsModule {
         };
 
         updatePagination();
-        await loadPage();
+        loading = true;
+        updatePagination();
+        await this.visualPersistence.revalidate<ClientProjectResponse>({
+            query: STAGES_APPROVALS_QUERY,
+            presentPreview: snapshot => applyProject(snapshot),
+            load: () => this.api.loadProposals(
+                this.token,
+                undefined,
+                proposals.length > 0 ? MAX_CACHED_PROPOSALS : undefined
+            ),
+            publish: snapshot => {
+                if (!this.isCurrent(generation, root)) return;
+                applyProject(snapshot);
+                elements.feedback.textContent = "";
+            },
+            reportError: error => {
+                if (!this.isCurrent(generation, root)) return;
+                elements.feedback.textContent = error instanceof Error
+                    ? error.message
+                    : "Não foi possível carregar as aprovações.";
+            }
+        });
+        if (this.isCurrent(generation, root)) {
+            loading = false;
+            elements.loading.hidden = true;
+            updatePagination();
+        }
     }
 
     dispose(): void {
         this.generation += 1;
+        this.visualPersistence.cancel(STAGES_APPROVALS_QUERY);
         this.proposalResponses?.dispose();
         this.proposalResponses = undefined;
     }
@@ -106,4 +200,17 @@ export class ClientStagesApprovalsModule {
     private isCurrent(generation: number, root: HTMLElement): boolean {
         return this.generation === generation && root.isConnected;
     }
+}
+
+function proposalNodes(root: ParentNode): HTMLElement[] {
+    return Array.from(root.querySelectorAll<HTMLElement>("[data-proposal-id]"));
+}
+
+function proposalNode(root: ParentNode, proposalId: string): HTMLElement | undefined {
+    return proposalNodes(root).find(node => node.dataset.proposalId === proposalId);
+}
+
+function appendUnique(current: ClientProposal[], incoming: ClientProposal[]): ClientProposal[] {
+    const known = new Set(current.map(proposal => proposal._id));
+    return [...current, ...incoming.filter(proposal => !known.has(proposal._id))];
 }

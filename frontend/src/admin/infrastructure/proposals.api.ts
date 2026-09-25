@@ -51,7 +51,7 @@ interface ProposalEnvelope {
 }
 
 export interface AdminProposalsGateway {
-    loadProposals(session: AdminSession, clientId: string, cursor?: string): Promise<ProposalPage>;
+    loadProposals(session: AdminSession, clientId: string, cursor?: string, limit?: number): Promise<ProposalPage>;
     createProposal(session: AdminSession, clientId: string, fields: ProposalFields): Promise<ProposalStageMutation>;
     editProposal(session: AdminSession, clientId: string, proposalId: string, fields: ProposalFields): Promise<ClientProposal>;
     confirmProposalChanges(session: AdminSession, clientId: string, proposalId: string): Promise<ProposalStageMutation>;
@@ -62,8 +62,11 @@ export interface AdminProposalsGateway {
 export class AdminProposalsApi implements AdminProposalsGateway {
     constructor(private readonly http: HttpClient = httpClient) { }
 
-    async loadProposals(session: AdminSession, clientId: string, cursor?: string): Promise<ProposalPage> {
-        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    async loadProposals(session: AdminSession, clientId: string, cursor?: string, limit?: number): Promise<ProposalPage> {
+        const parameters = new URLSearchParams();
+        if (cursor) parameters.set("cursor", cursor);
+        if (limit !== undefined) parameters.set("limit", String(limit));
+        const query = parameters.size > 0 ? `?${parameters.toString()}` : "";
         const result = await this.http.request<ProposalEnvelope>(`${this.collectionPath(clientId)}${query}`, { token: session.token });
         return {
             proposals: result?.proposals ?? [],

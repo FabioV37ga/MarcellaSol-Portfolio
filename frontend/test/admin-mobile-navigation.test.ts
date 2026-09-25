@@ -48,7 +48,7 @@ describe("menu mobile administrativo", () => {
             models,
             {} as ClientCreationFlow,
             {} as AdminSystemApi,
-            { token: "test-token" } satisfies AdminSession,
+            { token: "test-token", subjectId: "admin-test" } satisfies AdminSession,
             navigate
         );
 

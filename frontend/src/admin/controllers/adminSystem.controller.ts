@@ -14,7 +14,7 @@ export default class AdminSystem {
         private readonly name: string,
         private readonly restoreCurrentRoute = false
     ) {
-        void this.initialize({ token });
+        void this.initialize({ token, subjectId: name });
     }
 
     private async initialize(session: AdminSession): Promise<void> {

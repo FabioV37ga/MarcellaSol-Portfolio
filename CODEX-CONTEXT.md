@@ -736,11 +736,35 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - `PaymentListingRepository` é a porta mínima de leitura financeira; o repositório MongoDB a implementa sem expor suas capacidades de mutação ao componente de paginação.
 - O E2E administrativo cobre a adição da próxima página financeira sem remover os pagamentos anteriores, mas não foi executado automaticamente.
 - Nenhuma migração, escrita em banco ou execução da integração MongoDB foi realizada durante esta etapa.
-- A Etapa 10 está concluída. A Etapa 11 aguarda descrição de arquitetura do usuário e a Etapa 12 permanece apenas planejada.
+- As Etapas 10 e 12 estão concluídas. A Etapa 11 continua aguardando a descrição de arquitetura do usuário.
 
 ## 25. Planejamento da persistência visual
 
 - A Etapa 12 terá sete recortes: inventário; cache/controlador; reconciliador; piloto em clientes; propostas/aprovações; financeiros; expansão e auditoria final.
+- Os quatro primeiros recortes foram concluídos em 25/09/2026, deixando a etapa em 4/7; a lista administrativa de clientes é o piloto funcional.
+- As superfícies elegíveis são: lista administrativa de clientes, gestão individual do cliente, propostas administrativas, financeiro administrativo, etapas/aprovações do cliente e financeiro do cliente.
+- Shells, homes, criação de cliente e briefing não entram no cache visual: não consultam uma coleção por visita ou já possuem um mecanismo de estado próprio.
+- As chaves técnicas serão isoladas por papel, identidade autenticada estável, tela, parâmetros e versão; tokens nunca compõem chaves ou snapshots.
+- Snapshots guardam somente DTOs normalizados apresentados na tela. É proibido guardar arquivos, DOM, formulários em edição, eventos de auditoria, recibos internos, BR Code, QR Code e clipboard.
+- `SessionVisualCache` mantém cópias defensivas em um `Map` privado por instância, com chave determinística por tela, parâmetros e versão do contrato.
+- `VisualPersistenceController` sempre revalida no servidor, apresenta a prévia quando disponível e usa gerações por chave para impedir publicação de respostas antigas.
+- Invalidação, limpeza e descarte são explícitos; `dispose()` apaga o cache e bloqueia reutilização após logout, enquanto uma nova instância nasce vazia após F5.
+- `reconcileCollection` produz deltas separados de inserção, atualização, remoção, movimento e item inalterado usando identidade e igualdade visual fornecidas por cada tela.
+- Itens podem ser simultaneamente atualizados e movidos; identidades vazias ou duplicadas são rejeitadas para impedir associação por posição.
+- A composição administrativa possui uma instância de cache/controlador por sessão e a descarta antes do logout; a identidade visual da sessão não utiliza o token.
+- A listagem administrativa apresenta o snapshot imediatamente e, quando há prévia, revalida com limite fixo de 50 clientes; nunca deve usar apenas o tamanho da prévia como limite, pois uma inclusão no início da ordenação poderia retirar indevidamente um cliente antigo da resposta. Os deltas usam `client.id` e preservam nós visualmente inalterados.
+- Páginas adicionais atualizam o snapshot agregado; exclusão confirmada remove o item da tela e invalida a coleção.
+- O piloto possui teste de módulo e E2E para segunda visita, consulta pendente, inclusão oficial, preservação do nó e manutenção dos clientes anteriores após uma criação. O E2E foi adicionado, mas não executado automaticamente.
+- Propostas administrativas e etapas/aprovações do cliente já utilizam a solução.
+- As propostas administrativas usam snapshot por cliente, revalidação de até 50 registros, reconciliação por `_id` e atualização após mutações oficiais.
+- Etapas/aprovações do cliente guardam propostas, progresso e etapa atual, revalidam até 50 registros e atualizam o snapshot após aprovação ou solicitação de alteração. O cache do cliente é isolado pelo `clientObject.id` e descartado antes do logout.
+- O sexto recorte cobre os financeiros administrativo e do cliente, sem armazenar BR Code, QR Code, clipboard ou auditoria interna.
+- O financeiro administrativo guarda pagamentos apresentados, paginação e resumo por cliente, revalida até 100 registros e reconcilia por `payment.id`. Mutações e recuperação de conflito atualizam o snapshot somente com respostas oficiais; formulários, diálogos, prévias em edição e auditoria interna ficam fora.
+- O financeiro do cliente guarda somente pagamentos públicos, paginação, resumo, destaque e metadados públicos de vigência do Pix. `brCode`, `qrCodeDataUrl`, clipboard, diálogo e temporizadores nunca entram no snapshot.
+- A gestão individual do cliente guarda detalhes e estado do relatório por `clientId`, com revalidação obrigatória e atualização após geração oficial do relatório.
+- A Etapa 12 foi concluída em 7/7. As seis superfícies elegíveis são lista de clientes, gestão individual, propostas administrativas, financeiro administrativo, etapas/aprovações do cliente e financeiro do cliente.
+- Exclusão de cliente limpa todos os snapshots administrativos; mudanças de etapa em propostas invalidam lista e detalhes; logout descarta o controlador; F5 recria a composição vazia.
+- A auditoria final aprovou 113 testes e o build. Os E2E foram adicionados por recorte, mas não executados automaticamente.
 - Toda visita à tela continuará executando uma nova requisição, mesmo quando houver prévia em cache.
 - Com cache válido, a tela não deve voltar ao estado vazio ou skeleton durante a revalidação.
 - Em falha de rede, a prévia pode permanecer e o erro normal da tela continua disponível, sem indicador específico de cache desatualizado.
@@ -748,5 +772,5 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - Dados comparados devem ser DTOs de apresentação normalizados, não respostas brutas do backend.
 - Cada item dinâmico precisa de chave estável; posição no array ou no DOM não é identidade.
 - Mutações devem atualizar ou invalidar o cache somente a partir da resposta oficial.
-- Nenhum código desta etapa foi implementado em 24/09/2026.
+- A infraestrutura possui testes unitários, mas nenhum E2E foi adicionado no segundo recorte porque ainda não existe comportamento de interface; o E2E obrigatório começa no piloto funcional.
 - Decisões fechadas: apenas memória em propriedades de classes, todas as telas autenticadas elegíveis, validade encerrada no F5 e nenhuma indicação visual de revalidação.

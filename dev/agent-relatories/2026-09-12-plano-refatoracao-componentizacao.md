@@ -610,7 +610,7 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 9. aplicação do cliente fora do briefing;
 10. persistência e listagens;
 11. portfólio público — aguardando descrição de arquitetura;
-12. persistência visual — planejada, aguardando início explícito.
+12. persistência visual — concluída em sete recortes.
 
 ### Execução da Etapa priorizada 10 — persistência e listagens
 
@@ -634,7 +634,7 @@ Estado em 24/09/2026: **Etapa 10 concluída (5/5)**.
 - O contrato dessas três leituras foi isolado em `PaymentListingRepository`; o repositório MongoDB continua como adaptador concreto e as mutações financeiras permanecem inalteradas.
 - A cobertura E2E administrativa verifica que a segunda página financeira é acrescentada sem remover pagamentos já visíveis; conforme o padrão vigente, o E2E não foi executado automaticamente.
 - Não houve escrita, migração ou recálculo de pagamentos reais, nem mudança adicional em views persistidas.
-- A Etapa 11 permanece aguardando a descrição de arquitetura do portfólio público. A Etapa 12 está planejada, mas ainda não foi iniciada.
+- A Etapa 11 permanece aguardando a descrição de arquitetura do portfólio público. A Etapa 12 foi concluída em sete recortes.
 
 Fluxo resumido:
 
@@ -973,7 +973,7 @@ Os registros projetados pela consulta administrativa possuem contratos explícit
 
 ## 33. Etapa priorizada 12 — persistência visual
 
-Estado em 24/09/2026: **planejada; implementação não iniciada**. Esta seção define somente a arquitetura inicial. Nenhum cache, reconciliador ou comportamento de tela foi implementado.
+Estado em 25/09/2026: **Etapa 12 concluída (7/7)**. Todas as superfícies autenticadas elegíveis possuem persistência visual em memória.
 
 ### Objetivo
 
@@ -1039,6 +1039,118 @@ Todo snapshot deverá conter `schemaVersion`, identidade da sessão e chave da c
 5. propostas e etapas/aprovações;
 6. financeiros, com política restritiva para dados sensíveis e pagamentos reais;
 7. expansão para demais telas aprovadas, auditoria de acessibilidade, desempenho e conclusão.
+
+### Primeiro recorte — inventário de superfícies e invalidações
+
+O inventário considera como snapshot apenas DTOs de apresentação já normalizados pelas APIs do frontend. Tokens, objetos `File`, conteúdo de campos em edição, elementos DOM e respostas HTTP brutas não fazem parte do cache.
+
+| Superfície | Chave de consulta proposta | Snapshot permitido | Identidade estável | Eventos de atualização/invalidação |
+| --- | --- | --- | --- | --- |
+| Lista administrativa de clientes | `admin:{adminId}:clients:v1` | páginas carregadas de `AdminClientListItem`, paginação e total exibido | `client.id` | criação inclui/invalida a coleção; exclusão remove cliente e detalhes dependentes; mudança de etapa atualiza o item; logout/troca de administrador limpa tudo |
+| Gestão administrativa do cliente | `admin:{adminId}:client:{clientId}:v1` | `AdminClientDetails` e `BriefingReportStatus` | `client.id` | mudança/reordenação de etapa atualiza detalhes e lista; geração de relatório atualiza o status; exclusão remove detalhes; alterações do briefing invalidam relatório e detalhes |
+| Propostas administrativas | `admin:{adminId}:client:{clientId}:proposals:v1` | páginas de `ClientProposal`, paginação e etapas apresentadas | `proposal._id`; etapas por `stage.key` | criar/editar/confirmar alterações usa resposta oficial; remover proposta/anexo atualiza ou invalida; mudança de etapa atualiza propostas, detalhes e lista de clientes |
+| Financeiro administrativo | `admin:{adminId}:client:{clientId}:payments:v1` | pagamentos administrativos, paginação, resumo e destaque | `payment.id`; parcelas por tipo e número | criar/editar/receber/reverter usa resposta oficial e invalida resumo/destaque; remoção exclui item; conflito de versão invalida a coleção antes da recarga |
+| Etapas e aprovações do cliente | `client:{clientId}:stages-approvals:v1` | páginas de propostas públicas, paginação, etapas e etapa atual | `proposal._id`; etapas por `stage.key` | aprovação ou solicitação de alteração substitui a proposta e as etapas pela resposta oficial; alterações administrativas aparecem na revalidação; logout/troca de cliente limpa tudo |
+| Financeiro do cliente | `client:{clientId}:payments:v1` | pagamentos públicos, paginação, resumo e destaque sem segredos Pix | `payment.id`; parcelas por tipo e número | geração de Pix atualiza somente metadados públicos do pagamento/destaque; confirmação administrativa aparece na revalidação; logout/troca de cliente limpa tudo |
+
+#### Política de dados do inventário
+
+- A identidade de sessão usada nas chaves deverá ser um identificador estável do sujeito autenticado, nunca o token Bearer.
+- Propostas podem armazenar URLs e metadados textuais de anexos já públicos ao papel autenticado; arquivos selecionados para envio e binários permanecem fora.
+- O financeiro administrativo pode armazenar somente o contrato já apresentado na tela. Eventos internos de auditoria, recibos internos e dados não presentes no DTO ficam proibidos.
+- O financeiro do cliente não armazenará `brCode`, QR Code em data URL ou conteúdo de clipboard. O snapshot pode manter apenas os metadados públicos de vigência Pix já presentes no pagamento e no destaque.
+- Cursores podem compor o snapshot técnico da coleção, mas são opacos e não constituem identidade de item.
+- Estados transitórios como `loading`, erro, diálogo aberto, foco, texto digitado, seleção de arquivo e contagem regressiva não são persistidos.
+
+#### Superfícies autenticadas não elegíveis neste momento
+
+- Shells e homes usam views já carregadas e conteúdo estático, sem consulta de coleção por visita.
+- Criação de cliente e briefing administrativo representam estado de formulário; continuam sob `ClientCreationDraft` e não entram no cache visual.
+- O briefing do cliente é montado a partir da definição já obtida na sessão e possui serviços próprios para rascunho textual e arquivos. Misturar esses dados ao cache visual criaria duas fontes locais de estado.
+- Views persistidas são carregadas na composição da aplicação e mantidas nos modelos; seu cache de template não pertence à persistência visual de DTOs.
+- O portfólio público permanece excluído até a definição da Etapa 11.
+
+Este inventário orienta os contratos de `SessionVisualCache` e `VisualPersistenceController`; a adoção por telas permanece reservada aos recortes posteriores.
+
+### Segundo recorte — cache em memória e controlador de revalidação
+
+`SessionVisualCache` concentra snapshots clonados em um `Map` privado por instância autenticada. A chave é determinística mesmo quando os parâmetros chegam em ordens diferentes e inclui tela, parâmetros e versão positiva do contrato. A identidade e o papel pertencem ao escopo da instância; token de sessão não é aceito como parte da chave pelo contrato.
+
+`VisualPersistenceController` executa o fluxo de prévia e consulta oficial sem conhecer DOM ou APIs específicas. Cada nova revalidação incrementa a geração da chave; respostas de gerações anteriores se tornam obsoletas e não publicam nem sobrescrevem o snapshot mais recente. Falhas preservam a prévia confirmada e informam ao consumidor se ela existia.
+
+O controlador expõe cancelamento, invalidação, limpeza e descarte explícitos. `dispose()` elimina integralmente os snapshots e impede novas consultas, cobrindo logout ou encerramento da aplicação. Uma nova instância começa vazia, que é o comportamento esperado após F5.
+
+Cinco testes unitários cobrem isolamento por papel/identidade/versão, cópias defensivas, prévia seguida de revalidação obrigatória, rejeição de resposta antiga, manutenção da prévia em falha, invalidação e descarte. O frontend aprovou 101 testes e o build de produção. Não foi adicionado E2E neste recorte porque a infraestrutura ainda não é consumida por uma tela; a cobertura E2E começa no piloto funcional. Não houve alteração de view ou banco.
+
+Essa infraestrutura fornece os snapshots anterior e novo consumidos pelo reconciliador, sem assumir como cada tela representa seus itens.
+
+### Terceiro recorte — reconciliador de coleções
+
+`reconcileCollection` compara snapshots anterior e novo por uma identidade estável fornecida pelo adaptador da tela. O resultado separa `inserted`, `updated`, `removed`, `moved` e `unchanged`; um mesmo item pode aparecer como movido e atualizado, pois são mudanças independentes que o adaptador DOM precisará aplicar.
+
+A função de igualdade visual também é fornecida pela tela. Assim, diferenças técnicas sem impacto na apresentação podem ser ignoradas sem embutir conhecimento de clientes, propostas ou pagamentos no componente compartilhado. Identidades vazias ou repetidas em qualquer snapshot geram erro explícito, impedindo reconciliação ambígua por posição.
+
+Cinco testes unitários cobrem igualdade visual, inclusão, atualização, remoção, reordenação, atualização combinada com movimento e identidades inválidas. O frontend aprovou 106 testes e o build de produção. Não houve alteração de view, banco ou comportamento visual; por isso, o E2E permanece reservado ao piloto funcional.
+
+Esses deltas são consumidos pelo piloto sem acoplar o componente compartilhado à estrutura DOM da lista de clientes.
+
+### Quarto recorte — piloto na lista administrativa de clientes
+
+`AdminSystemModules` agora possui uma única instância autenticada de `SessionVisualCache` e `VisualPersistenceController`, compartilhada com o módulo de clientes e descartada antes do logout. A sessão administrativa ganhou `subjectId` separado do token; o token continua restrito à autenticação HTTP e nunca entra na chave ou no snapshot visual.
+
+Na segunda visita à listagem, `AdminClientsModule` apresenta o snapshot de forma síncrona e sempre dispara nova consulta. Quando existe prévia, a revalidação solicita o limite fixo de 50 clientes aceito pelo backend, em vez de limitar a consulta à quantidade já armazenada. Isso permite que novos registros entrem no início da ordenação sem expulsar indevidamente clientes antigos da resposta revalidada. Páginas adicionais carregadas atualizam o snapshot agregado até esse limite.
+
+O adaptador da tela usa `client.id` como identidade e compara somente os campos apresentados. Itens iguais preservam o mesmo nó DOM durante a revalidação; inserções, alterações, remoções e movimentos aplicam apenas o delta. Exclusão confirmada reconcilia a tela e invalida o snapshot para impedir reutilização de dados removidos.
+
+Os testes de módulo cobrem segunda visita com requisição pendente, prévia imediata, consulta obrigatória, inclusão recebida do servidor, preservação do nó inalterado e a regressão em que a criação de um terceiro cliente não pode remover o primeiro da lista. O E2E equivalente também preserva explicitamente o cliente mais antigo após a inclusão, mas não foi executado conforme a regra vigente. O frontend aprovou 108 testes e o build de produção. Não houve alteração de view ou banco.
+
+O quinto recorte aplica a persistência visual às propostas administrativas e às etapas/aprovações do cliente, incluindo as invalidações provocadas por decisões e mudanças de etapa.
+
+### Quinto recorte — propostas e aprovações (parte administrativa)
+
+A gestão administrativa de propostas agora usa uma chave isolada por `clientId`, apresenta imediatamente o último snapshot em memória e revalida silenciosamente no servidor. Quando existe prévia, a primeira consulta solicita até 50 propostas para absorver inclusões recentes sem remover indevidamente registros antigos por deslocamento da paginação.
+
+Os cards são reconciliados por `_id`: propostas visualmente inalteradas preservam o mesmo nó DOM, enquanto inclusões, atualizações, remoções e mudanças entre listas abertas e históricas aplicam somente o delta necessário. Páginas adicionais são agregadas ao snapshot. Criação, edição, confirmação de alterações, remoção de anexo e exclusão atualizam o cache somente depois da resposta oficial.
+
+O contrato de `AdminProposalsGateway` passou a aceitar limite opcional, encaminhado como parâmetro de consulta e respeitando o máximo 50 já validado pelo backend. Um teste de módulo cobre a prévia imediata, a inclusão recebida na revalidação e a preservação do card inalterado. O E2E equivalente foi adicionado, mas não executado conforme a regra vigente. O frontend aprovou 109 testes e o build de produção. Não houve alteração de view ou banco.
+
+Na interface do cliente, `ClientSystemModules` mantém uma instância própria do cache, isolada pelo identificador estável retornado em `clientObject`, e a descarta antes do logout. A tela de etapas e aprovações apresenta imediatamente propostas, etapas e etapa atual do snapshot, revalida até 50 propostas e reconcilia os cards por `_id`.
+
+Paginação adicional atualiza o snapshot agregado. Aprovação e solicitação de alteração substituem a proposta e o progresso com a resposta oficial antes de memorizar o novo estado; comentários em edição, arquivos selecionados e conteúdo dos diálogos não entram no cache. O contrato público de propostas passou a aceitar limite opcional na consulta, respeitando o máximo já validado pelo backend.
+
+O teste de módulo cobre prévia imediata, inclusão durante a revalidação e preservação do card inalterado. O E2E equivalente foi adicionado, mas não executado conforme a regra vigente. Ao concluir o quinto recorte, o frontend aprovou 110 testes e o build de produção. Não houve alteração de view ou banco.
+
+A próxima implementação inicia o sexto recorte nos financeiros administrativo e do cliente, mantendo fora do cache BR Code, QR Code, clipboard e dados internos de auditoria.
+
+### Sexto recorte — financeiros (parte administrativa)
+
+O financeiro administrativo agora mantém um snapshot por `clientId` com pagamentos apresentados, paginação e resumo agregado. Na revisita, a tela monta imediatamente o gerenciador com a prévia e revalida até 100 pagamentos, limite já aceito pelo backend, evitando que novas cobranças desloquem registros antigos para fora da resposta.
+
+`ClientFinancialManager` passou a reconciliar cobranças por `payment.id`, preservando cards visualmente inalterados. Criação, edição, remoção, confirmação ou reversão de entrada/parcela, paginação adicional e recuperação de conflito de versão atualizam o snapshot somente depois da resposta oficial. Formulário, prévia em edição, diálogos, temporizadores e registros internos de auditoria permanecem fora do cache.
+
+O resumo global é ajustado por diferença nas mutações, sem ser recalculado apenas a partir da página parcialmente carregada. O teste de módulo cobre a prévia imediata e a preservação do card durante a revalidação. O E2E equivalente foi adicionado, mas não executado conforme a regra vigente. O frontend aprovou 111 testes e o build de produção. Não houve alteração de view ou banco.
+
+No financeiro do cliente, o snapshot guarda somente pagamentos públicos, paginação, resumo e destaque. A tela revalida até 100 pagamentos e reconcilia cards por `payment.id`, preservando os elementos inalterados durante a atualização silenciosa.
+
+Ao gerar um Pix, somente o pagamento atualizado e os metadados públicos `generatedAt` e `analysisWindowEndsAt` presentes no contrato do pagamento/destaque são memorizados. `brCode`, `qrCodeDataUrl`, conteúdo de clipboard, estado do diálogo e temporizadores permanecem exclusivamente no fluxo transitório da tela e nunca entram no snapshot.
+
+Paginação adicional atualiza o snapshot agregado. O teste de módulo cobre a prévia imediata, preservação do card e ausência dos campos secretos no contrato armazenável. O E2E equivalente foi adicionado, mas não executado conforme a regra vigente. Ao concluir o sexto recorte, o frontend aprovou 112 testes e o build de produção. Não houve alteração de view ou banco.
+
+O sétimo e último recorte cobre expansão/auditoria das superfícies restantes, revisão das invalidações, segurança, acessibilidade e encerramento da Etapa 12.
+
+### Sétimo recorte — gestão individual e auditoria final
+
+A gestão individual do cliente passou a armazenar, por `clientId`, somente `AdminClientDetails` e `BriefingReportStatus`. Na revisita, nome, acesso ao Drive e ação do relatório são apresentados imediatamente enquanto cliente e relatório são revalidados. A geração bem-sucedida do relatório atualiza o snapshot com a resposta oficial; falhas continuam oferecendo “Tentar novamente” sem apagar uma prévia válida.
+
+A auditoria confirmou cobertura das seis superfícies elegíveis: lista administrativa de clientes, gestão individual, propostas administrativas, financeiro administrativo, etapas/aprovações do cliente e financeiro do cliente. Shells, homes, criação de cliente, briefing e portfólio público permanecem corretamente fora, conforme o inventário inicial.
+
+As invalidações cruzadas foram fechadas: a exclusão confirmada de cliente limpa todos os snapshots da sessão administrativa; mudanças de etapa realizadas na gestão de propostas invalidam a lista e os detalhes do cliente; decisões do cliente atualizam proposta e progresso no mesmo snapshot; mutações financeiras atualizam seus snapshots somente após resposta oficial. Logout descarta integralmente o controlador de cada papel, enquanto F5 recria toda a composição sem dados anteriores.
+
+A revisão de segurança confirmou que tokens não participam de chaves ou valores, arquivos e formulários em edição não são armazenados e o financeiro do cliente exclui BR Code, QR Code e clipboard. A revisão visual e de acessibilidade mantém foco e nós DOM de itens inalterados, preserva os tratamentos de erro existentes e não introduz anúncios ou indicadores artificiais para a revalidação silenciosa.
+
+O teste de módulo da gestão individual cobre prévia imediata de detalhes e relatório. O E2E equivalente foi adicionado, mas não executado conforme a regra vigente. A validação final aprovou 113 testes frontend, o build de produção e `git diff --check`. Nenhuma view persistida, dado real ou estrutura de banco foi alterada nesta etapa.
+
+Com isso, a Etapa 12 está encerrada. A única etapa priorizada ainda pendente é a Etapa 11, mantida como **aguardando descrição de arquitetura** por decisão do usuário.
 
 ### Testes e critérios de conclusão
 

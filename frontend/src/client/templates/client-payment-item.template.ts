@@ -38,6 +38,7 @@ export function clientPaymentItem(
     clock: FinancialClock = systemFinancialClock
 ): HTMLElement {
     const card = el("article", "client-financial-payment");
+    card.dataset.paymentId = payment.id;
     const header = document.createElement("header");
     const heading = document.createElement("div");
     heading.append(el("h3", "", payment.title), el("p", "", conditionsText(payment)));

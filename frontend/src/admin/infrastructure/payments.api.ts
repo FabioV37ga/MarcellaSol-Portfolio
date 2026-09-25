@@ -16,7 +16,7 @@ export interface PaymentFields {
 export type PaymentPreviewFields = Pick<PaymentFields, "totalAmount" | "installmentCount" | "firstDueDate" | "downPaymentPercentage" | "discountPercentage" | "interestPercentage">;
 
 export interface AdminPaymentsGateway {
-    loadPayments(session: AdminSession, clientId: string, cursor?: string): Promise<PaymentPage>;
+    loadPayments(session: AdminSession, clientId: string, cursor?: string, limit?: number): Promise<PaymentPage>;
     previewPayment(session: AdminSession, fields: PaymentPreviewFields, signal?: AbortSignal): Promise<PaymentPreview>;
     createPayment(session: AdminSession, clientId: string, fields: PaymentFields): Promise<ClientPayment>;
     editPayment(session: AdminSession, clientId: string, paymentId: string, fields: PaymentFields): Promise<ClientPayment>;
@@ -30,8 +30,11 @@ interface PaymentEnvelope { payment?: unknown; preview?: unknown; }
 export class AdminPaymentsApi implements AdminPaymentsGateway {
     constructor(private readonly http: HttpClient = httpClient) { }
 
-    async loadPayments(session: AdminSession, clientId: string, cursor?: string): Promise<PaymentPage> {
-        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    async loadPayments(session: AdminSession, clientId: string, cursor?: string, limit?: number): Promise<PaymentPage> {
+        const parameters = new URLSearchParams();
+        if (cursor) parameters.set("cursor", cursor);
+        if (limit !== undefined) parameters.set("limit", String(limit));
+        const query = parameters.size > 0 ? `?${parameters.toString()}` : "";
         const result = await this.http.request<unknown>(`/admin/clients/${encodeURIComponent(clientId)}/payments${query}`, { token: session.token });
         return parsePaymentPage(result, parseAdminPayment) as PaymentPage;
     }

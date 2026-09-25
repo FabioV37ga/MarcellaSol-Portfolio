@@ -10,6 +10,16 @@ import type { AdminSystemView } from "@/admin/views/adminSystem.view.js";
 import { projectStageLabels, type ProjectStage, type ProjectStageKey } from "@/shared/project-stages.js";
 import { ProjectStageEditor } from "@/admin/ui/project-stage-editor.js";
 import { ProposalChangesConfirmation } from "@/admin/ui/proposal-changes-confirmation.js";
+import { reconcileCollection } from "@/shared/visual-persistence/collection-reconciler.js";
+import type { VisualCacheQuery } from "@/shared/visual-persistence/visual-cache.types.js";
+import type { VisualPersistenceController } from "@/shared/visual-persistence/visual-persistence.controller.js";
+
+const MAX_CACHED_PROPOSALS = 50;
+
+interface ProposalsSnapshot {
+    proposals: ClientProposal[];
+    page: { limit: number; hasMore: boolean; nextCursor?: string };
+}
 
 export class AdminClientProposalsModule {
     private requestId = 0;
@@ -22,7 +32,8 @@ export class AdminClientProposalsModule {
             & AdminViewsGateway,
         private readonly session: AdminSession,
         private readonly navigate: (route: AdminRoute, id?: string) => void,
-        private readonly getNavButton: () => HTMLElement | undefined
+        private readonly getNavButton: () => HTMLElement | undefined,
+        private readonly visualPersistence: VisualPersistenceController
     ) { }
 
     async mount(clientId?: string): Promise<void> {
@@ -30,12 +41,12 @@ export class AdminClientProposalsModule {
             this.navigate("clients");
             return;
         }
-        const requestId = ++this.requestId;
+        const viewRequestId = ++this.requestId;
 
         let proposalsView = this.models.clientProposals;
         if (!proposalsView) {
             const databaseViews = await this.api.loadViews(this.session);
-            if (requestId !== this.requestId) return;
+            if (viewRequestId !== this.requestId) return;
             const databaseView = databaseViews?.find(
                 item => item.viewName?.trim().toLowerCase() === "client-proposals"
             );
@@ -52,6 +63,7 @@ export class AdminClientProposalsModule {
         }
 
         const mountedProposalsView = this.view.render(proposalsView, ".page-content");
+        const requestId = ++this.requestId;
         this.view.registerDisposer(() => {
             this.requestId += 1;
         });
@@ -80,6 +92,7 @@ export class AdminClientProposalsModule {
         attachmentInput.multiple = true;
         attachmentInput.name = "attachments";
         let proposals: ClientProposal[] = [];
+        let renderedProposals: ClientProposal[] = [];
         let editingId: string | undefined;
         let editingProposal: ClientProposal | undefined;
         let deletingProposal: ClientProposal | undefined;
@@ -89,6 +102,31 @@ export class AdminClientProposalsModule {
         let nextCursor: string | undefined;
         let currentStageKey: ProjectStageKey = "briefing";
         let projectStageEditor: ProjectStageEditor | undefined;
+        const visualQuery: VisualCacheQuery = {
+            screen: "admin-client-proposals",
+            schemaVersion: 1,
+            parameters: { clientId }
+        };
+        const invalidateClientOverview = (): void => {
+            this.visualPersistence.invalidate({ screen: "clients", schemaVersion: 1 });
+            this.visualPersistence.invalidate({
+                screen: "admin-client-management",
+                schemaVersion: 1,
+                parameters: { clientId }
+            });
+        };
+
+        const rememberProposals = (): void => {
+            const cached = proposals.slice(0, MAX_CACHED_PROPOSALS);
+            this.visualPersistence.remember<ProposalsSnapshot>(visualQuery, {
+                proposals: cached,
+                page: {
+                    limit: cached.length,
+                    hasMore: Boolean(nextCursor),
+                    ...(nextCursor ? { nextCursor } : {})
+                }
+            });
+        };
 
         const syncProposalStageOptions = (stages: ProjectStage[]): void => {
             const selected = stageSelect.value as ProjectStageKey;
@@ -156,6 +194,7 @@ export class AdminClientProposalsModule {
                 feedback.textContent = "Anexo removido com sucesso.";
                 attachmentHelp.textContent = "Anexo removido. A alteração já foi salva.";
                 render();
+                rememberProposals();
             } catch (error) {
                 attachmentHelp.textContent = error instanceof Error ? error.message : "Não foi possível remover o anexo.";
             } finally {
@@ -165,21 +204,35 @@ export class AdminClientProposalsModule {
         };
 
         const render = (): void => {
-            openList.replaceChildren();
-            closedList.replaceChildren();
+            root.querySelectorAll(".proposals-empty").forEach(item => item.remove());
+            const delta = reconcileCollection(renderedProposals, proposals, {
+                keyOf: proposal => proposal._id,
+                visuallyEqual: sameProposalPresentation
+            });
+            delta.removed.forEach(({ key }) => proposalNode(root, key)?.remove());
+            delta.updated.forEach(({ key, item }) => {
+                proposalNode(root, key)?.replaceWith(createProposalNode(item));
+            });
+            delta.inserted.forEach(({ item }) => openList.append(createProposalNode(item)));
             proposals.forEach(proposal => {
-                const item = clientProposalItem(proposal);
+                const item = proposalNode(root, proposal._id) ?? createProposalNode(proposal);
                 const target = proposal.status === "sent" || proposal.status === "resent" || proposal.status === "beated"
                     ? openList : closedList;
                 target.append(item);
+            });
+            renderedProposals = [...proposals];
+            this.toggleProposalEmpty(openList, "Nenhuma proposta aberta.");
+            this.toggleProposalEmpty(closedList, "Nenhuma proposta no histórico.");
+            updatePagination();
+        };
+
+        const createProposalNode = (proposal: ClientProposal): HTMLElement => {
+                const item = clientProposalItem(proposal);
                 u(item.querySelector(".proposal-edit") as HTMLElement).on("click", () => openEditor(proposal));
                 u(item.querySelector(".proposal-delete") as HTMLElement).on("click", () => openDeleteDialog(proposal));
                 const confirm = item.querySelector<HTMLButtonElement>(".proposal-confirm-changes");
                 confirm?.addEventListener("click", () => changesConfirmation.open(proposal._id, proposal.title));
-            });
-            this.toggleProposalEmpty(openList, "Nenhuma proposta aberta.");
-            this.toggleProposalEmpty(closedList, "Nenhuma proposta no histórico.");
-            updatePagination();
+                return item;
         };
 
         const loadNextPage = async (): Promise<void> => {
@@ -194,6 +247,7 @@ export class AdminClientProposalsModule {
                 proposals.push(...loaded.proposals.filter(proposal => !existing.has(proposal._id)));
                 nextCursor = loaded.page.nextCursor;
                 render();
+                rememberProposals();
             } catch (error) {
                 if (requestId !== this.requestId) return;
                 feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar mais propostas.";
@@ -232,8 +286,10 @@ export class AdminClientProposalsModule {
             if (requestId !== this.requestId) return;
             proposals = proposals.map(item => item._id === result.proposal._id ? result.proposal : item);
             projectStageEditor?.replaceState(result);
+            invalidateClientOverview();
             feedback.textContent = "Alterações concluídas.";
             render();
+            rememberProposals();
         });
         this.view.registerDisposer(() => changesConfirmation.dispose());
 
@@ -259,6 +315,7 @@ export class AdminClientProposalsModule {
                 deleteDialog.close();
                 feedback.textContent = "Proposta e anexos removidos com sucesso.";
                 render();
+                rememberProposals();
             }, error => {
                 feedback.textContent = error instanceof Error ? error.message : "Não foi possível remover a proposta.";
             }).then(() => { button.disabled = false; });
@@ -292,10 +349,12 @@ export class AdminClientProposalsModule {
                         projectStages: result.projectStages,
                         currentStageKey: result.currentStageKey as ProjectStageKey
                     });
+                    invalidateClientOverview();
                 }
                 dialog.close();
                 feedback.textContent = "Proposta salva com sucesso.";
                 render();
+                rememberProposals();
             }, error => {
                 feedback.textContent = error instanceof Error ? error.message : "Não foi possível salvar a proposta.";
             }).then(() => {
@@ -305,9 +364,38 @@ export class AdminClientProposalsModule {
         });
 
         try {
-            const [client, loaded] = await Promise.all([
+            const [client] = await Promise.all([
                 this.api.loadClient(this.session, clientId),
-                this.api.loadProposals(this.session, clientId)
+                this.visualPersistence.revalidate<ProposalsSnapshot>({
+                    query: visualQuery,
+                    presentPreview: snapshot => {
+                        proposals = snapshot.proposals;
+                        nextCursor = snapshot.page.nextCursor;
+                        render();
+                    },
+                    load: async () => {
+                        const hasPreview = renderedProposals.length > 0;
+                        return this.api.loadProposals(
+                            this.session,
+                            clientId,
+                            undefined,
+                            hasPreview ? MAX_CACHED_PROPOSALS : undefined
+                        );
+                    },
+                    publish: snapshot => {
+                        if (requestId !== this.requestId) return;
+                        proposals = snapshot.proposals;
+                        nextCursor = snapshot.page.nextCursor;
+                        feedback.textContent = "";
+                        render();
+                    },
+                    reportError: error => {
+                        if (requestId !== this.requestId) return;
+                        feedback.textContent = error instanceof Error
+                            ? error.message
+                            : "Não foi possível carregar as propostas.";
+                    }
+                })
             ]);
             if (requestId !== this.requestId) return;
             root.querySelector<HTMLElement>("#proposals-client-name")!.textContent = client.name;
@@ -333,12 +421,9 @@ export class AdminClientProposalsModule {
                 result => {
                     currentStageKey = result.currentStageKey;
                     syncProposalStageOptions(result.projectStages);
+                    invalidateClientOverview();
                 }
             );
-            proposals = loaded.proposals;
-            nextCursor = loaded.page.nextCursor;
-            feedback.textContent = "";
-            render();
         } catch (error) {
             if (requestId !== this.requestId) return;
             feedback.textContent = error instanceof Error ? error.message : "Não foi possível carregar as propostas.";
@@ -354,4 +439,13 @@ export class AdminClientProposalsModule {
         list.append(empty);
     }
 
+}
+
+function proposalNode(root: ParentNode, proposalId: string): HTMLElement | undefined {
+    return Array.from(root.querySelectorAll<HTMLElement>("[data-proposal-id]"))
+        .find(item => item.dataset.proposalId === proposalId);
+}
+
+function sameProposalPresentation(previous: ClientProposal, next: ClientProposal): boolean {
+    return JSON.stringify(previous) === JSON.stringify(next);
 }

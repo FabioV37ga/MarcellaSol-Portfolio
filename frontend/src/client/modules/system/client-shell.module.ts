@@ -11,7 +11,8 @@ export class ClientShellModule {
         private readonly view: ClientSystemView,
         private readonly template: HTMLElement,
         private readonly token: string,
-        private readonly navigate: (route: ClientRoute) => void
+        private readonly navigate: (route: ClientRoute) => void,
+        private readonly beforeLogout: () => void = () => undefined
     ) { }
 
     mount(): void {
@@ -20,6 +21,7 @@ export class ClientShellModule {
         this.mountMobileNavigation(this.elements);
         this.view.styleNavButton(this.elements.desktop_nav_home);
         u(this.elements.desktop_logout).off("click").on("click", () => {
+            this.beforeLogout();
             void logoutSession("client", this.token);
         });
         u(this.elements.desktop_nav_home).off("click").on("click", () => this.navigate("home"));

@@ -59,6 +59,85 @@ test("carrega páginas adicionais de clientes sem remover os itens visíveis", a
     expect(requests).toEqual(["primeira", "cursor-2"]);
 });
 
+test("revisita clientes com prévia imediata e preserva itens inalterados na revalidação", async ({ page }) => {
+    await mockAdminApi(page);
+    const first = {
+        id: "cached-client", name: "Cliente em cache", type: "residencial",
+        hasFilledBriefing: false, currentStageKey: "briefing", currentStageStatus: "not-started"
+    };
+    const previous = { ...first, id: "previous-client", name: "Cliente anterior" };
+    const inserted = { ...first, id: "fresh-client", name: "Cliente novo" };
+    let requests = 0;
+    let releaseSecond!: () => void;
+    const secondRequest = new Promise<void>(resolve => { releaseSecond = resolve; });
+    await page.route("**/api/admin/clients**", async route => {
+        requests += 1;
+        if (requests === 2) await secondRequest;
+        await route.fulfill({ json: {
+            clients: requests === 1 ? [first, previous] : [inserted, first, previous],
+            page: { limit: 20, hasMore: false }
+        } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await expect(page.locator("[data-client-id='cached-client']")).toBeVisible();
+
+    await page.locator(".desktop-navigation-item").nth(0).click();
+    await page.locator(".page-content #client").click();
+    const cachedNode = page.locator("[data-client-id='cached-client']");
+    await expect(cachedNode).toBeVisible();
+    await cachedNode.evaluate(node => { (node as HTMLElement).dataset.reconciliationMarker = "preserved"; });
+    expect(requests).toBe(2);
+
+    releaseSecond();
+    await expect(page.locator("[data-client-id='fresh-client']")).toBeVisible();
+    await expect(page.locator("[data-client-id='previous-client']")).toBeVisible();
+    await expect(cachedNode).toHaveAttribute("data-reconciliation-marker", "preserved");
+});
+
+test("revisita a gestão do cliente com detalhes e relatório em cache", async ({ page }) => {
+    const listItem = {
+        id: "management-cache-client", name: "Cliente Gestão", type: "residencial",
+        hasFilledBriefing: true, currentStageKey: "briefing", currentStageStatus: "completed"
+    };
+    const client = {
+        ...listItem, driveFolderUrl: "https://drive.google.com/folder/client",
+        projectStages: [], hasProjectStageOrder: false
+    };
+    let detailRequests = 0;
+    let releaseSecond!: () => void;
+    const pending = new Promise<void>(resolve => { releaseSecond = resolve; });
+    await mockAdminApi(page, [listItem]);
+    await page.route("**/api/admin/clients/management-cache-client", async route => {
+        detailRequests += 1;
+        if (detailRequests === 2) await pending;
+        return route.fulfill({ json: { client } });
+    });
+    await page.route("**/api/admin/clients/management-cache-client/briefing-report", route => route.fulfill({
+        json: { exists: true, folderUrl: "https://drive.google.com/folder/report" }
+    }));
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='management-cache-client']").click();
+    await expect(page.locator("#client-management-name")).toHaveText("Cliente Gestão");
+    await expect(page.locator("#client-management-briefing-report")).toContainText("Acessar");
+
+    await page.locator("#client-management-back").click();
+    await page.locator("[data-client-id='management-cache-client']").click();
+    await expect(page.locator("#client-management-name")).toHaveText("Cliente Gestão");
+    await expect(page.locator("#client-management-briefing-report")).toContainText("Acessar");
+    expect(detailRequests).toBe(2);
+
+    releaseSecond();
+    await expect(page.locator("#client-management-name")).toHaveText("Cliente Gestão");
+});
+
 test("carrega páginas adicionais de propostas no histórico administrativo", async ({ page }) => {
     const projectStages = ["contract", "briefing", "layout", "project-development", "survey", "budgets-definitions", "executive-project", "final-delivery"]
         .map((key, index) => ({ key, index, status: index === 0 ? "completed" : "not-started" }));
@@ -99,6 +178,57 @@ test("carrega páginas adicionais de propostas no histórico administrativo", as
     await expect(page.locator(".proposal-card")).toHaveCount(2);
     await expect(page.locator("#proposals-pagination-status")).toHaveText("2 propostas exibidas");
     await expect(page.locator("#proposals-load-more")).toBeHidden();
+});
+
+test("revisita propostas com prévia e preserva cards inalterados", async ({ page }) => {
+    const projectStages = ["contract", "briefing", "layout", "project-development", "survey", "budgets-definitions", "executive-project", "final-delivery"]
+        .map((key, index) => ({ key, index, status: index === 0 ? "completed" : "not-started" }));
+    const client = {
+        id: "proposal-cache-client", name: "Cliente Propostas", type: "residencial",
+        hasFilledBriefing: false, currentStageKey: "briefing", currentStageStatus: "not-started",
+        projectStages, hasProjectStageOrder: true
+    };
+    const proposal = (id: string, title: string) => ({
+        _id: id, userId: client.id, title, description: "Descrição",
+        attachments: ["https://example.com/proposta.pdf"], userComment: "", clientResponses: [],
+        stageKey: "briefing", status: "sent", createdAt: "2026-09-24T10:00:00.000Z",
+        updatedAt: "2026-09-24T10:00:00.000Z"
+    });
+    const cached = proposal("cached-proposal", "Proposta em cache");
+    const inserted = proposal("fresh-proposal", "Proposta nova");
+    let requests = 0;
+    let releaseSecond!: () => void;
+    const secondRequest = new Promise<void>(resolve => { releaseSecond = resolve; });
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/proposal-cache-client", route => route.fulfill({ json: { client } }));
+    await page.route("**/api/admin/clients/proposal-cache-client/briefing-report", route => route.fulfill({ json: { exists: false } }));
+    await page.route("**/api/admin/clients/proposal-cache-client/proposals**", async route => {
+        requests += 1;
+        if (requests === 2) await secondRequest;
+        return route.fulfill({ json: {
+            proposals: requests === 1 ? [cached] : [inserted, cached],
+            page: { limit: requests === 1 ? 20 : 50, hasMore: false }
+        } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='proposal-cache-client']").click();
+    await page.locator("#client-management-proposals").click();
+    await expect(page.locator("[data-proposal-id='cached-proposal']")).toBeVisible();
+
+    await page.locator("#proposals-client-index").click();
+    await page.locator("#client-management-proposals").click();
+    const cachedNode = page.locator("[data-proposal-id='cached-proposal']");
+    await expect(cachedNode).toBeVisible();
+    await cachedNode.evaluate(node => { (node as HTMLElement).dataset.reconciliationMarker = "preserved"; });
+    expect(requests).toBe(2);
+
+    releaseSecond();
+    await expect(page.locator("[data-proposal-id='fresh-proposal']")).toBeVisible();
+    await expect(cachedNode).toHaveAttribute("data-reconciliation-marker", "preserved");
 });
 
 test("confirma alterações com cancelamento, falha, nova tentativa e etapa aguardando cliente", async ({ page }) => {
@@ -541,6 +671,57 @@ test("financeiro acrescenta a próxima página sem remover pagamentos já exibid
     await expect(page.locator("#financial-pagination-status")).toHaveText("2 de 2 pagamentos exibidos");
     await expect(page.locator("#financial-load-more")).toBeHidden();
     expect(cursors).toEqual(["primeira", "financial-cursor-2"]);
+});
+
+test("revisita o financeiro administrativo com prévia e preserva cobranças inalteradas", async ({ page }) => {
+    const client = {
+        id: "client-financial-cache", name: "Cliente Cache Financeiro", type: "residencial",
+        hasFilledBriefing: false, currentStageKey: "briefing", currentStageStatus: "not-started"
+    };
+    const payment = {
+        id: "cached-payment", version: 0, clientId: client.id, title: "Projeto em cache",
+        totalAmountCents: 100000, installmentCount: 1, firstDueDate: "2026-10-01",
+        downPaymentPercentage: 0, discountPercentage: 0, interestPercentage: 0,
+        discountAmountCents: 0, downPayment: { amountCents: 0, isPaid: false },
+        financedAmountCents: 100000, interestAmountCents: 0, installmentTotalCents: 100000,
+        finalAmountCents: 100000, paidAmountCents: 0, remainingAmountCents: 100000,
+        financialTermsLocked: false,
+        installments: [{ number: 1, amountCents: 100000, isPaid: false, dueDate: "2026-11-01" }],
+        createdAt: "2026-09-25T10:00:00.000Z", updatedAt: "2026-09-25T10:00:00.000Z"
+    };
+    let requests = 0;
+    let releaseSecond!: () => void;
+    const pending = new Promise<void>(resolve => { releaseSecond = resolve; });
+    await mockAdminApi(page, [client]);
+    await page.route("**/api/admin/clients/client-financial-cache", route => route.fulfill({
+        json: { client: { ...client, projectStages: [], hasProjectStageOrder: false } }
+    }));
+    await page.route("**/api/admin/clients/client-financial-cache/payments**", async route => {
+        requests += 1;
+        if (requests === 2) await pending;
+        return route.fulfill({ json: {
+            payments: [payment], page: { limit: requests === 1 ? 20 : 100, hasMore: false },
+            summary: { paymentCount: 1, totalAmountCents: 100000, paidAmountCents: 0, remainingAmountCents: 100000 }
+        } });
+    });
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+    await page.locator(".page-content #client").click();
+    await page.locator("[data-client-id='client-financial-cache']").click();
+    await page.locator("#client-management-financial").click();
+    await expect(page.locator("[data-payment-id='cached-payment']")).toBeVisible();
+
+    await page.locator("#financial-back").click();
+    await page.locator("#client-management-financial").click();
+    const cachedNode = page.locator("[data-payment-id='cached-payment']");
+    await expect(cachedNode).toBeVisible();
+    await cachedNode.evaluate(node => { (node as HTMLElement).dataset.reconciliationMarker = "preserved"; });
+    expect(requests).toBe(2);
+
+    releaseSecond();
+    await expect(cachedNode).toHaveAttribute("data-reconciliation-marker", "preserved");
 });
 
 test("financeiro recarrega a cobrança após conflito com outra sessão", async ({ page }) => {

@@ -8,6 +8,8 @@ import { ClientBriefingRouteModule } from "./system/client-briefing-route.module
 import { ClientHomeModule } from "./system/client-home.module.js";
 import { ClientShellModule } from "./system/client-shell.module.js";
 import { ClientStagesApprovalsModule } from "./system/client-stages-approvals.module.js";
+import { SessionVisualCache } from "@/shared/visual-persistence/session-visual-cache.js";
+import { VisualPersistenceController } from "@/shared/visual-persistence/visual-persistence.controller.js";
 
 export class ClientSystemModules {
     private readonly briefing: ClientBriefingRouteModule;
@@ -15,6 +17,7 @@ export class ClientSystemModules {
     private readonly home: ClientHomeModule;
     private readonly shell: ClientShellModule;
     private readonly stagesApprovals: ClientStagesApprovalsModule;
+    private readonly visualPersistence: VisualPersistenceController;
 
     constructor(
         view: ClientSystemView,
@@ -22,18 +25,30 @@ export class ClientSystemModules {
         briefing: ClientBriefingController,
         api: ClientSystemApi,
         token: string,
+        subjectId: string,
         navigate: (route: ClientRoute) => void
     ) {
+        this.visualPersistence = new VisualPersistenceController(new SessionVisualCache({
+            role: "client",
+            subjectId
+        }));
         this.briefing = new ClientBriefingRouteModule(view, briefing);
-        this.financial = new ClientFinancialModule(view, models, api, token, navigate);
+        this.financial = new ClientFinancialModule(view, models, api, token, navigate, this.visualPersistence);
         this.home = new ClientHomeModule(view, models.home, navigate);
-        this.shell = new ClientShellModule(view, models.base, token, navigate);
+        this.shell = new ClientShellModule(
+            view,
+            models.base,
+            token,
+            navigate,
+            () => this.visualPersistence.dispose()
+        );
         this.stagesApprovals = new ClientStagesApprovalsModule(
             view,
             models["stages-approvals"],
             api,
             token,
-            navigate
+            navigate,
+            this.visualPersistence
         );
     }
 

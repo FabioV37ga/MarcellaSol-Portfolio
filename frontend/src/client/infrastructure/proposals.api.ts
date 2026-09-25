@@ -16,7 +16,7 @@ export interface ClientProjectResponse {
 }
 export interface ClientProposalDecision { proposal: ClientProposal; projectStages: ProjectStage[]; currentStageKey: ProjectStageKey; }
 export interface ClientProposalsGateway {
-    loadProposals(token: string, cursor?: string): Promise<ClientProjectResponse>;
+    loadProposals(token: string, cursor?: string, limit?: number): Promise<ClientProjectResponse>;
     approveProposal(token: string, proposalId: string, comment: string, files?: File[]): Promise<ClientProposalDecision>;
     beatProposal(token: string, proposalId: string, comment: string, confirmRevisionRound: boolean, files?: File[]): Promise<ClientProposalDecision>;
 }
@@ -24,8 +24,11 @@ export interface ClientProposalsGateway {
 export class ClientProposalsApi implements ClientProposalsGateway {
     constructor(private readonly http: HttpClient = httpClient) { }
 
-    async loadProposals(token: string, cursor?: string): Promise<ClientProjectResponse> {
-        const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    async loadProposals(token: string, cursor?: string, limit?: number): Promise<ClientProjectResponse> {
+        const parameters = new URLSearchParams();
+        if (cursor) parameters.set("cursor", cursor);
+        if (limit !== undefined) parameters.set("limit", String(limit));
+        const query = parameters.size > 0 ? `?${parameters.toString()}` : "";
         const result = await this.http.request<Partial<ClientProjectResponse>>(`/client/proposals${query}`, { token });
         return {
             proposals: result?.proposals ?? [],

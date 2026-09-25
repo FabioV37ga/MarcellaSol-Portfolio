@@ -105,6 +105,51 @@ test("etapas e aprovações apresenta falha de carregamento sem bloquear a naveg
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("home");
 });
 
+test("revisita aprovações com prévia e preserva propostas inalteradas", async ({ page }) => {
+    await mockClient(page);
+    const proposal = (id: string, title: string) => ({
+        _id: id, title, description: "Descrição",
+        attachments: ["https://drive.google.com/file/d/admin/view"], userComment: "",
+        clientResponses: [], stageKey: "briefing", status: "sent",
+        createdAt: "2026-09-14T10:00:00.000Z", updatedAt: "2026-09-14T10:00:00.000Z"
+    });
+    const cached = proposal("cached-proposal", "Proposta em cache");
+    const inserted = proposal("fresh-proposal", "Proposta nova");
+    let requests = 0;
+    let releaseSecond!: () => void;
+    const secondRequest = new Promise<void>(resolve => { releaseSecond = resolve; });
+    await page.route("**/api/client/proposals**", async route => {
+        requests += 1;
+        if (requests === 2) await secondRequest;
+        return route.fulfill({ json: {
+            currentStageKey: "briefing",
+            projectStages: [
+                { key: "contract", status: "completed" },
+                { key: "briefing", status: "awaiting-approval" }
+            ],
+            proposals: requests === 1 ? [cached] : [inserted, cached],
+            page: { limit: requests === 1 ? 20 : 50, hasMore: false }
+        } });
+    });
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-stages-processes").click();
+    await expect(page.locator("[data-proposal-id='cached-proposal']")).toBeVisible();
+
+    await page.locator("#client-stages-back").click();
+    await page.locator("#client-stages-processes").click();
+    const cachedNode = page.locator("[data-proposal-id='cached-proposal']");
+    await expect(cachedNode).toBeVisible();
+    await cachedNode.evaluate(node => { (node as HTMLElement).dataset.reconciliationMarker = "preserved"; });
+    expect(requests).toBe(2);
+
+    releaseSecond();
+    await expect(page.locator("[data-proposal-id='fresh-proposal']")).toBeVisible();
+    await expect(cachedNode).toHaveAttribute("data-reconciliation-marker", "preserved");
+});
+
 test("financeiro ignora carregamento concluído depois do retorno à home", async ({ page }) => {
     let releasePayments!: () => void;
     const pendingPayments = new Promise<void>(resolve => { releasePayments = resolve; });
@@ -191,6 +236,46 @@ test("carrega os estilos componentizados do financeiro do cliente", async ({ pag
     await expect(page.locator(".client-financial-highlight")).toHaveCSS("border-radius", "12px");
     await expect(page.locator(".client-financial-panel")).toHaveCSS("border-radius", "12px");
     await expect(page.locator("#client-financial-empty")).toBeVisible();
+});
+
+test("revisita o financeiro do cliente com prévia e preserva cobranças inalteradas", async ({ page }) => {
+    await mockClient(page);
+    const payment = {
+        id: "cached-payment", title: "Projeto em cache", totalAmountCents: 100000,
+        installmentCount: 1, firstDueDate: "2026-10-01", downPaymentPercentage: 0,
+        discountPercentage: 0, interestPercentage: 0, discountAmountCents: 0,
+        downPayment: { amountCents: 0, isPaid: false }, finalAmountCents: 100000,
+        paidAmountCents: 0, remainingAmountCents: 100000,
+        installments: [{ number: 1, amountCents: 100000, isPaid: false, dueDate: "2026-11-01" }],
+        createdAt: "2026-09-25T10:00:00.000Z", updatedAt: "2026-09-25T10:00:00.000Z"
+    };
+    let requests = 0;
+    let releaseSecond!: () => void;
+    const pending = new Promise<void>(resolve => { releaseSecond = resolve; });
+    await page.route("**/api/client/payments**", async route => {
+        requests += 1;
+        if (requests === 2) await pending;
+        return route.fulfill({ json: {
+            payments: [payment], page: { limit: requests === 1 ? 20 : 100, hasMore: false },
+            summary: { paymentCount: 1, totalAmountCents: 100000, paidAmountCents: 0, remainingAmountCents: 100000 }
+        } });
+    });
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-financial").click();
+    await expect(page.locator("[data-payment-id='cached-payment']")).toBeVisible();
+
+    await page.locator("#client-financial-back").click();
+    await page.locator("#client-financial").click();
+    const cachedNode = page.locator("[data-payment-id='cached-payment']");
+    await expect(cachedNode).toBeVisible();
+    await cachedNode.evaluate(node => { (node as HTMLElement).dataset.reconciliationMarker = "preserved"; });
+    expect(requests).toBe(2);
+
+    releaseSecond();
+    await expect(cachedNode).toHaveAttribute("data-reconciliation-marker", "preserved");
 });
 
 test("cliente preserva comentário e anexo após falha e aprova na nova tentativa", async ({ page }) => {
