@@ -26,6 +26,16 @@ describe("restauração da rota após recarregar com sessão salva", () => {
         expect(render.mock.calls).toEqual([["base", undefined], ["home", undefined]]);
     });
 
+    it("restaura a gestão de portfolio do administrador", () => {
+        const render = vi.fn();
+        window.history.replaceState({ scope: "admin", page: "portfolio" }, "");
+
+        new AdminSystemRouter(render).start(true);
+
+        expect(render.mock.calls).toEqual([["base", undefined], ["portfolio", undefined]]);
+        expect(window.history.state).toEqual({ scope: "admin", page: "portfolio" });
+    });
+
     it("restaura o financeiro do cliente que já concluiu o briefing", () => {
         const render = vi.fn();
         window.history.replaceState({ scope: "client", page: "financial" }, "");

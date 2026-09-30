@@ -6,6 +6,7 @@ export class AdminHomeModule {
     constructor(
         private readonly view: AdminSystemView,
         private readonly template: HTMLElement,
+        private readonly navigateToPortfolio: () => void,
         private readonly navigateToClients: () => void,
         private readonly homeNavigation: () => HTMLElement | undefined
     ) { }
@@ -15,6 +16,7 @@ export class AdminHomeModule {
         const elements = getHomeElements();
         const navigation = this.homeNavigation();
         if (navigation) this.view.styleNavButton(navigation);
+        u(elements.access_portfolio).off("click").on("click", this.navigateToPortfolio);
         u(elements.access_client).off("click").on("click", this.navigateToClients);
     }
 }

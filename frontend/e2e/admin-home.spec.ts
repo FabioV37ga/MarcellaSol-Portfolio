@@ -10,6 +10,7 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
     const views = await Promise.all([
         databaseView("admin-base-view.json"),
         databaseView("admin-home-view.json"),
+        databaseView("admin-portfolio-view.json"),
         databaseView("admin-clients-view.json"),
         databaseView("admin-new-client-view.json"),
         databaseView("client-management-view.json"),
@@ -24,6 +25,24 @@ async function mockAdminApi(page: Page, clients: Record<string, unknown>[] = [])
         json: { clients, page: { limit: 20, hasMore: false } }
     }));
 }
+
+test("abre a gestão de portfolio pelo menu e pela home", async ({ page }) => {
+    await mockAdminApi(page);
+    await page.goto("/admin.html");
+    await page.locator("#admin-login").fill("ADMIN-E2E");
+    await page.locator("#admin-password").fill("senha-e2e");
+    await page.locator("#admin-login-button").click();
+
+    await page.locator(".desktop-navigation-item").nth(1).click();
+    await expect(page.locator(".portfolio-management-page")).toBeVisible();
+    await expect(page.locator("#portfolio-management-title")).toHaveText("Gestão de Portfolio");
+    await expect(page.locator(".portfolio-management-page button")).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("portfolio");
+
+    await page.locator(".desktop-navigation-item").nth(0).click();
+    await page.locator(".page-content #portfolio").click();
+    await expect(page.locator(".portfolio-management-page")).toBeVisible();
+});
 
 test("carrega páginas adicionais de clientes sem remover os itens visíveis", async ({ page }) => {
     await mockAdminApi(page);

@@ -1,6 +1,6 @@
 # Contexto operacional para o Codex — MarcellaSol Portfolio
 
-Última atualização: 15/09/2026.
+Última atualização: 30/09/2026.
 
 ## 1. Como usar este arquivo
 
@@ -551,24 +551,26 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 10 — persistência e listagens
 
-- Estado: em andamento, 1/5.
+- Estado: concluída, 5/5.
 - portas mínimas;
 - paginação de clientes e propostas;
 - compatibilidade legada;
 - concorrência e transações onde necessário;
 - atenção máxima aos pagamentos reais.
 
-### Etapa priorizada 11 — portfólio público
+### Etapa priorizada 11 — portfólio
 
-- Estado: aguardando descrição de arquitetura e usabilidade pelo responsável do projeto.
-- A metodologia anteriormente planejada foi desconsiderada.
-- Não presumir componentes, módulos, fluxos, contratos ou organização futura para esta etapa.
-- Não iniciar alterações estruturais no portfólio público até o usuário fornecer a nova descrição.
-- Ao receber a descrição, criar um planejamento novo antes de implementar.
+- Estado: em andamento; primeiro recorte concluído em 30/09/2026.
+- A implementação seguirá recortes incrementais definidos pelo usuário; não antecipar fluxos ainda não descritos.
+- O primeiro recorte criou a gestão administrativa base, acessível pelo menu e pelo atalho da home.
+- A rota restaurável é `portfolio`, a composição usa `AdminPortfolioModule` e o HTML estrutural vem da view persistida `admin-portfolio`.
+- A tela ainda não possui botões, mutações, API de conteúdo ou regras de negócio.
+- A referência `dev/database/admin-portfolio-view.json` precisa ser sincronizada/substituída no banco antes do uso no ambiente integrado.
+- O E2E desse recorte foi adicionado, mas não executado automaticamente.
 
 ### Etapa priorizada 12 — persistência visual
 
-- Estado: planejada; implementação não iniciada.
+- Estado: concluída, 7/7.
 - Objetivo: renderizar imediatamente o último snapshot visual conhecido ao revisitar uma tela e revalidá-lo obrigatoriamente no servidor.
 - O cache é somente uma otimização de apresentação e nunca substitui banco, API, autorização ou confirmação de mutações.
 - A reconciliação usa identidades estáveis e aplica inserções, atualizações, remoções e movimentos sem reconstruir itens inalterados.
@@ -580,7 +582,7 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 - Todas as telas autenticadas elegíveis do cliente e do administrador estão no escopo.
 - A revalidação ocorre silenciosamente, sem indicador visual específico de atualização.
 - Financeiro exige política restritiva por conter pagamentos reais.
-- A Etapa 11 não entra no escopo até receber sua nova definição arquitetural.
+- A Etapa 11 não fez parte do escopo original da persistência visual; qualquer inclusão futura deve ser decidida em um recorte próprio.
 - Planejamento completo registrado na seção 33 do relatório de refatoração.
 
 Itens de governança posteriores:
@@ -736,7 +738,7 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - `PaymentListingRepository` é a porta mínima de leitura financeira; o repositório MongoDB a implementa sem expor suas capacidades de mutação ao componente de paginação.
 - O E2E administrativo cobre a adição da próxima página financeira sem remover os pagamentos anteriores, mas não foi executado automaticamente.
 - Nenhuma migração, escrita em banco ou execução da integração MongoDB foi realizada durante esta etapa.
-- As Etapas 10 e 12 estão concluídas. A Etapa 11 continua aguardando a descrição de arquitetura do usuário.
+- As Etapas 10 e 12 estão concluídas. A Etapa 11 está em andamento, com o primeiro recorte administrativo concluído.
 
 ## 25. Planejamento da persistência visual
 

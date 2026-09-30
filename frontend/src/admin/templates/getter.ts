@@ -6,6 +6,7 @@ type TemplateType = "system" | "briefing";
 const systemViewNames: Record<string, keyof system> = {
     base: "base",
     home: "home",
+    "admin-portfolio": "portfolio",
     client: "client",
     "new-client": "newClient",
     "client-management": "clientManagement",

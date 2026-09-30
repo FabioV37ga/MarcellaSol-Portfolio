@@ -3,6 +3,7 @@ import type { DatabaseView } from "@/shared/contracts/database-view.js";
 export interface system {
     base?: HTMLElement;
     home?: HTMLElement;
+    portfolio?: HTMLElement;
     client?: HTMLElement;
     clientManagement?: HTMLElement;
     clientProposals?: HTMLElement;

@@ -409,20 +409,26 @@ Separar home, aprovações, financeiro, sessão e navegação.
 - apresentação de etapas usa contratos compartilhados;
 - restauração de rota após recarregar continua funcionando.
 
-## 14. Setor K — portfólio público
+## 14. Setor K — portfólio
 
 ### Estado
 
-**Aguardando descrição de arquitetura.**
+**Em andamento — primeiro recorte concluído.**
 
-A arquitetura, a experiência de uso, as responsabilidades e a estratégia de implementação desta área ainda serão definidas pelo responsável do projeto. As propostas anteriores para navegação, carregamento, renderização, componentes visuais e animações foram retiradas do planejamento.
+O desenvolvimento será incremental e cada novo recorte será definido pelo responsável do projeto antes da implementação. O primeiro recorte introduz somente a entrada administrativa e a estrutura base da tela de gestão de portfólio.
 
-Até que uma nova descrição seja fornecida:
+Primeiro recorte concluído em 30/09/2026:
 
-- não iniciar refatoração ou componentização do portfólio público;
-- não presumir módulos, fluxos, contratos ou estrutura de diretórios futuros;
-- preservar o funcionamento atual em alterações feitas nas demais áreas;
-- elaborar um novo planejamento somente depois da definição de arquitetura e usabilidade pelo responsável do projeto.
+- rota administrativa restaurável `portfolio`;
+- acesso pelo menu lateral e pelo atalho da home administrativa;
+- módulo dedicado `AdminPortfolioModule`, sem concentrar renderização no compositor;
+- estrutura HTML mantida na view persistida `admin-portfolio`;
+- tela base consistente com as demais páginas de gerenciamento;
+- nenhuma ação, botão ou regra de negócio adicionada neste recorte;
+- referência `dev/database/admin-portfolio-view.json` pronta para sincronização com o banco;
+- teste unitário e E2E adicionados; o E2E não foi executado automaticamente conforme o padrão vigente.
+
+Os próximos fluxos, componentes e contratos do portfólio continuam dependendo da descrição incremental do responsável do projeto.
 
 ## 15. Setor L — views persistidas no banco
 
@@ -609,7 +615,7 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 8. CSS das telas complexas;
 9. aplicação do cliente fora do briefing;
 10. persistência e listagens;
-11. portfólio público — aguardando descrição de arquitetura;
+11. portfólio — em andamento, primeiro recorte concluído;
 12. persistência visual — concluída em sete recortes.
 
 ### Execução da Etapa priorizada 10 — persistência e listagens
@@ -634,7 +640,7 @@ Estado em 24/09/2026: **Etapa 10 concluída (5/5)**.
 - O contrato dessas três leituras foi isolado em `PaymentListingRepository`; o repositório MongoDB continua como adaptador concreto e as mutações financeiras permanecem inalteradas.
 - A cobertura E2E administrativa verifica que a segunda página financeira é acrescentada sem remover pagamentos já visíveis; conforme o padrão vigente, o E2E não foi executado automaticamente.
 - Não houve escrita, migração ou recálculo de pagamentos reais, nem mudança adicional em views persistidas.
-- A Etapa 11 permanece aguardando a descrição de arquitetura do portfólio público. A Etapa 12 foi concluída em sete recortes.
+- A Etapa 11 foi iniciada de forma incremental e teve seu primeiro recorte administrativo concluído. A Etapa 12 foi concluída em sete recortes.
 
 Fluxo resumido:
 
@@ -649,7 +655,7 @@ Briefing do cliente
 → CSS
 → módulos restantes do cliente
 → persistência
-→ portfólio público (aguardando descrição de arquitetura)
+→ portfólio (em andamento)
 → persistência visual
 ```
 
@@ -1150,7 +1156,7 @@ A revisão de segurança confirmou que tokens não participam de chaves ou valor
 
 O teste de módulo da gestão individual cobre prévia imediata de detalhes e relatório. O E2E equivalente foi adicionado, mas não executado conforme a regra vigente. A validação final aprovou 113 testes frontend, o build de produção e `git diff --check`. Nenhuma view persistida, dado real ou estrutura de banco foi alterada nesta etapa.
 
-Com isso, a Etapa 12 está encerrada. A única etapa priorizada ainda pendente é a Etapa 11, mantida como **aguardando descrição de arquitetura** por decisão do usuário.
+Com isso, a Etapa 12 está encerrada. A Etapa 11 foi posteriormente iniciada de forma incremental, começando pela estrutura base da gestão administrativa do portfólio.
 
 ### Testes e critérios de conclusão
 

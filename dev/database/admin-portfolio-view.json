@@ -1,0 +1,9 @@
+{
+  "_id": {
+    "$oid": "6a9ea12f4d93e2c61b304711"
+  },
+  "viewName": "admin-portfolio",
+  "permission": "admin",
+  "type": "system",
+  "view": "<section class=portfolio-management-page aria-labelledby=portfolio-management-title><header class=portfolio-management-heading><h1 id=portfolio-management-title>Gestão de Portfolio</h1><p>Organize e acompanhe os projetos apresentados no portfolio público.</p></header><section class=portfolio-management-empty aria-labelledby=portfolio-management-empty-title><i class='fa fa-window-maximize' aria-hidden=true></i><h2 id=portfolio-management-empty-title>Gerenciamento de portfolio</h2><p>Os recursos de gerenciamento serão adicionados nas próximas etapas.</p></section></section>"
+}

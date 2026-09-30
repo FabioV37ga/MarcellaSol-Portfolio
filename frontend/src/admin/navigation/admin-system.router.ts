@@ -1,6 +1,7 @@
 export type AdminRoute =
     | "base"
     | "home"
+    | "portfolio"
     | "clients"
     | "client-management"
     | "client-proposals"
@@ -23,11 +24,11 @@ interface NavigationOptions {
 }
 
 const adminRoutes = new Set<AdminRoute>([
-    "base", "home", "clients", "client-management", "client-proposals", "client-financial", "new-client", "briefing-home",
+    "base", "home", "portfolio", "clients", "client-management", "client-proposals", "client-financial", "new-client", "briefing-home",
     "briefing-investment", "briefing-rooms", "briefing-finish"
 ]);
 const restorableAdminRoutes = new Set<AdminRoute>([
-    "home", "clients", "client-management", "client-proposals", "client-financial"
+    "home", "portfolio", "clients", "client-management", "client-proposals", "client-financial"
 ]);
 const adminRoutesRequiringClient = new Set<AdminRoute>(["client-management", "client-proposals", "client-financial"]);
 

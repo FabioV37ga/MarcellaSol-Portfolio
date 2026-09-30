@@ -32,6 +32,7 @@ interface SelectorSource {
 const knownViews = new Map<string, ViewType>([
     ["admin:base", "system"],
     ["admin:home", "system"],
+    ["admin:admin-portfolio", "system"],
     ["admin:client", "system"],
     ["admin:new-client", "system"],
     ["admin:client-management", "client"],
@@ -53,6 +54,7 @@ const uniqueIndexName = "views_permission_viewName_unique";
 const selectorSources = new Map<string, SelectorSource[]>([
     ["admin:base", [{ file: "src/admin/selectors/base.selector.ts" }]],
     ["admin:home", [{ file: "src/admin/selectors/home.selector.ts" }]],
+    ["admin:admin-portfolio", []],
     ["admin:client", [{ file: "src/admin/selectors/clients.selector.ts" }]],
     ["admin:new-client", [{ file: "src/admin/selectors/new-client.selector.ts" }]],
     ["admin:client-management", [{ file: "src/admin/selectors/client-management.selector.ts" }]],

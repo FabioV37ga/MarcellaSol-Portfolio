@@ -12,24 +12,28 @@ describe("AdminHomeModule", () => {
         `;
     });
 
-    it("monta a view existente e encaminha o acesso rápido de clientes", () => {
+    it("monta a view existente e encaminha os acessos rápidos", () => {
         const template = document.createElement("section");
         template.className = "accesses";
         template.innerHTML = '<a id="portfolio"></a><a id="client">Clientes</a>';
+        const navigateToPortfolio = vi.fn();
         const navigateToClients = vi.fn();
         const navigation = document.querySelector<HTMLElement>("#home-navigation")!;
         const module = new AdminHomeModule(
             new AdminSystemView(),
             template,
+            navigateToPortfolio,
             navigateToClients,
             () => navigation
         );
 
         module.mount();
+        document.querySelector<HTMLElement>("#portfolio")!.click();
         document.querySelector<HTMLElement>("#client")!.click();
 
         expect(document.querySelector(".page-content > .accesses")).not.toBe(template);
         expect(navigation.classList.contains("desktop-nav-item-selected")).toBe(true);
+        expect(navigateToPortfolio).toHaveBeenCalledOnce();
         expect(navigateToClients).toHaveBeenCalledOnce();
     });
 });

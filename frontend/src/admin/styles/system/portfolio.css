@@ -1,0 +1,47 @@
+.portfolio-management-page {
+    display: grid;
+    gap: 24px;
+    padding: 32px;
+    color: #3f332d;
+}
+
+.portfolio-management-heading h1 {
+    margin: 0;
+    color: #9d4823;
+    font-size: clamp(1.75rem, 3vw, 2.35rem);
+}
+
+.portfolio-management-heading p,
+.portfolio-management-empty p {
+    margin: 8px 0 0;
+    color: #756860;
+    line-height: 1.6;
+}
+
+.portfolio-management-empty {
+    min-height: 220px;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    padding: 32px;
+    border: 1px solid #ded5cf;
+    border-radius: 12px;
+    background: #fff;
+    text-align: center;
+}
+
+.portfolio-management-empty i {
+    color: #b34f1e;
+    font-size: 2rem;
+}
+
+.portfolio-management-empty h2 {
+    margin: 16px 0 0;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 600px) {
+    .portfolio-management-page {
+        padding: 24px 16px;
+    }
+}

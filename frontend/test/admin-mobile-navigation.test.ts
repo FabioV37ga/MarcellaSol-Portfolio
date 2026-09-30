@@ -63,6 +63,9 @@ describe("menu mobile administrativo", () => {
         expect(menu.classList.contains("mobile-navigation-menu-open")).toBe(true);
         expect(expandButton.getAttribute("aria-expanded")).toBe("true");
 
+        items[1].click();
+        expect(navigate).toHaveBeenCalledWith("portfolio");
+        expandButton.click();
         items[2].click();
         expect(navigate).toHaveBeenCalledWith("clients");
         expect(menu.classList.contains("mobile-navigation-menu-open")).toBe(false);

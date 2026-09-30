@@ -13,11 +13,13 @@ import { AdminClientFinancialModule } from "../clients/admin-client-financial.mo
 import { AdminShellModule } from "./admin-shell.module.js";
 import { SessionVisualCache } from "@/shared/visual-persistence/session-visual-cache.js";
 import { VisualPersistenceController } from "@/shared/visual-persistence/visual-persistence.controller.js";
+import { AdminPortfolioModule } from "../portfolio/admin-portfolio.module.js";
 
 export class AdminSystemModules {
     private newClient?: newClientElements;
     private readonly clientProposals: AdminClientProposalsModule;
     private readonly home: AdminHomeModule;
+    private readonly portfolio: AdminPortfolioModule;
     private readonly clients: AdminClientsModule;
     private readonly clientManagement: AdminClientManagementModule;
     private readonly clientFinancial: AdminClientFinancialModule;
@@ -41,6 +43,7 @@ export class AdminSystemModules {
             models.base!,
             session,
             () => navigate("home"),
+            () => navigate("portfolio"),
             () => navigate("clients"),
             () => this.visualPersistence.dispose()
         );
@@ -56,8 +59,14 @@ export class AdminSystemModules {
         this.home = new AdminHomeModule(
             view,
             models.home!,
+            () => navigate("portfolio"),
             () => navigate("clients"),
             () => this.shell.homeNavigation
+        );
+        this.portfolio = new AdminPortfolioModule(
+            view,
+            models.portfolio!,
+            () => this.shell.portfolioNavigation
         );
         this.clients = new AdminClientsModule(
             view,
@@ -96,6 +105,7 @@ export class AdminSystemModules {
         switch (route) {
             case "base": this.shell.mount(); break;
             case "home": this.home.mount(); break;
+            case "portfolio": this.portfolio.mount(); break;
             case "clients":
                 this.clientCreation.reset();
                 this.clients.mount();

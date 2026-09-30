@@ -12,6 +12,7 @@ export class AdminShellModule {
         private readonly template: HTMLElement,
         private readonly session: AdminSession,
         private readonly navigateToHome: () => void,
+        private readonly navigateToPortfolio: () => void,
         private readonly navigateToClients: () => void,
         private readonly beforeLogout: () => void
     ) { }
@@ -21,6 +22,7 @@ export class AdminShellModule {
         this.elements = getBaseElements();
         this.mountMobileNavigation(this.elements);
         u(this.elements.desktop_nav_home).off("click").on("click", this.navigateToHome);
+        u(this.elements.desktop_nav_portfolio).off("click").on("click", this.navigateToPortfolio);
         u(this.elements.desktop_nav_client).off("click").on("click", this.navigateToClients);
         u(this.elements.desktop_logout).off("click").on("click", () => {
             this.beforeLogout();
@@ -34,6 +36,10 @@ export class AdminShellModule {
 
     get clientsNavigation(): HTMLElement | undefined {
         return this.elements?.desktop_nav_client;
+    }
+
+    get portfolioNavigation(): HTMLElement | undefined {
+        return this.elements?.desktop_nav_portfolio;
     }
 
     private mountMobileNavigation(elements: baseElements): void {
