@@ -560,11 +560,12 @@ Estado: em andamento. Primeiro recorte concluído em 17/09/2026: `GoogleDriveCli
 
 ### Etapa priorizada 11 — portfólio
 
-- Estado: em andamento; primeiro recorte concluído em 30/09/2026.
+- Estado: em andamento; segundo recorte concluído em 30/09/2026.
 - A implementação seguirá recortes incrementais definidos pelo usuário; não antecipar fluxos ainda não descritos.
 - O primeiro recorte criou a gestão administrativa base, acessível pelo menu e pelo atalho da home.
 - A rota restaurável é `portfolio`, a composição usa `AdminPortfolioModule` e o HTML estrutural vem da view persistida `admin-portfolio`.
-- A tela ainda não possui botões, mutações, API de conteúdo ou regras de negócio.
+- O segundo recorte adicionou à view o botão `Gerenciar projetos`, seguindo o padrão visual da ação principal da gestão de clientes.
+- O botão ainda não possui navegação ou regra de negócio; a tela não possui mutações nem API de conteúdo.
 - A referência `dev/database/admin-portfolio-view.json` precisa ser sincronizada/substituída no banco antes do uso no ambiente integrado.
 - O E2E desse recorte foi adicionado, mas não executado automaticamente.
 
@@ -738,7 +739,7 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - `PaymentListingRepository` é a porta mínima de leitura financeira; o repositório MongoDB a implementa sem expor suas capacidades de mutação ao componente de paginação.
 - O E2E administrativo cobre a adição da próxima página financeira sem remover os pagamentos anteriores, mas não foi executado automaticamente.
 - Nenhuma migração, escrita em banco ou execução da integração MongoDB foi realizada durante esta etapa.
-- As Etapas 10 e 12 estão concluídas. A Etapa 11 está em andamento, com o primeiro recorte administrativo concluído.
+- As Etapas 10 e 12 estão concluídas. A Etapa 11 está em andamento, com dois recortes administrativos concluídos.
 
 ## 25. Planejamento da persistência visual
 

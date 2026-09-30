@@ -413,7 +413,7 @@ Separar home, aprovações, financeiro, sessão e navegação.
 
 ### Estado
 
-**Em andamento — primeiro recorte concluído.**
+**Em andamento — segundo recorte concluído.**
 
 O desenvolvimento será incremental e cada novo recorte será definido pelo responsável do projeto antes da implementação. O primeiro recorte introduz somente a entrada administrativa e a estrutura base da tela de gestão de portfólio.
 
@@ -427,6 +427,12 @@ Primeiro recorte concluído em 30/09/2026:
 - nenhuma ação, botão ou regra de negócio adicionada neste recorte;
 - referência `dev/database/admin-portfolio-view.json` pronta para sincronização com o banco;
 - teste unitário e E2E adicionados; o E2E não foi executado automaticamente conforme o padrão vigente.
+
+Segundo recorte concluído em 30/09/2026:
+
+- botão estrutural `Gerenciar projetos` adicionado à view persistida;
+- apresentação alinhada ao botão principal da gestão de clientes;
+- nenhuma navegação ou regra de negócio associada ao botão neste recorte.
 
 Os próximos fluxos, componentes e contratos do portfólio continuam dependendo da descrição incremental do responsável do projeto.
 
@@ -615,7 +621,7 @@ Quando o critério principal for reduzir concentração de responsabilidades e f
 8. CSS das telas complexas;
 9. aplicação do cliente fora do briefing;
 10. persistência e listagens;
-11. portfólio — em andamento, primeiro recorte concluído;
+11. portfólio — em andamento, segundo recorte concluído;
 12. persistência visual — concluída em sete recortes.
 
 ### Execução da Etapa priorizada 10 — persistência e listagens
@@ -640,7 +646,7 @@ Estado em 24/09/2026: **Etapa 10 concluída (5/5)**.
 - O contrato dessas três leituras foi isolado em `PaymentListingRepository`; o repositório MongoDB continua como adaptador concreto e as mutações financeiras permanecem inalteradas.
 - A cobertura E2E administrativa verifica que a segunda página financeira é acrescentada sem remover pagamentos já visíveis; conforme o padrão vigente, o E2E não foi executado automaticamente.
 - Não houve escrita, migração ou recálculo de pagamentos reais, nem mudança adicional em views persistidas.
-- A Etapa 11 foi iniciada de forma incremental e teve seu primeiro recorte administrativo concluído. A Etapa 12 foi concluída em sete recortes.
+- A Etapa 11 foi iniciada de forma incremental e teve dois recortes administrativos concluídos. A Etapa 12 foi concluída em sete recortes.
 
 Fluxo resumido:
 

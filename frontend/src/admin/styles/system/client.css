@@ -14,7 +14,8 @@
 }
 
 .client-title p {
-    margin-top: 10px
+    margin-top: 10px;
+    font-size: 16px
 }
 
 #add-client {
@@ -274,6 +275,8 @@
 @media (min-width: 900px) {
     .page-content {
         position: relative;
+        margin-top: 25px;
+        font-size: 20px;
     }
 
     #add-client {

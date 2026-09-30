@@ -36,7 +36,8 @@ test("abre a gestão de portfolio pelo menu e pela home", async ({ page }) => {
     await page.locator(".desktop-navigation-item").nth(1).click();
     await expect(page.locator(".portfolio-management-page")).toBeVisible();
     await expect(page.locator("#portfolio-management-title")).toHaveText("Gestão de Portfolio");
-    await expect(page.locator(".portfolio-management-page button")).toHaveCount(0);
+    await expect(page.locator("#portfolio-manage-projects"))
+        .toHaveText("Gerenciar projetos");
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("portfolio");
 
     await page.locator(".desktop-navigation-item").nth(0).click();

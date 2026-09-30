@@ -23,7 +23,7 @@ describe("AdminPortfolioModule", () => {
         `;
     });
 
-    it("monta a view persistida base e seleciona a navegação de portfolio", async () => {
+    it("monta a view persistida com a ação de projetos e seleciona a navegação", async () => {
         const template = await portfolioTemplate();
         const navigation = document.querySelector<HTMLElement>("#portfolio-navigation")!;
         const module = new AdminPortfolioModule(
@@ -37,7 +37,11 @@ describe("AdminPortfolioModule", () => {
         expect(document.querySelector(".portfolio-management-page")).not.toBe(template);
         expect(document.querySelector("#portfolio-management-title")?.textContent)
             .toBe("Gestão de Portfolio");
-        expect(document.querySelectorAll(".portfolio-management-page button")).toHaveLength(0);
+        const manageProjects = document.querySelector<HTMLButtonElement>(
+            "#portfolio-manage-projects"
+        );
+        expect(manageProjects?.textContent).toBe("Gerenciar projetos");
+        expect(manageProjects?.type).toBe("button");
         expect(navigation.classList.contains("desktop-nav-item-selected")).toBe(true);
     });
 });
