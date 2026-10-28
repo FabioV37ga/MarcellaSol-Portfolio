@@ -77,6 +77,33 @@ test("solicitação de alteração exige comentário e recusa proposta já decid
     );
 });
 
+test("comentário da decisão aceita 5.000 caracteres e rejeita 5.001", async () => {
+    const userId = "507f1f77bcf86cd799439011";
+    const proposalId = "507f1f77bcf86cd799439012";
+    const repository = {
+        async findByIdAndUserId() {
+            return { _id: proposalId, stageKey: "survey", status: "sent", userComment: "" };
+        },
+        async decide(_id, ownerId, status, userComment) {
+            return { _id: proposalId, userId: ownerId, stageKey: "survey", status, userComment };
+        }
+    };
+    const clients = {
+        async findById() {
+            return { _id: userId, hasFilledBriefing: true, projectStages: [] };
+        },
+        async updateProjectStageState() { return { _id: userId }; }
+    };
+    const service = new ClientProposalService(clients, repository, {});
+
+    const accepted = await service.approve(userId, proposalId, "a".repeat(5000));
+    assert.equal(accepted.proposal.userComment.length, 5000);
+    await assert.rejects(
+        () => service.approve(userId, proposalId, "a".repeat(5001)),
+        error => error.status === 400 && error.message.includes("5000")
+    );
+});
+
 test("criação de proposta avança o cliente e conclui todas as etapas anteriores", async () => {
     const userId = "507f1f77bcf86cd799439011";
     const stageUpdates = [];

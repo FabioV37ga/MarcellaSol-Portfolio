@@ -11,7 +11,7 @@ import { ClientRepository } from "../repositories/client.repository.js";
 import type { ProposalStorage } from "../services/proposal-drive.storage.js";
 import { ApplicationError } from "./errors/application-error.js";
 
-const MAX_CLIENT_COMMENT_LENGTH = 2000;
+const MAX_CLIENT_COMMENT_LENGTH = 5000;
 
 export class ClientProposalResponseService {
     constructor(
