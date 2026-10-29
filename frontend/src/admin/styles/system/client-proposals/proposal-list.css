@@ -163,15 +163,20 @@
     gap: 8px 14px;
 }
 
-.proposal-comment {
-    margin-top: 14px;
+.proposal-comment,
+.proposal-client-response {
     padding: 12px;
     border-radius: 8px;
     background: #fff1eb;
     font-size: 11px;
 }
 
-.proposal-comment p {
+.proposal-comment {
+    margin-top: 14px;
+}
+
+.proposal-comment p,
+.proposal-client-response p {
     margin-top: 6px;
     line-height: 1.45;
 }
