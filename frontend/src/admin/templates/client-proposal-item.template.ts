@@ -20,9 +20,12 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
         <h3></h3>
         <p class="proposal-stage"></p>
         <p class="proposal-description"></p>
+        <p class="proposal-release-state" hidden></p>
         <div class="proposal-attachments"></div>
         <div class="proposal-comment" hidden><strong>Comentário do cliente</strong><p></p></div>
         ${proposal.status === "beated" ? '<button class="proposal-confirm-changes" type="button">Confirmar alterações</button>' : ""}
+        ${proposal.releaseStatus === "pending" || proposal.releaseStatus === "failed"
+            ? '<button class="proposal-release-now" type="button">Liberar agora</button>' : ""}
     `;
     article.querySelector("h3")!.textContent = proposal.title;
     article.querySelector<HTMLElement>(".proposal-stage")!.textContent = proposal.stageKey
@@ -42,6 +45,18 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
         link.innerHTML = `<i class="fa fa-paperclip"></i> Anexo ${index + 1}`;
         attachmentsContainer.append(link);
     });
+    if (proposal.releaseAt) {
+        const release = article.querySelector<HTMLElement>(".proposal-release-state")!;
+        release.hidden = false;
+        const date = formattedReleaseDate(proposal.releaseAt);
+        release.textContent = proposal.releaseStatus === "released"
+            ? `Liberada em ${date}`
+            : proposal.releaseStatus === "failed"
+                ? `Falha na liberação agendada para ${date}`
+                : proposal.releaseStatus === "processing"
+                    ? `Liberando proposta agendada para ${date}`
+                    : `Liberação agendada para ${date}`;
+    }
     if (proposal.userComment && !proposal.clientResponses?.length) {
         const comment = article.querySelector<HTMLElement>(".proposal-comment")!;
         comment.hidden = false;
@@ -72,4 +87,17 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
         article.append(history);
     }
     return article;
+}
+
+function formattedReleaseDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "data inválida";
+    return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "America/Sao_Paulo"
+    }).format(date);
 }

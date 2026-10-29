@@ -66,3 +66,50 @@ test("proposal storage rejeita URL externa antes de criar o cliente do Drive", a
     );
     assert.equal(clientCreated, false);
 });
+
+test("proposal storage envia proposta agendada para pasta privada e depois a move ao cliente", async t => {
+    const previousRoot = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+    process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID = "private-root";
+    t.after(() => {
+        if (previousRoot === undefined) delete process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+        else process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID = previousRoot;
+    });
+    const created = [];
+    const updates = [];
+    const drive = {
+        files: {
+            async list() { return { data: { files: [] } }; },
+            async create(options) {
+                created.push(options);
+                if (options.requestBody.mimeType === "application/vnd.google-apps.folder") {
+                    return { data: { id: `folder-${options.requestBody.name}` } };
+                }
+                return { data: { id: "scheduled-file" } };
+            },
+            async get() { return { data: { parents: ["folder-propostas_agendadas"] } }; },
+            async update(options) { updates.push(options); return { data: { id: options.fileId } }; }
+        }
+    };
+    const storage = new GoogleDriveProposalStorage(() => drive);
+    const uploaded = await storage.uploadProposal(
+        "client-folder",
+        "proposal-id",
+        "Layout",
+        [{ originalname: "layout.pdf", mimetype: "application/pdf", buffer: Buffer.from("pdf") }],
+        "administrator",
+        undefined,
+        { scheduled: true }
+    );
+
+    const folders = created.filter(call => call.requestBody.mimeType === "application/vnd.google-apps.folder");
+    assert.equal(folders[0].requestBody.name, "propostas_agendadas");
+    assert.equal(folders[0].requestBody.parents[0], "private-root");
+    await storage.moveScheduledProposalToClient(uploaded.folderId, "client-folder");
+    assert.deepEqual(updates.at(-1), {
+        fileId: uploaded.folderId,
+        addParents: "folder-propostas",
+        removeParents: "folder-propostas_agendadas",
+        fields: "id,parents",
+        supportsAllDrives: true
+    });
+});

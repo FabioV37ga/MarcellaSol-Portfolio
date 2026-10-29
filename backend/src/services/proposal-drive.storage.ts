@@ -9,7 +9,8 @@ export interface ProposalDriveUpload {
 }
 
 export interface ProposalStorage {
-    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[], author?: "administrator" | "client", responseIndex?: number): Promise<ProposalDriveUpload>;
+    uploadProposal(clientFolderId: string, proposalId: string, title: string, files: Express.Multer.File[], author?: "administrator" | "client", responseIndex?: number, options?: { scheduled?: boolean }): Promise<ProposalDriveUpload>;
+    moveScheduledProposalToClient(folderId: string, clientFolderId: string): Promise<void>;
     moveProposalAttachmentsToAdministratorFolder(folderId: string, attachmentUrls: string[]): Promise<number>;
     renameProposalFolder(folderId: string, proposalId: string, title: string): Promise<void>;
     setProposalAttachmentTrashed(attachmentUrl: string, trashed: boolean): Promise<void>;
@@ -17,6 +18,12 @@ export interface ProposalStorage {
 }
 
 type DriveClientFactory = () => drive_v3.Drive;
+
+function requiredRootFolderId(): string {
+    const folderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID?.trim();
+    if (!folderId) throw new Error("Integração com Google Drive não configurada: GOOGLE_DRIVE_ROOT_FOLDER_ID");
+    return folderId;
+}
 
 function safeFolderName(value: string): string {
     return value.normalize("NFKC").trim()
@@ -37,10 +44,13 @@ export class GoogleDriveProposalStorage implements ProposalStorage {
         title: string,
         files: Express.Multer.File[],
         author: "administrator" | "client" = "administrator",
-        responseIndex?: number
+        responseIndex?: number,
+        options: { scheduled?: boolean } = {}
     ): Promise<ProposalDriveUpload> {
         const drive = this.createClient();
-        const proposalsFolderId = await findOrCreateDriveFolder(drive, clientFolderId, "propostas");
+        const proposalsFolderId = options.scheduled
+            ? await findOrCreateDriveFolder(drive, requiredRootFolderId(), "propostas_agendadas")
+            : await findOrCreateDriveFolder(drive, clientFolderId, "propostas");
         const folderId = await findOrCreateDriveFolder(drive, proposalsFolderId, proposalFolderName(title, proposalId));
         const authorFolderId = await findOrCreateDriveFolder(
             drive,
@@ -66,6 +76,21 @@ export class GoogleDriveProposalStorage implements ProposalStorage {
                 || `https://drive.google.com/file/d/${encodeURIComponent(uploaded.data.id)}/view`);
         }
         return { folderId, attachmentUrls };
+    }
+
+    async moveScheduledProposalToClient(folderId: string, clientFolderId: string): Promise<void> {
+        const drive = this.createClient();
+        const proposalsFolderId = await findOrCreateDriveFolder(drive, clientFolderId, "propostas");
+        const metadata = await drive.files.get({ fileId: folderId, fields: "id,parents", supportsAllDrives: true });
+        const parents = metadata.data.parents ?? [];
+        if (parents.includes(proposalsFolderId)) return;
+        await drive.files.update({
+            fileId: folderId,
+            addParents: proposalsFolderId,
+            ...(parents.length > 0 ? { removeParents: parents.join(",") } : {}),
+            fields: "id,parents",
+            supportsAllDrives: true
+        });
     }
 
     async moveProposalAttachmentsToAdministratorFolder(

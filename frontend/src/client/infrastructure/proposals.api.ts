@@ -7,6 +7,8 @@ export interface ClientProposal {
     _id: string; title: string; description: string; attachments: string[]; userComment: string;
     clientResponses: ClientProposalResponse[]; stageKey?: ProjectStageKey; status: ClientProposalStatus;
     createdAt: string; updatedAt: string;
+    releaseAt?: string; releaseStatus?: "pending" | "processing" | "released" | "failed" | "cancelled";
+    releasedAt?: string; attachmentsAvailable?: boolean; attachmentCount?: number;
 }
 export interface ClientProjectResponse {
     proposals: ClientProposal[];

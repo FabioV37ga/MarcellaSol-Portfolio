@@ -19,6 +19,7 @@
     "views:sync": "npm --prefix backend run views:sync",
     "drive:migrate-proposal-folders": "npm --prefix backend run drive:migrate-proposal-folders --",
     "briefing:migrate-resident-counts": "npm --prefix backend run briefing:migrate-resident-counts --",
+    "proposal-release:index": "npm --prefix backend run proposal-release:index --",
     "security:audit-vps": "node dev/scripts/audit-vps-access.mjs",
     "install:all": "npm --prefix frontend ci && npm --prefix backend ci",
     "build": "npm run build:front && npm run build:back",

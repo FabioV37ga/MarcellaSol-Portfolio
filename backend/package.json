@@ -18,6 +18,7 @@
     "drive:migrate-proposal-folders": "npm run build && node dist/src/scripts/migrate-proposal-drive-folders.js",
     "briefing:migrate-resident-counts": "npm run build && node dist/src/scripts/migrate-briefing-resident-counts.js",
     "financial:prune-pix": "npm run build && node dist/src/scripts/prune-expired-pix-attempts.js",
+    "proposal-release:index": "npm run build && node dist/src/scripts/ensure-proposal-release-index.js",
     "start": "node dist/src/server.js",
     "prod": "npm run build && npm start"
   },

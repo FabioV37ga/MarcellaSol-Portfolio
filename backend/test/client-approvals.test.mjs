@@ -25,7 +25,8 @@ test("apresentação preserva anexos atuais e histórico sem expor campos admini
     const before = structuredClone(source);
     assert.deepEqual(presentClientProposal(source), {
         _id: "proposal", title: "Título", description: "Texto", userComment: "Comentário", stageKey: "layout", status: "approved",
-        createdAt: "2026-09-14", updatedAt: "2026-09-15", attachments: ["atual.pdf"], clientResponses: history
+        createdAt: "2026-09-14", updatedAt: "2026-09-15", attachments: ["atual.pdf"],
+        attachmentCount: 1, attachmentsAvailable: true, clientResponses: history
     });
     assert.deepEqual(source, before);
     assert.deepEqual(presentClientProposal({ ...source, attachments: [], attachment: undefined, clientResponses: undefined }).attachments, []);

@@ -6,7 +6,7 @@ describe("estilos de etapas e navegação", () => {
     it("separa etapas e aprovações por responsabilidade", async () => {
         const directory = path.resolve("src/client/styles/system");
         const entrypoint = await readFile(path.join(directory, "stages-approvals.css"), "utf8");
-        expect(entrypoint.trim().split("\n")).toEqual([
+        expect(entrypoint.trim().split(/\r?\n/)).toEqual([
             '@import url("./stages-approvals/page.css");',
             '@import url("./stages-approvals/project-progress.css");',
             '@import url("./stages-approvals/approval-cards.css");',

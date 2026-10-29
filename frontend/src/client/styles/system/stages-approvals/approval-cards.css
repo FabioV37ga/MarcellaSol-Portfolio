@@ -73,6 +73,16 @@
     gap: 8px 14px;
 }
 
+.client-approval-release-pending {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--lightOrange);
+    color: var(--orange);
+    font-size: 10px;
+    font-weight: 700;
+}
+
 .client-approval-attachment {
     display: inline-flex;
     align-items: center;

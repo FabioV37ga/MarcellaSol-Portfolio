@@ -27,11 +27,12 @@ const proposal = {
 };
 const publicProposal = {
     _id: proposal._id, title: proposal.title, description: proposal.description, attachments: [proposal.attachment],
+    attachmentCount: 1, attachmentsAvailable: true,
     userComment: "", clientResponses: [], status: "sent", createdAt: proposal.createdAt, updatedAt: proposal.updatedAt
 };
 const projectState = { currentStageKey: "layout", projectStages: [{ key: "layout", status: "approved" }] };
 
-function proposalApp({ proposals = {}, reports = {}, clients = {} } = {}, role = "admin") {
+function proposalApp({ proposals = {}, releases = {}, reports = {}, clients = {} } = {}, role = "admin") {
     const guard = createAuthenticationGuard({
         async authenticate(token) {
             return token === "admin" || token === "client"
@@ -42,7 +43,7 @@ function proposalApp({ proposals = {}, reports = {}, clients = {} } = {}, role =
     app.use(express.json());
     app.use(role === "admin"
         ? adminRoutes(new AdminSessionsController(undefined, undefined),
-            guard, new AdminPaymentsController({}), new AdminProposalsController(proposals), new AdminReportsController(reports),
+            guard, new AdminPaymentsController({}), new AdminProposalsController(proposals, releases), new AdminReportsController(reports),
             new AdminClientsController(undefined, undefined, undefined, undefined))
         : clientRoutes(new ClientBriefingController(undefined),
             guard, new ClientPaymentsController({}), new ClientApprovalsController(new ListClientApprovalsService(clients, proposals), proposals),
@@ -83,11 +84,11 @@ test("propostas administrativas preservam parâmetros, envelopes e status em tod
     await withServer(proposalApp({ proposals }), async base => {
         const path = `${base}/api/admin/clients/client-123/proposals`;
         for (const [method, suffix, body, status, expected] of [
-            ["GET", "?cursor=opaque&limit=3", undefined, 200, { proposals: [proposal], page: { limit: 20, hasMore: false } }],
-            ["POST", "", multipart({ title: "Título", description: "Texto", stageKey: "layout" }), 201, { proposal, ...projectState }],
-            ["PUT", "/proposal-1", multipart({ title: "Editado", description: "Texto", stageKey: "layout" }), 200, { proposal }],
-            ["POST", "/proposal-1/complete-changes", undefined, 200, { proposal, ...projectState }],
-            ["DELETE", "/proposal-1/attachments/1", undefined, 200, { proposal }],
+            ["GET", "?cursor=opaque&limit=3", undefined, 200, { proposals: [publicProposal], page: { limit: 20, hasMore: false } }],
+            ["POST", "", multipart({ title: "Título", description: "Texto", stageKey: "layout" }), 201, { proposal: publicProposal, ...projectState }],
+            ["PUT", "/proposal-1", multipart({ title: "Editado", description: "Texto", stageKey: "layout" }), 200, { proposal: publicProposal }],
+            ["POST", "/proposal-1/complete-changes", undefined, 200, { proposal: publicProposal, ...projectState }],
+            ["DELETE", "/proposal-1/attachments/1", undefined, 200, { proposal: publicProposal }],
             ["DELETE", "/proposal-1", undefined, 204, undefined]
         ]) {
             const response = await fetch(`${path}${suffix}`, requestOptions("admin", method, body));
@@ -125,6 +126,33 @@ test("relatórios preservam consulta 200, geração 201 e resposta do serviço",
         }
     });
     assert.deepEqual(calls, [["status", "client-123"], ["generate", "client-123"]]);
+});
+
+test("liberação imediata executa o serviço e devolve o estado público atualizado", async () => {
+    const calls = [];
+    const released = {
+        ...proposal,
+        release: {
+            scheduledAt: new Date("2026-10-30T12:00:00Z"),
+            status: "released",
+            recipients: ["private@example.com"],
+            attempts: 1,
+            nextAttemptAt: new Date("2026-10-30T12:00:00Z"),
+            releasedAt: new Date("2026-10-30T12:00:01Z")
+        }
+    };
+    await withServer(proposalApp({
+        releases: { async releaseNow(id, userId) { calls.push([id, userId]); } },
+        proposals: { async find() { return released; } }
+    }), async base => {
+        const response = await fetch(`${base}/api/admin/clients/client-123/proposals/proposal-1/release-now`, requestOptions("admin", "POST"));
+        assert.equal(response.status, 200);
+        const body = await response.json();
+        assert.equal(body.proposal.releaseStatus, "released");
+        assert.equal(body.proposal.attachmentsAvailable, true);
+        assert.equal("recipients" in body.proposal, false);
+    });
+    assert.deepEqual(calls, [["proposal-1", "client-123"]]);
 });
 
 test("listagem do cliente preserva anexos legados, etapas e omite campos internos", async () => {

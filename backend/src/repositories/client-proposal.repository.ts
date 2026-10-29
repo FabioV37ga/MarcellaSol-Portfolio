@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import proposals, { type ProposalStatus } from "../models/clientProposal.js";
+import proposals, { type ProposalRelease, type ProposalStatus } from "../models/clientProposal.js";
 import type { ProjectStageKey } from "../models/projectStage.js";
 import type { ClientProposalResponse } from "../models/clientProposal.js";
 import type { ProposalPageOptions } from "../application/pagination/proposal-list-pagination.js";
@@ -14,6 +14,7 @@ export interface CreateProposalData {
     userComment: string;
     status: ProposalStatus;
     stageKey: ProjectStageKey;
+    release?: ProposalRelease;
 }
 
 export class ClientProposalRepository {
@@ -100,5 +101,88 @@ export class ClientProposalRepository {
 
     delete(id: string, userId: string) {
         return proposals.findOneAndDelete({ _id: id, userId });
+    }
+
+    claimNextDueRelease(now: Date, claimId: string, claimExpiresAt: Date) {
+        return proposals.findOneAndUpdate({
+            "release.scheduledAt": { $lte: now },
+            "release.nextAttemptAt": { $lte: now },
+            "release.attempts": { $lt: 5 },
+            $or: [
+                { "release.status": { $in: ["pending", "failed"] } },
+                { "release.status": "processing", "release.claimExpiresAt": { $lte: now } }
+            ]
+        }, {
+            $set: {
+                "release.status": "processing",
+                "release.claimId": claimId,
+                "release.claimedAt": now,
+                "release.claimExpiresAt": claimExpiresAt
+            },
+            $inc: { "release.attempts": 1 },
+            $unset: { "release.lastFailureCode": 1 }
+        }, { returnDocument: "after" });
+    }
+
+    claimReleaseById(id: string, userId: string, now: Date, claimId: string, claimExpiresAt: Date) {
+        return proposals.findOneAndUpdate({
+            _id: id,
+            userId,
+            "release.status": { $in: ["pending", "failed"] }
+        }, {
+            $set: {
+                "release.status": "processing",
+                "release.claimId": claimId,
+                "release.claimedAt": now,
+                "release.claimExpiresAt": claimExpiresAt,
+                "release.nextAttemptAt": now
+            },
+            $inc: { "release.attempts": 1 },
+            $unset: { "release.lastFailureCode": 1 }
+        }, { returnDocument: "after" });
+    }
+
+    markReleaseCompleted(id: string, claimId: string, releasedAt: Date) {
+        return proposals.findOneAndUpdate({
+            _id: id,
+            "release.status": "processing",
+            "release.claimId": claimId
+        }, {
+            $set: { "release.status": "released", "release.releasedAt": releasedAt },
+            $unset: {
+                "release.claimId": 1,
+                "release.claimedAt": 1,
+                "release.claimExpiresAt": 1,
+                "release.lastFailureCode": 1
+            }
+        }, { returnDocument: "after" });
+    }
+
+    markReleaseRecipientNotified(id: string, claimId: string, email: string) {
+        return proposals.updateOne({
+            _id: id,
+            "release.status": "processing",
+            "release.claimId": claimId
+        }, { $addToSet: { "release.notifiedRecipients": email } });
+    }
+
+    markReleaseFailed(id: string, claimId: string, nextAttemptAt: Date, final: boolean, failureCode: string) {
+        return proposals.findOneAndUpdate({
+            _id: id,
+            "release.status": "processing",
+            "release.claimId": claimId
+        }, {
+            $set: {
+                "release.status": "failed",
+                "release.nextAttemptAt": nextAttemptAt,
+                "release.lastFailureCode": failureCode,
+                ...(final ? {} : { "release.claimExpiresAt": nextAttemptAt })
+            },
+            $unset: {
+                "release.claimId": 1,
+                "release.claimedAt": 1,
+                ...(final ? { "release.claimExpiresAt": 1 } : {})
+            }
+        }, { returnDocument: "after" });
     }
 }

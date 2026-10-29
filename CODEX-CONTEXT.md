@@ -777,3 +777,15 @@ Este documento não substitui a inspeção do código. Ele existe para preservar
 - Mutações devem atualizar ou invalidar o cache somente a partir da resposta oficial.
 - A infraestrutura possui testes unitários, mas nenhum E2E foi adicionado no segundo recorte porque ainda não existe comportamento de interface; o E2E obrigatório começa no piloto funcional.
 - Decisões fechadas: apenas memória em propriedades de classes, todas as telas autenticadas elegíveis, validade encerrada no F5 e nenhuma indicação visual de revalidação.
+
+## 26. Agendamento da liberação de propostas
+
+- Decisão de 29/10/2026: propostas podem aparecer imediatamente ao cliente com anexos privados até data e horário agendados pelo administrador.
+- O e-mail deve ser o compartilhamento nativo do Google Drive; por isso, o acesso aos anexos também só será concedido no vencimento.
+- Arquivos são enviados no momento da criação para uma pasta privada fora da árvore compartilhada do cliente.
+- No vencimento, o backend principal concede permissões com notificação, move a pasta para a estrutura definitiva e libera os anexos e ações do cliente.
+- O scheduler será persistente no MongoDB e executado no processo principal, sem worker ou Redis, com claim atômico, lease, tentativas e recuperação após reinício.
+- Fuso funcional: `America/Sao_Paulo`; instantes persistidos em UTC.
+- Planejamento completo: `dev/agent-relatories/2026-10-29-planejamento-agendamento-liberacao-propostas.md`.
+- Implementação concluída e validada localmente em 29/10/2026: schema, upload privado, presenter seguro, serviço de liberação, scheduler no processo principal, claim/lease, tentativas, idempotência por destinatário, endpoint `release-now`, formulário administrativo e bloqueio do cliente foram adicionados.
+- Validação local aprovada: build, 117 testes de frontend, 142 testes de backend (1 integração Mongo ignorada por ambiente) e 42 testes E2E. A prova com o Drive real, a criação do índice no banco e a sincronização das views permanecem operações de publicação e não foram executadas automaticamente.

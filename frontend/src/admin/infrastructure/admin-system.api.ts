@@ -30,6 +30,7 @@ export class AdminSystemApi implements AdminClientsGateway, AdminPaymentsGateway
     createProposal(s: AdminSession, id: string, fields: ProposalFields): Promise<ProposalStageMutation> { return this.proposals.createProposal(s, id, fields); }
     editProposal(s: AdminSession, id: string, proposalId: string, fields: ProposalFields): Promise<ClientProposal> { return this.proposals.editProposal(s, id, proposalId, fields); }
     confirmProposalChanges(s: AdminSession, id: string, proposalId: string): Promise<ProposalStageMutation> { return this.proposals.confirmProposalChanges(s, id, proposalId); }
+    releaseProposalNow(s: AdminSession, id: string, proposalId: string): Promise<ClientProposal> { return this.proposals.releaseProposalNow(s, id, proposalId); }
     deleteProposal(s: AdminSession, id: string, proposalId: string): Promise<void> { return this.proposals.deleteProposal(s, id, proposalId); }
     deleteProposalAttachment(s: AdminSession, id: string, proposalId: string, index: number): Promise<ClientProposal> { return this.proposals.deleteProposalAttachment(s, id, proposalId, index); }
     loadClients(s: AdminSession, cursor?: string, limit?: number): Promise<AdminClientPage> { return this.clients.loadClients(s, cursor, limit); }

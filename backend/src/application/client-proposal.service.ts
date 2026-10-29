@@ -14,8 +14,15 @@ import {
 import type { ProposalStatus } from "../models/clientProposal.js";
 import { ClientProposalResponseService } from "./client-proposal-response.service.js";
 import { encodeProposalCursor, proposalPageOptions } from "./pagination/proposal-list-pagination.js";
+import type { Clock } from "./ports/clock.js";
+import { SystemClock } from "./ports/clock.js";
+import { extractResidentEmails } from "../services/briefing-emails.js";
 
-interface ProposalInput { title?: unknown; description?: unknown; stageKey?: unknown; }
+interface ProposalInput { title?: unknown; description?: unknown; stageKey?: unknown; releaseAt?: unknown; }
+
+interface ProposalReleaseSourceReader {
+    findReportSourceByClientId(clientId: mongoose.Types.ObjectId): PromiseLike<unknown>;
+}
 
 export class ClientProposalService {
     private readonly responses: ClientProposalResponseService;
@@ -24,7 +31,9 @@ export class ClientProposalService {
         private readonly clients: ClientRepository,
         private readonly proposals: ClientProposalRepository,
         private readonly storage: ProposalStorage,
-        responses?: ClientProposalResponseService
+        responses?: ClientProposalResponseService,
+        private readonly releaseSources?: ProposalReleaseSourceReader,
+        private readonly clock: Clock = new SystemClock()
     ) {
         this.responses = responses ?? new ClientProposalResponseService(clients, proposals, storage);
     }
@@ -49,11 +58,13 @@ export class ClientProposalService {
         const title = this.requiredText(input.title, "Título");
         const description = this.requiredText(input.description, "Descrição");
         const stageKey = this.requiredStageKey(input.stageKey);
+        const release = await this.proposalRelease(userId, input.releaseAt);
         if (files.length === 0) throw new ApplicationError("Ao menos um anexo da proposta é obrigatório", 400);
 
         const proposalId = new mongoose.Types.ObjectId();
         const upload = await this.storage.uploadProposal(
-            client.driveFolderId!, proposalId.toString(), title, files
+            client.driveFolderId!, proposalId.toString(), title, files, "administrator", undefined,
+            { scheduled: release !== undefined }
         );
         try {
             const proposal = await this.proposals.create({
@@ -65,7 +76,8 @@ export class ClientProposalService {
                 attachmentFolderId: upload.folderId,
                 userComment: "",
                 status: "sent",
-                stageKey
+                stageKey,
+                ...(release ? { release } : {})
             });
             const projectState = await this.synchronizeProjectStage(userId, client, stageKey, "awaiting-approval");
             return { proposal, ...projectState };
@@ -83,11 +95,23 @@ export class ClientProposalService {
         const client = await this.requireClient(userId);
         const proposal = await this.proposals.findByIdAndUserId(proposalId, userId);
         if (!proposal) throw new ApplicationError("Proposta não encontrada", 404);
+        if (proposal.release?.status === "processing") {
+            throw new ApplicationError("A proposta está sendo liberada e não pode ser editada", 409);
+        }
 
         const title = this.requiredText(input.title, "Título");
         const description = this.requiredText(input.description, "Descrição");
         const stageKey = this.requiredStageKey(input.stageKey);
         const update: Record<string, unknown> = { title, description, stageKey };
+        if (input.releaseAt !== undefined && input.releaseAt !== "") {
+            if (!proposal.release || proposal.release.status === "released" || proposal.release.status === "cancelled") {
+                throw new ApplicationError("Somente uma proposta agendada e pendente pode ser reagendada", 409);
+            }
+            if (proposal.release.notifiedRecipients?.length) {
+                throw new ApplicationError("A liberação foi parcialmente executada e deve ser retomada sem reagendamento", 409);
+            }
+            update.release = await this.proposalRelease(userId, input.releaseAt);
+        }
         if (files.length > 0) {
             const upload = await this.storage.uploadProposal(client.driveFolderId!, proposalId, title, files);
             const currentAttachments = proposal.attachments?.length
@@ -98,7 +122,9 @@ export class ClientProposalService {
         } else if (proposal.attachmentFolderId && proposal.title !== title) {
             await this.storage.renameProposalFolder(proposal.attachmentFolderId, proposalId, title);
         }
-        return this.proposals.update(proposalId, userId, update);
+        const updated = await this.proposals.update(proposalId, userId, update);
+        if (!updated) throw new ApplicationError("A proposta foi alterada. Atualize a página.", 409);
+        return updated;
     }
 
     async confirmChanges(userId: string, proposalId: string) {
@@ -148,6 +174,9 @@ export class ClientProposalService {
         await this.requireClient(userId);
         const proposal = await this.proposals.findByIdAndUserId(proposalId, userId);
         if (!proposal) throw new ApplicationError("Proposta não encontrada", 404);
+        if (proposal.release?.status === "processing") {
+            throw new ApplicationError("A proposta está sendo liberada e não pode ser removida", 409);
+        }
 
         if (proposal.attachmentFolderId) {
             await this.storage.setProposalFolderTrashed(proposal.attachmentFolderId, true);
@@ -195,6 +224,13 @@ export class ClientProposalService {
                 .catch(restoreError => console.error("Não foi possível restaurar o anexo da proposta:", restoreError));
             throw error;
         }
+    }
+
+    async find(userId: string, proposalId: string) {
+        this.requireObjectId(proposalId, "Proposta não encontrada");
+        const proposal = await this.proposals.findByIdAndUserId(proposalId, userId);
+        if (!proposal) throw new ApplicationError("Proposta não encontrada", 404);
+        return proposal;
     }
 
     private async requireClient(userId: string, requireDriveFolder = true) {
@@ -261,5 +297,29 @@ export class ClientProposalService {
             throw new ApplicationError("Etapa da proposta inválida", 400);
         }
         return value as ProjectStageKey;
+    }
+
+    private async proposalRelease(userId: string, value: unknown) {
+        if (value === undefined || value === null || value === "") return undefined;
+        if (typeof value !== "string") throw new ApplicationError("Data de liberação inválida", 400);
+        const scheduledAt = new Date(value);
+        if (Number.isNaN(scheduledAt.getTime())) throw new ApplicationError("Data de liberação inválida", 400);
+        if (scheduledAt.getTime() <= this.clock.now().getTime()) {
+            throw new ApplicationError("A liberação deve ser agendada para uma data futura", 400);
+        }
+        if (!this.releaseSources) throw new ApplicationError("Agendamento de propostas indisponível", 503);
+        const source = await this.releaseSources.findReportSourceByClientId(new mongoose.Types.ObjectId(userId));
+        const recipients = extractResidentEmails(source);
+        if (recipients.length === 0) {
+            throw new ApplicationError("O cliente não possui e-mails válidos no briefing para receber a proposta", 409);
+        }
+        return {
+            scheduledAt,
+            status: "pending" as const,
+            recipients,
+            notifiedRecipients: [],
+            attempts: 0,
+            nextAttemptAt: scheduledAt
+        };
     }
 }

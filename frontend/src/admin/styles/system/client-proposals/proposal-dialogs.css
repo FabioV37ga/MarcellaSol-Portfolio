@@ -154,3 +154,30 @@
     width: 100%;
 }
 
+.proposal-release-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.proposal-release-toggle input {
+    width: auto;
+}
+
+.proposal-release-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.proposal-release-fields[hidden] {
+    display: none;
+}
+
+.proposal-release-fields small {
+    grid-column: 1 / -1;
+    color: var(--gray);
+    font-size: 9px;
+}

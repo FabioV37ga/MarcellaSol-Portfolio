@@ -52,6 +52,7 @@ export default function adminRoutes(
     router.post("/api/admin/clients/:id/proposals", requireAuthentication("admin"), receiveProposalAttachment, asyncRoute(proposals.createClientProposal, proposalErrorPolicy));
     router.put("/api/admin/clients/:id/proposals/:proposalId", requireAuthentication("admin"), receiveProposalAttachment, asyncRoute(proposals.editClientProposal, proposalErrorPolicy));
     router.post("/api/admin/clients/:id/proposals/:proposalId/complete-changes", requireAuthentication("admin"), asyncRoute(proposals.confirmClientProposalChanges, proposalErrorPolicy));
+    router.post("/api/admin/clients/:id/proposals/:proposalId/release-now", requireAuthentication("admin"), asyncRoute(proposals.releaseClientProposalNow, proposalErrorPolicy));
     router.delete("/api/admin/clients/:id/proposals/:proposalId/attachments/:attachmentIndex", requireAuthentication("admin"), asyncRoute(proposals.deleteClientProposalAttachment, proposalErrorPolicy));
     router.delete("/api/admin/clients/:id/proposals/:proposalId", requireAuthentication("admin"), asyncRoute(proposals.deleteClientProposal, proposalErrorPolicy));
     router.post("/api/admin/payments/preview", requireAuthentication("admin"), financialReadRateLimit, asyncRoute(payments.previewClientPayment, paymentErrorPolicy));

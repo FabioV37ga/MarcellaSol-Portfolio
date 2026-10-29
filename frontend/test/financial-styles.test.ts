@@ -8,7 +8,7 @@ const clientDirectory = path.resolve("src/client/styles/system");
 describe("estilos financeiros", () => {
     it("mantém o financeiro administrativo separado por responsabilidade", async () => {
         const entrypoint = await readFile(path.join(adminDirectory, "client-financial.css"), "utf8");
-        expect(entrypoint.trim().split("\n")).toEqual([
+        expect(entrypoint.trim().split(/\r?\n/)).toEqual([
             '@import url("./client-financial/page.css");',
             '@import url("./client-financial/payments.css");',
             '@import url("./client-financial/payment-dialog.css");',
@@ -28,7 +28,7 @@ describe("estilos financeiros", () => {
 
     it("mantém o financeiro do cliente separado por responsabilidade", async () => {
         const entrypoint = await readFile(path.join(clientDirectory, "financial.css"), "utf8");
-        expect(entrypoint.trim().split("\n")).toEqual([
+        expect(entrypoint.trim().split(/\r?\n/)).toEqual([
             '@import url("./financial/page.css");',
             '@import url("./financial/highlight.css");',
             '@import url("./financial/panel.css");',

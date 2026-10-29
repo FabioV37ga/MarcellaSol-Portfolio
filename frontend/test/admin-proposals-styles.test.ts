@@ -8,7 +8,7 @@ describe("estilos administrativos de propostas", () => {
     it("mantém um ponto de entrada ordenado por responsabilidade", async () => {
         const entrypoint = await readFile(path.join(stylesDirectory, "client-proposals.css"), "utf8");
 
-        expect(entrypoint.trim().split("\n")).toEqual([
+        expect(entrypoint.trim().split(/\r?\n/)).toEqual([
             '@import url("./client-proposals/page.css");',
             '@import url("./client-proposals/project-stages.css");',
             '@import url("./client-proposals/proposal-list.css");',

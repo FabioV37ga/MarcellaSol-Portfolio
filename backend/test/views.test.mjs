@@ -25,7 +25,7 @@ async function fixtureCopy() {
 
 test("valida o inventário completo das views", async () => {
     const result = await validate(fixtures);
-    assert.match(result.stdout, /15 arquivo\(s\) de view válido\(s\)/);
+    assert.match(result.stdout, /16 arquivo\(s\) de view válido\(s\)/);
 });
 
 test("rejeita nomes de view desconhecidos", async t => {

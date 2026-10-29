@@ -30,6 +30,8 @@ async function proposalsTemplate(): Promise<HTMLElement> {
 
 describe("AdminClientProposalsModule", () => {
     beforeEach(() => {
+        HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
+        HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
         document.body.innerHTML = `
             <section class="admin-login"></section>
             <button class="desktop-nav-item-selected"></button>
@@ -165,5 +167,45 @@ describe("AdminClientProposalsModule", () => {
         expect(api.loadProposals).toHaveBeenNthCalledWith(
             2, { token: "test-token", subjectId: "admin-test" }, "client-a", undefined, 50
         );
+    });
+
+    it("envia data e horário de Brasília ao criar uma proposta agendada", async () => {
+        const createProposal = vi.fn().mockResolvedValue({
+            proposal: {
+                _id: "proposal-a", title: "Layout", description: "Descrição", attachments: [],
+                userComment: "", clientResponses: [], status: "sent", releaseStatus: "pending",
+                releaseAt: "2099-01-20T17:30:00.000Z", createdAt: "2099-01-01T00:00:00.000Z",
+                updatedAt: "2099-01-01T00:00:00.000Z"
+            },
+            currentStageKey: "layout",
+            projectStages: stages
+        });
+        const api = {
+            loadClient: vi.fn().mockResolvedValue({
+                id: "client-a", name: "Cliente A", type: "client", hasFilledBriefing: true,
+                currentStageKey: "briefing", projectStages: stages, hasProjectStageOrder: false
+            }),
+            loadProposals: vi.fn().mockResolvedValue({ proposals: [], page: { limit: 20, hasMore: false } }),
+            createProposal
+        } as unknown as AdminSystemApi;
+        const module = new AdminClientProposalsModule(
+            new AdminSystemView(), { clientProposals: await proposalsTemplate() }, api,
+            { token: "test-token", subjectId: "admin-test" }, vi.fn(), () => undefined,
+            visualPersistence()
+        );
+
+        await module.mount("client-a");
+        document.querySelector<HTMLButtonElement>("#new-proposal")!.click();
+        const toggle = document.querySelector<HTMLInputElement>("#proposal-release-scheduled")!;
+        toggle.checked = true;
+        toggle.dispatchEvent(new Event("change"));
+        document.querySelector<HTMLInputElement>("#proposal-title")!.value = "Layout";
+        document.querySelector<HTMLTextAreaElement>("#proposal-description")!.value = "Descrição";
+        document.querySelector<HTMLInputElement>("#proposal-release-date")!.value = "2099-01-20";
+        document.querySelector<HTMLInputElement>("#proposal-release-time")!.value = "14:30";
+        document.querySelector<HTMLFormElement>("#proposal-form")!.dispatchEvent(new Event("submit", { cancelable: true }));
+
+        await vi.waitFor(() => expect(createProposal).toHaveBeenCalledOnce());
+        expect(createProposal.mock.calls[0][2].releaseAt).toBe("2099-01-20T17:30:00.000Z");
     });
 });

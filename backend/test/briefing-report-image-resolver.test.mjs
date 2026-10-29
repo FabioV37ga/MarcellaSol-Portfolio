@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BriefingReportImageResolver } from "../dist/src/services/briefing-report-image-resolver.js";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 test("image resolver deduplica, ignora anexos não visuais e limita vinte imagens", async () => {
     const downloads = [];
@@ -27,8 +29,8 @@ test("image resolver deduplica, ignora anexos não visuais e limita vinte imagen
     assert.deepEqual(downloads.slice(0, 3), ["image-1", "image-2", "image-3"]);
     assert.equal(new Set(downloads).size, 20);
     assert.equal(downloads.includes("pdf-1"), false);
-    assert.equal(processed.at(-1).outputPath, "/tmp/report-images/image-20.jpg");
-    assert.equal(duplicate.driveFile.localImageUrl, "file:///tmp/report-images/image-1.jpg");
+    assert.equal(processed.at(-1).outputPath, path.join("/tmp/report-images", "image-20.jpg"));
+    assert.equal(duplicate.driveFile.localImageUrl, pathToFileURL(path.join("/tmp/report-images", "image-1.jpg")).href);
     assert.equal(imageFiles[0].driveFile.localImageUrl, undefined);
 });
 
@@ -53,7 +55,7 @@ test("image resolver registra uma falha e continua preparando as demais imagens"
     assert.equal(warnings.length, 1);
     assert.match(warnings[0].message, /broken/);
     assert.match(warnings[0].error.message, /Drive indisponível/);
-    assert.deepEqual(processed, ["/tmp/report-images/image-2.jpg"]);
+    assert.deepEqual(processed, [path.join("/tmp/report-images", "image-2.jpg")]);
     assert.equal(first.driveFile.localImageUrl, undefined);
-    assert.equal(second.driveFile.localImageUrl, "file:///tmp/report-images/image-2.jpg");
+    assert.equal(second.driveFile.localImageUrl, pathToFileURL(path.join("/tmp/report-images", "image-2.jpg")).href);
 });

@@ -51,6 +51,9 @@ export class ClientProposalResponseService {
         if (existing.status !== "sent" && existing.status !== "resent") {
             throw new ApplicationError("Esta proposta não está mais disponível para aprovação", 409);
         }
+        if (existing.release && existing.release.status !== "released") {
+            throw new ApplicationError("Os anexos desta proposta ainda não foram liberados", 409);
+        }
         const client = await this.requireClient(userId, files.length > 0);
         const responseId = new mongoose.Types.ObjectId();
         let uploadedAttachments: string[] = [];

@@ -3,10 +3,10 @@ import { httpClient, type HttpClient } from "@/shared/http/http-client.js";
 import type { AdminSession } from "./admin-system.api.js";
 
 export type ProposalStatus = "sent" | "beated" | "resent" | "approved" | "changes-completed" | "Cancelled";
+export type ProposalReleaseStatus = "pending" | "processing" | "released" | "failed" | "cancelled";
 
 export interface ClientProposal {
     _id: string;
-    userId: string;
     title: string;
     description: string;
     attachments: string[];
@@ -22,6 +22,11 @@ export interface ClientProposal {
     status: ProposalStatus;
     createdAt: string;
     updatedAt: string;
+    releaseAt?: string;
+    releaseStatus?: ProposalReleaseStatus;
+    releasedAt?: string;
+    attachmentsAvailable?: boolean;
+    attachmentCount?: number;
 }
 
 export interface ProposalFields {
@@ -29,6 +34,7 @@ export interface ProposalFields {
     description: string;
     stageKey: ProjectStageKey;
     attachments?: File[];
+    releaseAt?: string;
 }
 
 export interface ProposalStageMutation {
@@ -57,6 +63,7 @@ export interface AdminProposalsGateway {
     confirmProposalChanges(session: AdminSession, clientId: string, proposalId: string): Promise<ProposalStageMutation>;
     deleteProposal(session: AdminSession, clientId: string, proposalId: string): Promise<void>;
     deleteProposalAttachment(session: AdminSession, clientId: string, proposalId: string, attachmentIndex: number): Promise<ClientProposal>;
+    releaseProposalNow(session: AdminSession, clientId: string, proposalId: string): Promise<ClientProposal>;
 }
 
 export class AdminProposalsApi implements AdminProposalsGateway {
@@ -107,11 +114,20 @@ export class AdminProposalsApi implements AdminProposalsGateway {
         return result.proposal;
     }
 
+    async releaseProposalNow(session: AdminSession, clientId: string, proposalId: string): Promise<ClientProposal> {
+        const result = await this.http.request<ProposalEnvelope>(`${this.itemPath(clientId, proposalId)}/release-now`, {
+            method: "POST", token: session.token
+        });
+        if (!result?.proposal) throw new Error("Resposta inválida ao liberar proposta");
+        return result.proposal;
+    }
+
     private async save(session: AdminSession, clientId: string, fields: ProposalFields, proposalId?: string): Promise<ProposalEnvelope> {
         const body = new FormData();
         body.set("title", fields.title);
         body.set("description", fields.description);
         body.set("stageKey", fields.stageKey);
+        if (fields.releaseAt) body.set("releaseAt", fields.releaseAt);
         fields.attachments?.forEach(file => body.append("attachments", file));
         return this.http.request<ProposalEnvelope>(proposalId ? this.itemPath(clientId, proposalId) : this.collectionPath(clientId), {
             method: proposalId ? "PUT" : "POST", token: session.token, body

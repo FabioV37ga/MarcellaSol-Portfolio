@@ -42,6 +42,8 @@ import { PuppeteerPdfRenderer } from "../services/briefing-report-pdf.renderer.j
 import { GoogleDriveFolderPermissionStorage } from "../services/folder-permission.storage.js";
 import { PasswordService } from "../services/password.service.js";
 import { GoogleDriveProposalStorage } from "../services/proposal-drive.storage.js";
+import { ProposalReleaseService } from "../application/proposal-release.service.js";
+import { ProposalReleaseScheduler } from "../services/proposal-release.scheduler.js";
 import { SessionService } from "../services/session.service.js";
 import { SessionTokenService } from "../services/session-token.service.js";
 
@@ -58,6 +60,7 @@ export interface ApplicationComposition {
     adminViews: AdminViewsController;
     clientViews: ClientViewsController;
     requireAuthentication: AuthenticationGuard;
+    proposalReleaseScheduler: ProposalReleaseScheduler;
 }
 
 export function createApplicationComposition(config: ApplicationConfig): ApplicationComposition {
@@ -88,7 +91,18 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
         ids
     );
     const proposalResponses = new ClientProposalResponseService(clients, proposals, proposalStorage);
-    const proposalService = new ClientProposalService(clients, proposals, proposalStorage, proposalResponses);
+    const proposalService = new ClientProposalService(
+        clients, proposals, proposalStorage, proposalResponses, briefings, clock
+    );
+    const proposalReleases = new ProposalReleaseService(
+        proposals,
+        clients,
+        folderPermissions,
+        proposalStorage,
+        clock,
+        ids
+    );
+    const proposalReleaseScheduler = new ProposalReleaseScheduler(proposalReleases);
 
     return {
         adminSessions: new AdminSessionsController(authenticate, sessions),
@@ -104,7 +118,7 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
         clientViews: new ClientViewsController(views, clients),
         adminPayments: new AdminPaymentsController(paymentService),
         clientPayments: new ClientPaymentsController(paymentService),
-        adminProposals: new AdminProposalsController(proposalService),
+        adminProposals: new AdminProposalsController(proposalService, proposalReleases),
         adminReports: new AdminReportsController(new ClientBriefingReportService(
             clients,
             briefings,
@@ -113,6 +127,7 @@ export function createApplicationComposition(config: ApplicationConfig): Applica
             new PuppeteerPdfRenderer()
         )),
         clientApprovals: new ClientApprovalsController(new ListClientApprovalsService(clients, proposalService), proposalResponses),
-        requireAuthentication: createAuthenticationGuard(sessions)
+        requireAuthentication: createAuthenticationGuard(sessions),
+        proposalReleaseScheduler
     };
 }

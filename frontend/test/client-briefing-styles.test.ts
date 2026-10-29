@@ -8,7 +8,7 @@ describe("estilos do briefing do cliente", () => {
     it("mantém o ponto de entrada na ordem original da cascata", async () => {
         const entrypoint = await readFile(path.join(stylesDirectory, "briefing.css"), "utf8");
 
-        expect(entrypoint.trim().split("\n")).toEqual([
+        expect(entrypoint.trim().split(/\r?\n/)).toEqual([
             '@import url("./components/base.css");',
             '@import url("./components/controls.css");',
             '@import url("./components/pages.css");',

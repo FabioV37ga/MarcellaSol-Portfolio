@@ -24,11 +24,15 @@ export async function startServer(config: ApplicationConfig): Promise<Server> {
 
     await connect(config.databaseUri);
 
-    routes(app, createApplicationComposition(config), config.isProduction);
+    const composition = createApplicationComposition(config);
+    routes(app, composition, config.isProduction);
 
-    return app.listen(config.port, () => {
+    const server = app.listen(config.port, () => {
         console.log(`✓ Servidor rodando na porta ${config.port}`);
     });
+    composition.proposalReleaseScheduler.start();
+    server.once("close", () => composition.proposalReleaseScheduler.stop());
+    return server;
 }
 
 const productionOrigins = [

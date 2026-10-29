@@ -52,6 +52,12 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
         link.innerHTML = `<i class="fa fa-paperclip" aria-hidden="true"></i><span>Anexo ${index + 1}</span>`;
         attachments.append(link);
     });
+    if (proposal.attachmentsAvailable === false && proposal.releaseAt) {
+        const pending = document.createElement("p");
+        pending.className = "client-approval-release-pending";
+        pending.textContent = `Anexos disponíveis em ${formattedReleaseDate(proposal.releaseAt)}.`;
+        attachments.append(pending);
+    }
 
     article.append(header, title, stage, description, attachments);
 
@@ -91,7 +97,7 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
         article.append(history);
     }
 
-    if (proposal.status === "sent" || proposal.status === "resent") {
+    if ((proposal.status === "sent" || proposal.status === "resent") && proposal.attachmentsAvailable !== false) {
         const actions = document.createElement("div");
         actions.className = "client-approval-actions";
         const reject = document.createElement("button");
@@ -106,4 +112,17 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
         article.append(actions);
     }
     return article;
+}
+
+function formattedReleaseDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "data inválida";
+    return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "America/Sao_Paulo"
+    }).format(date);
 }

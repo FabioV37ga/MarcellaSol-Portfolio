@@ -88,6 +88,10 @@ export class AdminClientProposalsModule {
         const existingAttachmentsList = root.querySelector<HTMLElement>("#proposal-existing-attachments-list");
         const attachmentItemTemplate = root.querySelector<HTMLTemplateElement>("#proposal-attachment-item-template");
         const stageSelect = root.querySelector<HTMLSelectElement>("#proposal-stage")!;
+        const releaseToggle = root.querySelector<HTMLInputElement>("#proposal-release-scheduled")!;
+        const releaseFields = root.querySelector<HTMLElement>("#proposal-release-fields")!;
+        const releaseDate = root.querySelector<HTMLInputElement>("#proposal-release-date")!;
+        const releaseTime = root.querySelector<HTMLInputElement>("#proposal-release-time")!;
         // Mantém compatibilidade com uma versão antiga da view já persistida no MongoDB.
         attachmentInput.multiple = true;
         attachmentInput.name = "attachments";
@@ -226,12 +230,37 @@ export class AdminClientProposalsModule {
             updatePagination();
         };
 
+        const releaseProposalNow = async (proposal: ClientProposal, button: HTMLButtonElement): Promise<void> => {
+            if (button.disabled) return;
+            button.disabled = true;
+            feedback.textContent = proposal.releaseStatus === "failed"
+                ? "Tentando liberar a proposta novamente..."
+                : "Liberando proposta...";
+            try {
+                const updated = await this.api.releaseProposalNow(this.session, clientId, proposal._id);
+                if (requestId !== this.requestId) return;
+                proposals = proposals.map(item => item._id === updated._id ? updated : item);
+                feedback.textContent = "Proposta liberada e notificação solicitada ao Google Drive.";
+                render();
+                rememberProposals();
+            } catch (error) {
+                if (requestId !== this.requestId) return;
+                feedback.textContent = error instanceof Error ? error.message : "Não foi possível liberar a proposta.";
+                button.disabled = false;
+            }
+        };
+
         const createProposalNode = (proposal: ClientProposal): HTMLElement => {
                 const item = clientProposalItem(proposal);
                 u(item.querySelector(".proposal-edit") as HTMLElement).on("click", () => openEditor(proposal));
                 u(item.querySelector(".proposal-delete") as HTMLElement).on("click", () => openDeleteDialog(proposal));
                 const confirm = item.querySelector<HTMLButtonElement>(".proposal-confirm-changes");
                 confirm?.addEventListener("click", () => changesConfirmation.open(proposal._id, proposal.title));
+                const release = item.querySelector<HTMLButtonElement>(".proposal-release-now");
+                if (release) {
+                    release.textContent = proposal.releaseStatus === "failed" ? "Tentar novamente" : "Liberar agora";
+                    release.addEventListener("click", () => { void releaseProposalNow(proposal, release); });
+                }
                 return item;
         };
 
@@ -265,6 +294,17 @@ export class AdminClientProposalsModule {
             deleteDialog.showModal();
         };
 
+        const syncReleaseFields = (): void => {
+            releaseFields.hidden = !releaseToggle.checked;
+            const editable = !editingProposal
+                || editingProposal.releaseStatus === "pending"
+                || editingProposal.releaseStatus === "failed";
+            releaseDate.required = releaseToggle.checked && editable;
+            releaseTime.required = releaseToggle.checked && editable;
+            releaseDate.disabled = !releaseToggle.checked || !editable;
+            releaseTime.disabled = !releaseToggle.checked || !editable;
+        };
+
         const openEditor = (proposal?: ClientProposal): void => {
             editingId = proposal?._id;
             editingProposal = proposal;
@@ -273,6 +313,13 @@ export class AdminClientProposalsModule {
             root.querySelector<HTMLInputElement>("#proposal-title")!.value = proposal?.title ?? "";
             root.querySelector<HTMLTextAreaElement>("#proposal-description")!.value = proposal?.description ?? "";
             stageSelect.value = proposal?.stageKey ?? currentStageKey;
+            releaseToggle.checked = Boolean(proposal?.releaseAt);
+            releaseToggle.disabled = Boolean(proposal);
+            const releaseValues = proposal?.releaseAt ? releaseInputValues(proposal.releaseAt) : undefined;
+            releaseDate.value = releaseValues?.date ?? "";
+            releaseTime.value = releaseValues?.time ?? "";
+            releaseDate.min = releaseInputValues(new Date().toISOString()).date;
+            syncReleaseFields();
             attachmentInput.required = !proposal;
             attachmentHelp.textContent = proposal
                 ? "A remoção é salva imediatamente. Novos arquivos serão acrescentados ao salvar."
@@ -297,6 +344,7 @@ export class AdminClientProposalsModule {
         u(root.querySelector("#proposals-client-index") as HTMLElement).off("click").on("click", () => this.navigate("client-management", clientId));
         u(root.querySelector("#proposals-back") as HTMLElement).off("click").on("click", () => this.navigate("client-management", clientId));
         u(root.querySelector("#new-proposal") as HTMLElement).off("click").on("click", () => openEditor());
+        releaseToggle.addEventListener("change", syncReleaseFields);
         loadMore.onclick = () => void loadNextPage();
         u(root.querySelector("#proposal-cancel") as HTMLElement).off("click").on("click", () => dialog.close());
         u(root.querySelector("#proposal-delete-cancel") as HTMLElement).off("click").on("click", () => {
@@ -331,10 +379,24 @@ export class AdminClientProposalsModule {
             const description = root.querySelector<HTMLTextAreaElement>("#proposal-description")!.value;
             const stageKey = stageSelect.value as ProjectStageKey;
             const attachments = Array.from(attachmentInput.files ?? []);
+            let releaseAt: string | undefined;
+            const releaseCanChange = !editingProposal
+                || editingProposal.releaseStatus === "pending"
+                || editingProposal.releaseStatus === "failed";
+            if (releaseToggle.checked && releaseCanChange) {
+                releaseAt = scheduledReleaseIso(releaseDate.value, releaseTime.value);
+                if (!releaseAt || new Date(releaseAt).getTime() <= Date.now()) {
+                    feedback.textContent = "Informe uma data e um horário futuros para a liberação.";
+                    savingProposal = false;
+                    submit.disabled = false;
+                    return;
+                }
+            }
+            const fields = { title, description, stageKey, attachments, ...(releaseAt ? { releaseAt } : {}) };
             const request = editingId
-                ? this.api.editProposal(this.session, clientId, editingId, { title, description, stageKey, attachments })
+                ? this.api.editProposal(this.session, clientId, editingId, fields)
                     .then(proposal => ({ proposal }))
-                : this.api.createProposal(this.session, clientId, { title, description, stageKey, attachments });
+                : this.api.createProposal(this.session, clientId, fields);
             void request.then(result => {
                 const saved = result.proposal;
                 const existing = proposals.findIndex(item => item._id === saved._id);
@@ -439,6 +501,28 @@ export class AdminClientProposalsModule {
         list.append(empty);
     }
 
+}
+
+function scheduledReleaseIso(date: string, time: string): string | undefined {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return undefined;
+    const parsed = new Date(`${date}T${time}:00-03:00`);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+function releaseInputValues(value: string): { date: string; time: string } {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return { date: "", time: "" };
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+    }).formatToParts(date);
+    const part = (type: Intl.DateTimeFormatPartTypes): string => parts.find(item => item.type === type)?.value ?? "";
+    return { date: `${part("year")}-${part("month")}-${part("day")}`, time: `${part("hour")}:${part("minute")}` };
 }
 
 function proposalNode(root: ParentNode, proposalId: string): HTMLElement | undefined {

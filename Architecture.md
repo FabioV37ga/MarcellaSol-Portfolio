@@ -261,6 +261,8 @@ clientes/<cliente>/propostas/<titulo-id>/
 
 Os anexos das respostas são históricos e não devem ser sobrescritos por um reenvio posterior.
 
+Propostas com liberação agendada usam uma área privada fora de `clientes/<cliente>`. A proposta pode ser apresentada ao cliente, mas o presenter deve ocultar os links e o backend deve recusar decisões enquanto `release.status` não for `released`. No vencimento, o processo principal captura o agendamento atomicamente, concede permissões diretas com notificação nativa do Drive, move a pasta para a estrutura definitiva e só então publica a liberação. Claims possuem lease para recuperação após reinício; permissões existentes não podem gerar e-mail duplicado. O scheduler não substitui MongoDB como fonte de verdade e não utiliza um `setTimeout` por proposta.
+
 Fluxo de propostas atualizado em 15/09/2026: a aprovação inicial do cliente permanece; após solicitar alterações, o administrador confirma sua conclusão em diálogo explícito. A proposta passa de `beated` para `changes-completed`, a etapa vinculada passa para `awaiting-client` (Aguardando cliente) e não há nova aprovação do cliente. O reenvio administrativo foi removido; `resent` permanece legível para compatibilidade. A transição deve verificar atomicamente o status anterior, preservar histórico/anexos e compensar falha ao atualizar a etapa.
 
 ## 10. Migrações e compatibilidade

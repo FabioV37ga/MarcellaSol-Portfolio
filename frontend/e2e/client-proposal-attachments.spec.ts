@@ -105,6 +105,43 @@ test("etapas e aprovações apresenta falha de carregamento sem bloquear a naveg
     await expect.poll(() => page.evaluate(() => history.state?.page)).toBe("home");
 });
 
+test("proposta agendada aparece sem anexos ou decisões antes da liberação", async ({ page }) => {
+    await mockClient(page);
+    await page.route("**/api/client/proposals", route => route.fulfill({
+        json: {
+            currentStageKey: "briefing",
+            projectStages: [{ key: "contract", status: "completed" }, { key: "briefing", status: "awaiting-approval" }],
+            proposals: [{
+                _id: "scheduled-proposal",
+                title: "Proposta agendada",
+                description: "Os arquivos serão liberados no horário combinado.",
+                attachments: [],
+                attachmentCount: 1,
+                attachmentsAvailable: false,
+                releaseAt: "2099-01-20T17:30:00.000Z",
+                releaseStatus: "pending",
+                userComment: "",
+                clientResponses: [],
+                stageKey: "briefing",
+                status: "sent",
+                createdAt: "2026-10-29T10:00:00.000Z",
+                updatedAt: "2026-10-29T10:00:00.000Z"
+            }],
+            page: { limit: 20, hasMore: false }
+        }
+    }));
+    await page.goto("/cliente.html");
+    await page.locator("#client-login").fill("CLIENTE");
+    await page.locator("#client-password").fill("senha");
+    await page.locator("#client-login-button").click();
+    await page.locator("#client-stages-processes").click();
+
+    const card = page.locator("[data-proposal-id='scheduled-proposal']");
+    await expect(card).toContainText("Anexos disponíveis em");
+    await expect(card.locator(".client-approval-attachment")).toHaveCount(0);
+    await expect(card.locator(".client-approval-actions")).toHaveCount(0);
+});
+
 test("revisita aprovações com prévia e preserva propostas inalteradas", async ({ page }) => {
     await mockClient(page);
     const proposal = (id: string, title: string) => ({
