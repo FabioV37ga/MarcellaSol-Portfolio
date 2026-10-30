@@ -31,7 +31,7 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
     article.querySelector<HTMLElement>(".proposal-stage")!.textContent = proposal.stageKey
         ? projectStageLabels[proposal.stageKey]
         : "Etapa não vinculada";
-    article.querySelector<HTMLElement>(".proposal-description")!.textContent = proposal.description;
+    article.querySelector<HTMLElement>(".proposal-description")!.textContent = withParagraphSpacing(proposal.description);
     const attachments = proposal.attachments?.length
         ? proposal.attachments
         : proposal.attachment ? [proposal.attachment] : [];
@@ -60,7 +60,7 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
     if (proposal.userComment && !proposal.clientResponses?.length) {
         const comment = article.querySelector<HTMLElement>(".proposal-comment")!;
         comment.hidden = false;
-        comment.querySelector("p")!.textContent = proposal.userComment;
+        comment.querySelector("p")!.textContent = withParagraphSpacing(proposal.userComment);
     }
     if (proposal.clientResponses?.length) {
         const history = document.createElement("section");
@@ -72,7 +72,7 @@ export function clientProposalItem(proposal: ClientProposal): HTMLElement {
             const item = document.createElement("div");
             item.className = "proposal-client-response";
             const text = document.createElement("p");
-            text.textContent = `${responseIndex + 1}. ${response.decision === "approved" ? "Aprovou" : "Solicitou alteração"}: ${response.comment}`;
+            text.textContent = withParagraphSpacing(`${responseIndex + 1}. ${response.decision === "approved" ? "Aprovou" : "Solicitou alteração"}: ${response.comment}`);
             item.append(text);
             response.attachments.forEach((url, attachmentIndex) => {
                 const link = document.createElement("a");
@@ -100,4 +100,8 @@ function formattedReleaseDate(value: string): string {
         minute: "2-digit",
         timeZone: "America/Sao_Paulo"
     }).format(date);
+}
+
+function withParagraphSpacing(value: string): string {
+    return value.replace(/\r\n?/g, "\n").replace(/([^\n])\n(?=[^\n])/g, "$1\n\n");
 }

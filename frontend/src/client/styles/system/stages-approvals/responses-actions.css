@@ -68,6 +68,11 @@
     border-top: 1px solid #eee7e3;
 }
 
+.client-approval-response p {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
 .client-approval-response a {
     color: var(--orange);
     font-size: 12px;

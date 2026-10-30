@@ -110,6 +110,7 @@
 .client-approval-comment p {
     margin-top: 4px;
     color: var(--gray);
+    overflow-wrap: anywhere;
     white-space: pre-wrap;
 }
 

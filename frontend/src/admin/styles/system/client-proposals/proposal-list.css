@@ -179,6 +179,8 @@
 .proposal-client-response p {
     margin-top: 6px;
     line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
 }
 
 .proposal-confirm-changes {

@@ -39,7 +39,7 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
     stage.textContent = proposal.stageKey ? projectStageLabels[proposal.stageKey] : "Etapa não vinculada";
     const description = document.createElement("p");
     description.className = "client-approval-description";
-    description.textContent = proposal.description;
+    description.textContent = withParagraphSpacing(proposal.description);
 
     const attachments = document.createElement("div");
     attachments.className = "client-approval-attachments";
@@ -67,7 +67,7 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
         const commentTitle = document.createElement("strong");
         commentTitle.textContent = "Seu comentário";
         const commentText = document.createElement("p");
-        commentText.textContent = proposal.userComment;
+        commentText.textContent = withParagraphSpacing(proposal.userComment);
         comment.append(commentTitle, commentText);
         article.append(comment);
     }
@@ -82,7 +82,7 @@ export function clientApprovalItem(proposal: ClientProposal): HTMLElement {
             const item = document.createElement("div");
             item.className = "client-approval-response";
             const label = document.createElement("p");
-            label.textContent = `${responseIndex + 1}. ${response.decision === "approved" ? "Aprovação" : "Solicitação de alteração"}: ${response.comment}`;
+            label.textContent = withParagraphSpacing(`${responseIndex + 1}. ${response.decision === "approved" ? "Aprovação" : "Solicitação de alteração"}: ${response.comment}`);
             item.append(label);
             response.attachments.forEach((url, attachmentIndex) => {
                 const link = document.createElement("a");
@@ -125,4 +125,8 @@ function formattedReleaseDate(value: string): string {
         minute: "2-digit",
         timeZone: "America/Sao_Paulo"
     }).format(date);
+}
+
+function withParagraphSpacing(value: string): string {
+    return value.replace(/\r\n?/g, "\n").replace(/([^\n])\n(?=[^\n])/g, "$1\n\n");
 }
